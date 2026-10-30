@@ -1,0 +1,3470 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dagstart — de ochtendbriefing en je eigen lijst</title>
+<meta name="theme-color" content="#2d6b2d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dagstart">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icoon-180.png">
+<link rel="icon" type="image/png" href="icoon-192.png">
+<style>
+  :root {
+    /* Gert's natuurstijl: bosgroen op perkament, dezelfde kleuren als zijn
+       reis-PDF's. Crème in plaats van wit, omdat een wit scherm om half zeven
+       's ochtends te hard is. */
+    --bg: #f2ede1;
+    --panel: #fbf9f3;
+    --panel-2: #f5f1e8;
+    --ink: #1a1a1a;
+    --ink-2: #5a5848;
+    --ink-3: #8a8674;
+    --line: #ddd7c6;
+    --line-2: #cdc9b8;
+    --accent: #2d6b2d;        /* bosgroen */
+    --accent-ink: #1f4d1f;
+    --accent-zacht: #e4ecdf;
+    --op-accent: #ffffff;   /* tekst bovenop het accent */
+    --warm: #c47a18;
+    --warm-zacht: #f7edd9;
+    /* Streepkleuren per blok, zodat je in één oogopslag ziet waar je bent. */
+    --teal: #1a5a46;
+    --olijf: #6b7a25;
+    --leisteen: #4a6858;
+    --serif: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(30,28,24,.06), 0 4px 14px rgba(30,28,24,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161a15; --panel: #1e241c; --panel-2: #252b22;
+      --ink: #eef0e8; --ink-2: #b4b8a6; --ink-3: #888b7c;
+      --line: #323a2f; --line-2: #44503f;
+      --accent: #7fb069; --accent-ink: #9cc98a; --accent-zacht: #24301f;
+      --op-accent: #161a15;
+      --warm: #e0a94f; --warm-zacht: #352d16;
+      --teal: #5f9e86; --olijf: #a3b35c; --leisteen: #7d9a89;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"] {
+      --bg: #161a15; --panel: #1e241c; --panel-2: #252b22;
+      --ink: #eef0e8; --ink-2: #b4b8a6; --ink-3: #888b7c;
+      --line: #323a2f; --line-2: #44503f;
+      --accent: #7fb069; --accent-ink: #9cc98a; --accent-zacht: #24301f;
+      --op-accent: #161a15;
+      --warm: #e0a94f; --warm-zacht: #352d16;
+      --teal: #5f9e86; --olijf: #a3b35c; --leisteen: #7d9a89;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+  h1, h2, h3 { margin: 0; font-weight: 650; letter-spacing: -.01em; }
+  /* Koppen in een schreefletter: dat is wat Gert's PDF's ook doen, en het
+     scheelt genoeg van de lopende tekst om een blok herkenbaar te maken. */
+  h1, h2, h3, .brand b, .startkaart h2 { font-family: var(--serif); font-weight: 600; }
+  button, input, select { font: inherit; color: inherit; }
+  button { -webkit-tap-highlight-color: transparent; }
+
+  header.app { position: sticky; top: 0; z-index: 30; background: var(--panel); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top); }
+  .bar { max-width: 720px; margin: 0 auto; padding: 9px 14px; display: flex; align-items: center; gap: 10px; }
+  .brand { display: flex; align-items: baseline; gap: 8px; margin-right: auto; min-width: 0; }
+  .brand b { font-size: 19px; font-weight: 700; letter-spacing: -.02em; white-space: nowrap; }
+  .brand span { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* op een smalle telefoon staat de datum toch al boven het eerste blok */
+  @media (max-width: 520px) { .brand span { display: none; } }
+  .tabs { display: flex; gap: 2px; background: var(--panel-2); padding: 3px; border-radius: 9px; border: 1px solid var(--line); }
+  .tabs button { border: 0; background: transparent; color: var(--ink-2); padding: 7px 11px; border-radius: 7px; cursor: pointer; font-weight: 550; font-size: 14px; white-space: nowrap; }
+  .tabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
+
+  main { max-width: 720px; margin: 0 auto; padding: 14px 14px calc(40px + env(safe-area-inset-bottom)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+  .kop { display: flex; align-items: baseline; gap: 9px; padding: 12px 14px 0; }
+  .kop h2 { font-size: 15.5px; }
+  .kop .bij { font-size: 12.5px; color: var(--ink-3); margin-left: auto; }
+  .body { padding: 12px 14px 14px; }
+
+  /* --- vinkjes van vandaag --- */
+  .tegels { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .tegel { display: flex; align-items: center; gap: 9px; padding: 12px 12px; border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 10px; cursor: pointer; text-align: left; font-size: 15px; font-weight: 550; color: var(--ink-2); }
+  .tegel .bol { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-2); flex: none; }
+  .tegel[aria-pressed="true"] { background: var(--accent-zacht); border-color: var(--accent); color: var(--accent-ink); }
+  .tegel[aria-pressed="true"] .bol { background: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 3px var(--accent-zacht); }
+
+  .rij-titel { font-size: 12.5px; color: var(--ink-3); margin: 16px 0 7px; }
+  .keuze { display: flex; gap: 6px; }
+  .keuze button { flex: 1; padding: 11px 4px; border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 10px; cursor: pointer; font-size: 13.5px; font-weight: 550; color: var(--ink-2); white-space: nowrap; }
+  .keuze button[aria-pressed="true"] { background: var(--accent-zacht); border-color: var(--accent); color: var(--accent-ink); }
+  .keuze button.let[aria-pressed="true"] { background: var(--warm-zacht); border-color: var(--warm); color: var(--warm); }
+
+  /* --- afvalkalender --- */
+  .afval-nu { font-size: 16px; font-weight: 600; }
+  .afval-nu.straks { color: var(--accent-ink); }
+  .afval-bij { font-size: 13.5px; color: var(--ink-3); margin-top: 3px; }
+  .afval-lijst { list-style: none; margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); }
+  .afval-lijst li { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; color: var(--ink-2); padding: 4px 0; }
+  .afval-lijst .wanneer { color: var(--ink-3); }
+
+  .stil { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .stil span { font-size: 13.5px; color: var(--ink-3); }
+  .schakel { padding: 7px 12px; border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 20px; cursor: pointer; font-size: 13.5px; color: var(--ink-2); white-space: nowrap; flex: none; }
+  .schakel[aria-pressed="true"] { background: var(--warm-zacht); border-color: var(--warm); color: var(--warm); }
+
+  /* --- weekvoortgang --- */
+  .week { list-style: none; margin: 0; padding: 0; }
+  .week li { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .week li:last-child { border-bottom: 0; }
+  .week .naam { font-size: 14.5px; color: var(--ink-2); flex: 1; min-width: 0; }
+  .stippen { display: flex; gap: 4px; flex: none; }
+  .stip { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--line-2); }
+  .stip.vol { background: var(--accent); border-color: var(--accent); }
+  .stip.extra { background: var(--accent); border-color: var(--accent); opacity: .45; }
+  .stip.let { background: var(--warm); border-color: var(--warm); }
+  .telling { font-size: 12.5px; color: var(--ink-3); flex: none; min-width: 92px; text-align: right; font-variant-numeric: tabular-nums; }
+  .telling.gehaald { color: var(--accent-ink); }
+  .telling.let { color: var(--warm); }
+
+  /* --- taken --- */
+  .invoer { display: flex; gap: 8px; }
+  .invoer input[type="text"] { flex: 1; min-width: 0; padding: 12px 12px; border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 10px; }
+  .invoer input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .invoer button { padding: 0 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--op-accent); border-radius: 10px; cursor: pointer; font-weight: 600; }
+
+  .chips { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+  .chips-kop { font-size: 12px; color: var(--ink-3); margin-right: 2px; }
+  .chip { padding: 5px 11px; border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 20px; cursor: pointer; font-size: 13px; color: var(--ink-3); }
+  .chip[aria-pressed="true"] { background: var(--accent-zacht); border-color: var(--accent); color: var(--accent-ink); font-weight: 550; }
+
+  ul.taken { list-style: none; margin: 12px 0 0; padding: 0; }
+  ul.taken li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .vink { width: 24px; height: 24px; flex: none; margin-top: 1px; border-radius: 7px; border: 2px solid var(--line-2); background: transparent; cursor: pointer; padding: 0; }
+  .vink[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+  .vink[aria-pressed="true"]::after { content: "✓"; color: var(--op-accent); font-size: 15px; line-height: 20px; display: block; }
+  .inhoud { flex: 1; min-width: 0; }
+  .inhoud .tekst { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0; cursor: text; font-size: 15.5px; line-height: 1.45; word-break: break-word; }
+  li.af .tekst { color: var(--ink-3); text-decoration: line-through; }
+  .meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
+  .label { font-size: 11.5px; padding: 1px 8px; border-radius: 20px; background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-3); }
+  .zacht { font-size: 11.5px; color: var(--ink-3); }
+  .acties { display: flex; gap: 2px; flex: none; }
+  .acties button { border: 0; background: transparent; color: var(--ink-3); cursor: pointer; padding: 4px 7px; border-radius: 7px; font-size: 15px; line-height: 1.2; }
+  .acties button:hover { background: var(--panel-2); color: var(--ink); }
+
+  .bewerk { display: flex; flex-direction: column; gap: 8px; }
+  .bewerk input { width: 100%; padding: 9px 10px; border: 1px solid var(--accent); background: var(--panel-2); border-radius: 8px; }
+  .bewerk .knoppen { display: flex; gap: 6px; }
+  .btn { border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 550; }
+  .btn.primair { background: var(--accent); border-color: var(--accent); color: var(--op-accent); }
+
+  .vouw { width: 100%; text-align: left; border: 0; background: transparent; color: var(--ink-3); font-size: 13.5px; padding: 11px 0 0; cursor: pointer; border-top: 1px solid var(--line); margin-top: 4px; }
+  .leeg { color: var(--ink-3); font-size: 14.5px; padding: 14px 0 4px; }
+
+  /* --- terugblik --- */
+  .vgl { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+  .vgl:last-child { border-bottom: 0; }
+  .vgl .naam { flex: 1; color: var(--ink-2); }
+  .vgl .cijfer { font-variant-numeric: tabular-nums; color: var(--ink); }
+  .vgl .pijl { font-size: 12.5px; color: var(--ink-3); min-width: 74px; text-align: right; }
+  .vgl .pijl.op { color: var(--accent-ink); }
+
+  .weekkop { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .weekkop b { font-size: 14.5px; }
+  .weekkop span { font-size: 12.5px; color: var(--ink-3); }
+
+  .aanmelding { width: 100%; font: 11px/1.4 ui-monospace, Menlo, monospace;
+                word-break: break-all; border: 1px solid var(--line);
+                border-radius: 8px; padding: 8px; background: var(--panel-2);
+                color: var(--ink); margin: 8px 0; }
+
+  /* --- instellingen --- */
+  .doel { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .doel:last-of-type { border-bottom: 0; }
+  .doel .naam { flex: 1; font-size: 14.5px; color: var(--ink-2); }
+  .doel .soort { font-size: 12px; color: var(--ink-3); }
+  .doel input { width: 62px; padding: 7px 8px; border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 8px; text-align: center; font-variant-numeric: tabular-nums; }
+  p.uitleg { font-size: 13.5px; color: var(--ink-3); line-height: 1.55; margin: 10px 0 0; }
+  .knoprij { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+  .melding { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 20px; font-size: 14px; z-index: 50; opacity: 0; pointer-events: none; transition: opacity .18s; }
+  .melding.aan { opacity: .95; }
+
+  @media (max-width: 380px) {
+    .telling { min-width: 78px; font-size: 12px; }
+    .tegel { font-size: 14px; padding: 11px 10px; }
+  }
+
+  /* ---------- Startscherm: twee grote blokken ----------------------
+     Bij openen wil Gert niet meteen tegen een muur tekst aankijken. Dus
+     eerst de keuze: wat is er gebeurd, of wat moet ik doen. De rest zit
+     erachter. */
+  .start { padding: 16px; display: grid; gap: 14px; }
+  .startkaart {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--panel); border: 1px solid var(--line);
+    border-left: 6px solid var(--accent);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 18px 18px 16px; color: inherit; font: inherit;
+  }
+  .startkaart:active { transform: translateY(1px); }
+  .startkaart.briefing { border-left-color: var(--teal); }
+  .startkaart.oprij    { border-left-color: var(--olijf); }
+  .startkaart h2 { font-size: 21px; margin-bottom: 4px; }
+  .startkaart .onder { color: var(--ink-2); font-size: 14px; }
+  .startkaart .cijfers {
+    margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .pil {
+    font-size: 12.5px; padding: 3px 9px; border-radius: 999px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--ink-2); white-space: nowrap;
+  }
+  .pil.groen { background: var(--accent-zacht); border-color: transparent; color: var(--accent-ink); }
+  .startvoet { padding: 2px 4px 20px; display: flex; gap: 14px; justify-content: center; }
+  .startvoet button {
+    background: none; border: 0; color: var(--ink-3); font: inherit;
+    font-size: 14px; text-decoration: underline; cursor: pointer; padding: 6px;
+  }
+
+  /* ---------- Ochtendbriefing ---------- */
+  .briefkop { padding: 14px 16px 4px; }
+  .briefkop .datum { color: var(--ink-2); font-size: 14px; }
+  .speler {
+    margin: 10px 16px 4px; padding: 12px 14px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 6px solid var(--accent);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .speler .label { font-size: 13.5px; color: var(--ink-2); margin-bottom: 8px; }
+
+  /* Eigen audiospeler. De browser levert er zelf een, maar die is knalwit en
+     staat boven aan het scherm dat je elke ochtend als eerste ziet — in een app
+     die verder helemaal in bosgroen en crème is uitgevoerd. Deze gebruikt
+     dezelfde kleurvariabelen, dus hij volgt ook de donkere stand mee. */
+  .weerkaart .dalfsen { font-weight: 600; }
+
+  .speler .kop { display: flex; align-items: baseline; gap: 10px; }
+  /* `.label` is elders in de app een chipje met rand en vulling; hier is het
+     gewoon een regel tekst. Zonder deze terugzetting ziet "Ingesproken door
+     Robin" eruit als een leeg invulveld. */
+  .speler .kop .label {
+    flex: 1; margin: 0; padding: 0; border: none; background: none;
+    border-radius: 0; font-size: 13.5px;
+  }
+  .speler .duur {
+    font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+  }
+  .speler .bediening { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .speler button.knop {
+    flex: none; display: grid; place-items: center; cursor: pointer;
+    background: none; border: 1px solid var(--line-2); color: var(--ink-2);
+    border-radius: 999px; width: 34px; height: 34px; padding: 0;
+    font-size: 11px; font-variant-numeric: tabular-nums;
+  }
+  .speler button.knop:hover { border-color: var(--accent); color: var(--accent); }
+  .speler button.afspelen {
+    width: 46px; height: 46px; background: var(--accent); border: none;
+    color: var(--op-accent);
+  }
+  .speler button.afspelen:hover { background: var(--accent-ink); color: var(--op-accent); }
+  .speler button.afspelen svg { width: 20px; height: 20px; fill: currentColor; }
+  .speler button.terug svg { width: 17px; height: 17px; fill: currentColor; }
+  /* accent-color kleurt zowel het gevulde spoor als het knopje; dat scheelt een
+     hoop eigen opmaak en houdt het toetsenbord- en sleepgedrag van de browser. */
+  .speler input.voortgang {
+    flex: 1; accent-color: var(--accent); height: 22px; cursor: pointer; min-width: 0;
+  }
+  .speler .tijd {
+    flex: none; font-size: 12.5px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; min-width: 42px; text-align: right;
+  }
+  .blok { margin: 10px 16px; }
+  .blok > button {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-left: 6px solid var(--leisteen);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 13px 14px; color: inherit; font: inherit; cursor: pointer;
+    text-align: left;
+  }
+  .blok > button .naam { font-family: var(--serif); font-size: 17px; flex: 1; }
+  .blok > button .aantal { color: var(--ink-3); font-size: 13.5px; }
+  .blok > button .pijl { color: var(--ink-3); transition: transform .15s; }
+  .blok[data-open="1"] > button .pijl { transform: rotate(90deg); }
+  .blok[data-open="1"] > button { border-radius: var(--radius) var(--radius) 0 0; }
+  .blok .inhoud {
+    border: 1px solid var(--line); border-top: 0;
+    border-radius: 0 0 var(--radius) var(--radius);
+    background: var(--panel-2); overflow: hidden;
+  }
+  /* De regel zit om het bericht heen en niet in het bericht zelf: naast de
+     tekst staat de bewaarknop, en die hoort binnen dezelfde scheidslijn te
+     vallen. Vandaar dat de rand hier zit en niet op .bericht. */
+  .berichtrij { display: flex; align-items: flex-start; border-top: 1px solid var(--line); }
+  .berichtrij:first-child { border-top: 0; }
+  .berichtrij.nieuw { box-shadow: inset 3px 0 0 var(--accent); }
+  .bewaarknop { flex: 0 0 auto; background: none; border: 0; cursor: pointer;
+                padding: 11px 12px 11px 4px; font-size: 16px; line-height: 1.4;
+                color: var(--ink-3); }
+  .bewaarknop.aan { color: var(--accent); }
+  .nieuwtje { display: inline-block; margin-left: 6px; padding: 0 5px;
+              border-radius: 7px; background: var(--accent); color: #fff;
+              font-size: 10.5px; font-weight: 650; vertical-align: 1px; }
+  .blok > button .nieuwtje { margin-left: 4px; }
+  .bericht { display: block; flex: 1; min-width: 0; padding: 11px 14px;
+             color: inherit; text-decoration: none; }
+  .bericht .titel { display: block; line-height: 1.4; }
+  .bericht .meta { display: block; margin-top: 3px; font-size: 12.5px; color: var(--ink-3); }
+  a.bericht .titel { color: var(--accent-ink); }
+  .weerkaart { padding: 13px 14px; }
+  /* De omslag is het enige in dit blok dat je echt moet zien: morgen is meestal
+     als vandaag, een weersomslag niet. */
+  .weerkaart .omslag { font-weight: 600; color: var(--accent, #7a9a6d); margin-top: 10px; }
+  .weerkaart .vooruit { color: var(--ink-3); font-size: 13.5px; }
+  .weerkaart .groot { font-size: 25px; font-family: var(--serif); }
+  .weerkaart p { margin: 8px 0 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.45; }
+  .leeg { padding: 26px 16px; color: var(--ink-3); text-align: center; }
+  #naar-start {
+    background: none; border: 0; color: var(--ink-2); font-size: 20px;
+    cursor: pointer; padding: 2px 8px 2px 0; line-height: 1;
+  }
+  body[data-scherm="start"] #naar-start,
+  body[data-scherm="start"] .tabs { display: none; }
+  body[data-scherm="briefing"] .tabs,
+  body[data-scherm="training"] .tabs { display: none; }
+  .startkaart.training { border-left-color: var(--accent); }
+  /* Afvinken en opengaan zijn twee verschillende dingen; daarom twee knoppen
+     naast elkaar en geen tik-op-de-hele-rij. Anders vink je per ongeluk af
+     terwijl je alleen wilde lezen wat de oefeningen waren. */
+  .trainingrij { display: flex; gap: 0; align-items: stretch; }
+  .vinkknop {
+    flex: 0 0 52px; background: var(--panel); border: 1px solid var(--line);
+    border-right: 0; border-radius: var(--radius) 0 0 var(--radius);
+    font-size: 21px; color: var(--ink-3); cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow);
+  }
+  .vinkknop.aan { background: var(--accent); color: var(--op-accent); border-color: var(--accent); }
+  .trainingnaam {
+    flex: 1; display: flex; align-items: center; gap: 10px; text-align: left;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    box-shadow: var(--shadow); padding: 13px 14px; color: inherit; font: inherit;
+    cursor: pointer;
+  }
+  .trainingnaam .naam { font-family: var(--serif); font-size: 17px; }
+  .trainingnaam .aantal { flex: 1; color: var(--ink-3); font-size: 13px; }
+  .trainingnaam.beurt { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .blok[data-open="1"] .trainingnaam { border-radius: 0 var(--radius) 0 0; }
+  .blok[data-open="1"] .vinkknop { border-radius: var(--radius) 0 0 0; }
+  .blok[data-open="1"] .trainingnaam .pijl { transform: rotate(90deg); }
+  .oef { border-top: 1px solid var(--line); }
+  .oef:first-child { border-top: 0; }
+  .oef-top {
+    width: 100%; display: flex; align-items: center; gap: 12px;
+    background: none; border: 0; color: inherit; font: inherit;
+    padding: 10px 13px; cursor: pointer; text-align: left;
+  }
+  .picto { flex: 0 0 46px; height: 46px; color: var(--accent); }
+  .picto svg { width: 100%; height: 100%; display: block; }
+  .oef-mid { flex: 1; min-width: 0; }
+  .oef-naam { display: block; font-size: 14.5px; font-weight: 600; line-height: 1.25; }
+  .oef-kit { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .oef-num {
+    flex: 0 0 auto; text-align: right; font-size: 14px; font-weight: 600;
+    color: var(--accent-ink); white-space: nowrap;
+  }
+  .oef.open .pijl { transform: rotate(90deg); }
+  .oef-body { padding: 0 13px 13px 71px; }
+  .oef-body p { margin: 0; font-size: 13.5px; line-height: 1.45; }
+  .oef-body .cue { margin-top: 7px; font-size: 12.5px; color: var(--accent-ink); font-style: italic; }
+  .oef-num small { display: block; font-size: 10.5px; font-weight: 400; color: var(--ink-3); }
+  .picto { flex: 0 0 42px; height: 42px; }
+  .dagkiezer {
+    display: flex; gap: 7px; overflow-x: auto; padding: 8px 16px 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dagknop {
+    flex: 0 0 auto; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13.5px;
+    color: var(--ink-2); cursor: pointer; white-space: nowrap;
+  }
+  .dagknop.aan { background: var(--accent); border-color: var(--accent); color: var(--op-accent); }
+  /* Het kraanvogelsein. Springt eruit omdat je het maar twee keer per jaar
+     ziet en je het dan niet wilt missen. */
+  .bericht.sein {
+    background: var(--warm-zacht); border-left: 4px solid var(--warm);
+  }
+  .bericht.sein .titel { color: var(--warm); font-weight: 650; }
+  .status {
+    margin: 18px 16px 24px; padding: 10px 13px;
+    font-size: 12.5px; line-height: 1.5; color: var(--ink-3);
+    border-top: 1px solid var(--line);
+  }
+  .status.let-op {
+    color: var(--warm); background: var(--warm-zacht);
+    border: 1px solid var(--warm); border-radius: var(--radius);
+  }
+  .subkop {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; font: inherit; font-family: var(--serif);
+    font-size: 14.5px; color: var(--ink-2); text-align: left; cursor: pointer;
+    border: 0; border-top: 1px solid var(--line); background: var(--panel);
+  }
+  .subkop .naam { flex: 1; }
+  .subkop .aantal { color: var(--ink-3); font-size: 13px; }
+  .subkop .pijl { color: var(--ink-3); transition: transform .15s; }
+  .subkop.open .pijl { transform: rotate(90deg); }
+  .inhoud > .subkop:first-child { border-top: 0; }
+  .toelichting {
+    margin: 6px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-2);
+  }
+
+  /* ---------- Spelletje ---------- */
+  body[data-scherm="spel"] .tabs { display: none; }
+  .startkaart.spel { border-left-color: var(--leisteen); }
+  .spelvak { padding: 0 16px; }
+  .spelstand {
+    display: flex; gap: 8px; margin: 10px 0 8px; font-size: 14px; color: var(--ink-2);
+  }
+  .spelstand b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .spelstand .klok { margin-left: auto; }
+  .spelstand .klok.krap b { color: var(--warm); }
+  /* touch-action: none, anders schuift de pagina mee met je duim en draait de
+     slang niet. */
+  .spelbord {
+    display: block; width: 100%; aspect-ratio: 1; touch-action: none;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--panel-2); box-shadow: var(--shadow);
+  }
+  .spelbordvak { position: relative; }
+  .spelmelding {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; padding: 20px; pointer-events: none; text-align: center;
+  }
+  .spelmelding span {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 12px 16px; font-family: var(--serif);
+    font-size: 17px; line-height: 1.35; max-width: 260px;
+  }
+  .spelmelding span:empty { display: none; }
+  .spelmelding small { display: block; margin-top: 4px; font-family: ui-sans-serif, -apple-system, sans-serif; font-size: 13px; color: var(--ink-3); }
+  .spelna { margin-top: 12px; text-align: center; }
+  .spelna .btn { padding: 11px 20px; font-size: 15px; }
+  .spelna p { margin: 0 0 10px; color: var(--ink-2); font-size: 14.5px; }
+  .spelscores { margin: 18px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); }
+  .spelscores h3 { font-size: 14.5px; margin-bottom: 6px; }
+  .spelscores ul { list-style: none; margin: 0; padding: 0; }
+  .spelscores li {
+    display: flex; justify-content: space-between; gap: 10px;
+    font-size: 13.5px; color: var(--ink-2); padding: 3px 0;
+  }
+  .spelscores li b { font-variant-numeric: tabular-nums; color: var(--ink); }
+  .spelscores .record { color: var(--accent-ink); }
+  .spelscores p.record { margin: 8px 0 0; font-size: 14px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="bar">
+    <div class="brand">
+      <button id="naar-start" aria-label="Terug naar start">&#8592;</button>
+      <b>Dagstart</b><span id="vandaag-tekst"></span>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="vandaag" aria-selected="false">Vandaag</button>
+      <button role="tab" data-tab="terugblik" aria-selected="false">Terugblik</button>
+      <button role="tab" data-tab="instellingen" aria-selected="false" aria-label="Instellingen">&#9881;</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="tab-start"></div>
+  <div id="tab-briefing" hidden></div>
+  <div id="tab-training" hidden></div>
+  <div id="tab-spel" hidden></div>
+  <div id="tab-vandaag" hidden></div>
+  <div id="tab-terugblik" hidden></div>
+  <div id="tab-instellingen" hidden></div>
+</main>
+
+<div class="melding" id="melding"></div>
+
+<script>
+"use strict";
+
+/* ===================================================================
+   Op Rij — taken en gewoontes op één plek.
+
+   Alles staat in de opslag van deze browser (localStorage), onder de
+   sleutel hieronder. Er gaat niets naar een server: de app werkt overal,
+   maar de gegevens blijven op dit toestel. Daarom staat er bij
+   Instellingen een knop om een reservekopie te bewaren — dat is het
+   enige vangnet dat er is.
+   =================================================================== */
+
+const SLEUTEL = 'oprij.v1';
+
+/* De gewoontes. `soort` bepaalt hoe je ze telt:
+   - 'min': je wilt er minstens zoveel per week halen.
+   - 'max': het gaat om afwezigheid, dus je telt de uitzonderingen en
+     wilt er hoogstens zoveel. Zo hoef je niets aan te tikken op de dagen
+     dat het goed ging.
+   Vegetarisch en zoogdier komen allebei uit dezelfde dagkeuze bij eten,
+   zodat één tik per dag genoeg is. */
+const GEWOONTES = [
+  { id: 'sport',     naam: 'Hardlopen of sporten', kort: 'Hardlopen',   soort: 'min', tegel: true },
+  { id: 'wandeling', naam: 'Lange wandeling',      kort: 'Wandeling',   soort: 'min', tegel: true },
+  { id: 'mindful',   naam: 'Mindfulness',          kort: 'Mindfulness', soort: 'min', tegel: true },
+  { id: 'smoothie',  naam: 'Smoothie-ontbijt',     kort: 'Smoothie',    soort: 'min', tegel: true },
+  { id: 'veg',       naam: 'Vegetarisch',          soort: 'min', uitEten: 'veg' },
+  { id: 'zoog',      naam: 'Zoogdier gegeten',     soort: 'max', uitEten: 'zoog' },
+  { id: 'alcohol',   naam: 'Alcohol',              soort: 'max' },
+  /* Training telt mee als gewone weekgewoonte, zodat de bolletjes van deze
+     week en de terugblik hem vanzelf meenemen. Geen tegel: training heeft een
+     eigen scherm, want je moet kunnen kiezen wélke van de drie. */
+  { id: 'training',  naam: 'Training',             soort: 'min', uitTraining: true },
+];
+
+/* Het schema uit het trainingsplan: twee krachtdagen en een loopdag, om en om.
+   Die volgorde is geen detail — elke dag lopen is bij 100 kg en 51 jaar vragen
+   om een knie of achillespees, en dat staat met zoveel woorden in het plan. De
+   app stelt daarom steeds voor wat aan de beurt is. */
+const TRAINING = {
+  a: {
+    naam: 'Kracht A', onder: 'Onderlichaam & rug', duur: '30–35 min', soort: 'kracht',
+    oefeningen: [
+      ['Bulgarian split squat', 'dumbbells 7,5 kg · bank', '3 × 8 per been',
+       'Rug naar de bank, een grote stap ervandaan. Wreef van je achterste voet op de bank. Zak recht omlaag tot je voorste bovenbeen horizontaal is — knie boven je voet, romp rechtop. Omhoog via je voorste hiel.',
+       'De vaste van 7,5 kg: eenbenig maakt die ineens wél zwaar. Dit is de zwaarste oefening van het schema. Haal je 3 × 8 per been met gemak, dan zijn de verstelbare van 11 kg de volgende stap — en wordt dát te veel, draai er dan per kant een schijf af, het zijn draaidoppen.'],
+      ['Romanian deadlift', 'halter 20 kg', '3 × 10',
+       'Halter voor je dijen, voeten heupbreedte. Knieën licht buigen en dán vastzetten. Duw je heupen naar achteren, halter langs je benen omlaag tot je rek voelt in je hamstrings. Rug recht. Omhoog door je heupen naar voren te duwen.',
+       'Het is een heupbeweging, geen kniebeweging. Voel je het in je onderrug, dan zak je te diep of rond je je rug.'],
+      ['Roeien voorovergebogen', 'halter 20 kg', '3 × 10',
+       'Zelfde houding als de RDL, maar blijf voorovergebogen staan. Trek de halter naar je navel, ellebogen langs je lichaam. Knijp bovenin je schouderbladen samen, laat dan langzaam zakken.',
+       'Je rug doet het werk, niet je armen. Denk aan ellebogen naar achteren, niet aan handen omhoog.'],
+      ['Eenbenige heupbrug', '—', '3 × 10 per been',
+       'Op je rug op de grond, één voet plat neergezet een stukje van je billen, knie gebogen. Het andere been strek je omhoog of je trekt de knie naar je borst — als dat been maar niet meehelpt. Duw je heup omhoog tot knie, heup en schouder een rechte lijn vormen, houd een tel vast en laat gecontroleerd zakken tot je net de grond raakt.',
+       'Eén been maakt dit zwaar genoeg zonder dat er gewicht bij hoeft: je tilt dezelfde heup met de helft van de spieren. De weg omhoog is korter dan op het bankje, en dat scheelt niets voor je billen — die doen bovenin hun werk, en daar kom je nog steeds. Wordt het makkelijk, maak het dan niet zwaarder met een halter maar langzamer: drie tellen omlaag, twee tellen vasthouden bovenin. Voel je het in je hamstrings in plaats van in je billen, zet je voet dan dichter bij je billen.'],
+      ['Pallof press', 'rode lus om een stijl', '3 × 10 per kant',
+       'Dit is de enige oefening die de lus niet hoog maar opzij van je wil hebben. Om een stijl van je halterbank, om een deurpost bij de scharnieren, of onder de halter door op de grond. Ga er haaks op staan, pak de lus met beide handen tegen je borst, duw recht naar voren. Het elastiek probeert je te draaien; jij laat dat niet gebeuren.',
+       'Borsthoogte is het mooiste, heuphoogte werkt ook — het trekt dan iets schuiner, dat merk je nauwelijks. Het tegenhouden ís de oefening; er beweegt verder niets, dus neem een dunne lus. Ga je draaien, dan is hij te zwaar.'],
+      ['Plank', '—', '3 × 40 sec',
+       'Op je onderarmen, lichaam één rechte lijn van hoofd tot hielen. Billen aanspannen, buik intrekken.',
+       'Zakt je bekken door, dan stop je — niet doorbijten met een holle rug.'],
+      ['Boksbal', 'punchingbal · bandages', '3 × 1 min',
+       'De afsluiter. Korte, snelle stoten en de bal in beweging houden — hij komt terug, dus je raakt hem op het ritme in plaats van zo hard mogelijk. Blijf zelf ook bewegen: linksom, rechtsom, met je voeten mee. Een minuut aan, een minuut rust, drie keer.',
+       'Dit is een bal op een voet, geen stootzak: vol doorhalen kiepert hem om en zet alles op je pols. Het ritme en je schouders zijn hier de training, niet de klap. Bandages om, ook voor één minuut. De eerste die je overslaat als je weinig tijd hebt.'],
+    ],
+  },
+  b: {
+    naam: 'Kracht B', onder: 'Bovenlichaam & core', duur: '30–35 min', soort: 'kracht',
+    oefeningen: [
+      ['Bankdrukken', 'halter 20 kg · halterbank met rek', '3 × 8',
+       'Uit het rek, niet van de grond: leg de haken zo dat je de halter met gestrekte armen net van de steunen tilt. Plat op de bank, voeten op de grond. Halter zakt gecontroleerd tot je borst, ellebogen ongeveer 45 graden van je lichaam — niet wijd opzij. Duw omhoog en leg hem na de laatste herhaling terug in het rek.',
+       'Je traint alleen, dus de laatste herhaling moet er een zijn die je zéker haalt — nooit tot je er een mist. Twijfel je, haal er dan een schijf af.'],
+      ['Push-ups', '—', '3 × max',
+       'Handen iets breder dan schouders, lichaam één rechte lijn. Zak tot je borst vlak boven de grond is.',
+       'Lukt het niet vol: handen op het bankje in plaats van op je knieën. Dat traint dezelfde beweging.'],
+      ['Schouderdrukken', 'dumbbells 5 kg, later 7,5', '3 × 10',
+       'Staand of zittend op de bank. Dumbbells op schouderhoogte, duw recht omhoog tot je armen gestrekt zijn. Buik aanspannen zodat je niet in je rug hangt.',
+       'Hiervoor zijn de vaste van 5 kg precies goed. Lukt 3×10 makkelijk, ga dan eerst naar 3×15 en pas daarna naar de 7,5 — boven je hoofd is die stap groter dan hij lijkt. De verstelbare van 11 kg zijn hier voorlopig te zwaar.'],
+      ['Lat pulldown', 'zwarte lus over de balk', '3 × 12',
+       'Hier is die balk precies goed voor: van bovenaf trekken kan met geen van je andere spullen. Hang de lus over de balk, kniel eronder en pak de twee hangende kanten vast, armen gestrekt. Trek naar je borst; ellebogen naar beneden en naar achteren.',
+       'Knijp onderin je schouderbladen samen. Langzaam terug, drie tellen. Begin met de zwarte; wordt die te makkelijk, dan de paarse. Of kniel verder van de balk af — dan staat het elastiek al onder spanning voordat je begint.'],
+      ['Face pull', 'rode of gele lus over de balk', '3 × 15',
+       'Zelfde lus, zelfde balk, alleen trek je nu naar je gezicht in plaats van naar je borst. Ellebogen hóóg, alsof je een dubbele biceps-pose maakt; handen eindigen naast je oren. Dat de lus boven je hangt is geen bezwaar — het trekt dan iets omlaag en dat werkt net zo goed.',
+       'De tegenhanger van een dag achter een scherm. De enige oefening hier die je zonder schade elke dag zou mogen doen. Pak een van je dunste lussen, rood of geel: het gaat om de houding, niet om de kracht. Te zwaar en je schouders rollen juist naar voren — precies wat je wilde verhelpen.'],
+      ['Dead bug', '—', '3 × 10 per kant',
+       'Op je rug, armen recht omhoog, knieën en heupen in 90 graden. Strek tegelijk je rechterarm naar achteren en je linkerbeen naar voren. Terug, dan de andere kant.',
+       'Je onderrug blijft tegen de vloer. Dat holle stuk eronder is het enige wat telt.'],
+      ['Boksbal', 'punchingbal · bandages', '2 × 1 min',
+       'Korter dan op dag A, en met opzet. Je schouders hebben net gedrukt en getrokken, en juist dan gaan stoten slordig. Dus twee rondjes op techniek: rustig, zuiver, hand terug langs je kin, en voel of je vuist recht op de bal landt.',
+       'Vermoeide schouders plus een bal die terugkomt is precies hoe je een pols verdraait. Merk je dat je gaat meppen in plaats van stoten, dan stop je.'],
+    ],
+  },
+  lopen: {
+    naam: 'Lopen', onder: '20–25 min rustig', duur: '20–25 min', soort: 'lopen',
+    oefeningen: [
+      ['Een regel', '—', '20–25 min',
+       'Je moet kunnen praten tijdens het lopen. Kan dat niet, dan ga je te hard.',
+       'Geen tempoblokken, geen afstandsdoelen, geen app die je beoordeelt. Schoenen de avond ervoor klaar. Regent het, is het glad of zijn je knieën er niet naar: de crosstrainer in de schuur telt ook, met dezelfde regel. Dan sla je deze dag niet over, en dat is het enige wat telt.'],
+    ],
+  },
+};
+const TRAINING_VOLGORDE = ['a', 'b', 'lopen'];
+
+/* Drie smoothies, zodat de ochtend niet elke keer dezelfde is zonder dat er
+   iets te bedenken valt. Alles gaat tegelijk in de blender; de volgorde van de
+   regels is de volgorde waarin je het erin gooit, meer hoeft het niet te zijn.
+
+   Diepvriesfruit is wat dit laagdrempelig houdt: niets wassen, niets dat
+   bederft, en de smoothie wordt koud en dik zonder ijs. */
+const SMOOTHIES = [
+  ['Banaan-spinazie', 'de vaste',
+   ['250 ml amandelmelk',
+    '1 banaan',
+    'handje spinazie',
+    '1 el chiazaad',
+    '1 volle schep eiwitpoeder'],
+   'De vertrouwde. Hier mag de banaan heel blijven, want er zit geen ander fruit in dat zoetigheid en dikte meebrengt. Staat hij je tegen, dan is dat meestal de bananensmaak van het poeder bovenop de banaan zelf — een van de drie hieronder breekt dat.'],
+  ['Bosbes-banaan', 'de frisse',
+   ['250 ml amandelmelk',
+    '100 g diepvries blauwe bessen — een flinke handvol',
+    '½ banaan',
+    'handje spinazie',
+    '1 el chiazaad',
+    '1 volle schep eiwitpoeder'],
+   'Een halve banaan en niet een hele: de bessen brengen zelf al zoetigheid en dikte mee, en samen wordt het lobbig. Spinazie proef je hier niet, dus twee handen mag ook.'],
+  ['Mango-haver', 'de vullende',
+   ['300 ml amandelmelk',
+    '100 g diepvries mango',
+    '3 el havermout — ongeveer 25 g',
+    'handje spinazie',
+    '1 volle schep eiwitpoeder'],
+   'Havermout zuigt vocht op, vandaar 300 ml in plaats van 250. Geen chiazaad erbij: samen met de haver wordt het pap. Dit is de variant die je tot de lunch brengt.'],
+  ['Rood fruit met kwark', 'de meeste eiwitten',
+   ['200 ml amandelmelk',
+    '150 g magere kwark',
+    '100 g diepvries rood fruit',
+    '½ banaan',
+    '1 el gemalen lijnzaad',
+    '½ schep eiwitpoeder'],
+   'De kwark levert zelf al zo’n 16 gram eiwit, dus hier is een halve schep genoeg — en minder melk, want de kwark maakt hem al romig. Let op dat het gemalen lijnzaad is: hele zaadjes gaan er onbeschadigd weer uit. Bewaar ze in de koelkast.'],
+];
+
+/* De pictogrammen uit Gerts trainingsartifact, op naam. Ze staan apart van de
+   oefeningen zelf zodat die lijst leesbaar blijft. Eén lijnstijl, currentColor,
+   dus ze kleuren mee met licht en donker. */
+const PICTO = {
+'Bulgarian split squat': '<rect x="38" y="36" width="18" height="4" rx="1" fill="currentColor" stroke="none" opacity=".35"/><circle cx="22" cy="12" r="4.5"/><path d="M22 17v14"/><path d="M22 31l-6 9v8"/><path d="M16 48h7"/><path d="M22 31l10 5 6 2"/><path d="M17 19v13"/><path d="M27 19v13"/><rect x="13" y="32" width="8" height="3.4" rx="1.4" fill="currentColor" stroke="none"/><rect x="23" y="32" width="8" height="3.4" rx="1.4" fill="currentColor" stroke="none"/>',
+'Romanian deadlift': '<circle cx="16" cy="18" r="4.5"/><path d="M20 20l14 4"/><path d="M34 24l1 12"/><path d="M35 36l-2 12"/><path d="M22 22v14"/><line x1="12" y1="36" x2="32" y2="36" stroke-width="2.6"/><rect x="10" y="32.5" width="3.5" height="7" rx="1" fill="currentColor" stroke="none"/><rect x="30.5" y="32.5" width="3.5" height="7" rx="1" fill="currentColor" stroke="none"/><path d="M29 48h8"/>',
+'Roeien voorovergebogen': '<circle cx="14" cy="20" r="4.5"/><path d="M18 22l16 3"/><path d="M34 25v11"/><path d="M34 36v12"/><path d="M24 24v8"/><line x1="15" y1="32" x2="33" y2="32" stroke-width="2.6"/><rect x="13" y="28.5" width="3.5" height="7" rx="1" fill="currentColor" stroke="none"/><rect x="31.5" y="28.5" width="3.5" height="7" rx="1" fill="currentColor" stroke="none"/><path d="M30 48h8"/><path d="M24 38l-3 4" stroke-dasharray="2 3" opacity=".5"/><path d="M22 44l2-2 2 2" opacity=".5"/>',
+'Eenbenige heupbrug': '<line x1="6" y1="48" x2="54" y2="48" opacity=".3"/><circle cx="12" cy="43.5" r="4.5"/><path d="M16 44l16-10"/><path d="M32 34l11 2"/><path d="M43 36v12"/><path d="M32 34l13-13"/><path d="M45 21l3-2"/>',
+'Pallof press': '<circle cx="30" cy="14" r="4.5"/><path d="M30 19v16"/><path d="M30 35l-5 13"/><path d="M30 35l5 13"/><path d="M30 24h13"/><path d="M43 24c4 0 6-2 8-3" stroke-dasharray="3 3"/><path d="M51 16v12" stroke-width="2.8" opacity=".5"/>',
+'Boksbal': '<path d="M40 8v6"/><rect x="32" y="14" width="16" height="30" rx="6"/><path d="M32 24h16" opacity=".35"/><path d="M32 34h16" opacity=".35"/><circle cx="17" cy="28" r="6"/><path d="M23 28h8"/><path d="M10 21l-4-3" opacity=".5"/><path d="M9 28h-5" opacity=".5"/><path d="M10 35l-4 3" opacity=".5"/>',
+'Plank': '<circle cx="13" cy="28" r="4.5"/><path d="M17 30h26"/><path d="M43 30l5 12"/><path d="M44 42h8"/><path d="M18 31l-2 10"/><path d="M13 41h7"/><line x1="8" y1="42" x2="54" y2="42" opacity=".3"/>',
+'Bankdrukken': '<rect x="14" y="32" width="32" height="4" rx="1" fill="currentColor" stroke="none" opacity=".35"/><circle cx="17" cy="27" r="4.5"/><path d="M21 32h18"/><path d="M39 32l4 8"/><path d="M39 40h8"/><path d="M28 32v-9"/><line x1="19" y1="22" x2="37" y2="22" stroke-width="2.6"/><rect x="17" y="18.5" width="3.5" height="7" rx="1" fill="currentColor" stroke="none"/><rect x="35.5" y="18.5" width="3.5" height="7" rx="1" fill="currentColor" stroke="none"/>',
+'Push-ups': '<circle cx="13" cy="26" r="4.5"/><path d="M17 28h26"/><path d="M43 28l5 14"/><path d="M44 42h8"/><path d="M19 29v13"/><path d="M30 29v13"/><line x1="8" y1="42" x2="54" y2="42" opacity=".3"/>',
+'Schouderdrukken': '<circle cx="30" cy="22" r="4.5"/><path d="M30 27v12"/><path d="M30 39l-5 10"/><path d="M30 39l5 10"/><path d="M30 29l-8-4"/><path d="M30 29l8-4"/><path d="M22 25v-8"/><path d="M38 25v-8"/><rect x="15" y="13" width="14" height="3.6" rx="1.6" fill="currentColor" stroke="none"/><rect x="31" y="13" width="14" height="3.6" rx="1.6" fill="currentColor" stroke="none"/>',
+'Lat pulldown': '<line x1="10" y1="8" x2="50" y2="8" opacity=".35" stroke-width="2.6"/><path d="M22 8c0 6 2 10 6 13" stroke-dasharray="3 3"/><path d="M38 8c0 6-2 10-6 13" stroke-dasharray="3 3"/><circle cx="30" cy="27" r="4.5"/><path d="M30 32v9"/><path d="M30 41l-6 7"/><path d="M30 41l6 7"/><path d="M30 34l-4-3"/><path d="M30 34l4-3"/>',
+'Face pull': '<circle cx="30" cy="20" r="4.5"/><path d="M30 25v14"/><path d="M30 39l-5 9"/><path d="M30 39l5 9"/><path d="M30 27l-9-6"/><path d="M30 27l9-6"/><path d="M21 21l-4-4"/><path d="M39 21l4-4"/><path d="M17 17H8" stroke-dasharray="3 3"/><path d="M43 17h9" stroke-dasharray="3 3"/>',
+'Dead bug': '<line x1="6" y1="44" x2="54" y2="44" opacity=".3"/><circle cx="14" cy="39" r="4.5"/><path d="M18 40h20"/><path d="M20 39l-8-8"/><path d="M32 40l2-10"/><path d="M34 30l6-4"/><path d="M38 40l10 2"/>',
+/* Voor lopen stond er in het artifact geen pictogram; dit is er een in
+   dezelfde stijl: een figuur in beweging. */
+/* Eén glas voor alle drie de smoothies — ze verschillen in wat erin gaat,
+   niet in hoe het eruitziet. */
+'Smoothie': '<path d="M20 14h20l-3 32h-14z"/><path d="M21.5 24h17" opacity=".35"/><path d="M34 14l7-7"/><path d="M41 7h4"/>',
+'Een regel': '<line x1="6" y1="50" x2="54" y2="50" opacity=".3"/><circle cx="34" cy="12" r="4.5"/><path d="M34 17l-4 12"/><path d="M30 29l-6 9"/><path d="M24 38l-6 10"/><path d="M30 29l8 6"/><path d="M38 35l2 13"/><path d="M33 20l10 4"/><path d="M33 22l-10 2"/>',
+};
+
+
+
+const STANDAARD_DOELEN = { sport: 2, wandeling: 1, mindful: 3, smoothie: 3, veg: 2, zoog: 1, alcohol: 0, training: 5 };
+
+const LABELS = [
+  { id: 'bellen', naam: 'Bellen' },
+  { id: 'klus',   naam: 'Klus' },
+  { id: 'huis',   naam: 'Huis' },
+  { id: 'werk',   naam: 'Werk' },
+];
+
+const DAGNAMEN = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+const MAANDEN = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+
+/* ---------- opslag ---------- */
+
+let st = leeg();
+let opslagWerkt = true;
+
+function leeg() {
+  return { versie: 1, taken: [], dagen: {}, doelen: Object.assign({}, STANDAARD_DOELEN),
+           bewaard: [], laatsteKopie: null };
+}
+
+function laad() {
+  try {
+    const ruw = localStorage.getItem(SLEUTEL);
+    if (!ruw) return;
+    const d = JSON.parse(ruw);
+    st = Object.assign(leeg(), d);
+    st.doelen = Object.assign({}, STANDAARD_DOELEN, d.doelen || {});
+    if (!Array.isArray(st.taken)) st.taken = [];
+    if (!st.dagen || typeof st.dagen !== 'object') st.dagen = {};
+    if (!Array.isArray(st.bewaard)) st.bewaard = [];
+  } catch (e) {
+    opslagWerkt = false;
+  }
+}
+
+function bewaar() {
+  try {
+    localStorage.setItem(SLEUTEL, JSON.stringify(st));
+  } catch (e) {
+    opslagWerkt = false;
+    zeg('Opslaan lukt niet — maak een reservekopie');
+  }
+}
+
+/* ---------- datums ---------- */
+
+function sleutelVan(d) {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const g = String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '-' + m + '-' + g;
+}
+
+function vandaag() { return sleutelVan(new Date()); }
+
+function alsDatum(s) {
+  const [j, m, d] = s.split('-').map(Number);
+  return new Date(j, m - 1, d);
+}
+
+function plusDagen(s, n) {
+  const d = alsDatum(s);
+  d.setDate(d.getDate() + n);
+  return sleutelVan(d);
+}
+
+/* ISO-weeknummer, bijvoorbeeld '2026-W32'. */
+function weekVan(s) {
+  const t = alsDatum(s);
+  const dag = (t.getDay() + 6) % 7;              // maandag = 0
+  t.setDate(t.getDate() - dag + 3);              // de donderdag van deze week
+  const jaar = t.getFullYear();
+  const eerste = new Date(jaar, 0, 4);
+  eerste.setDate(eerste.getDate() - ((eerste.getDay() + 6) % 7) + 3);
+  const nr = 1 + Math.round((t - eerste) / (7 * 86400000));
+  return jaar + '-W' + String(nr).padStart(2, '0');
+}
+
+function maandagVan(s) {
+  const t = alsDatum(s);
+  t.setDate(t.getDate() - ((t.getDay() + 6) % 7));
+  return sleutelVan(t);
+}
+
+function weekDagen(maandag) {
+  const uit = [];
+  for (let i = 0; i < 7; i++) uit.push(plusDagen(maandag, i));
+  return uit;
+}
+
+function langeDatum(s) {
+  const d = alsDatum(s);
+  return DAGNAMEN[d.getDay()] + ' ' + d.getDate() + ' ' + MAANDEN[d.getMonth()];
+}
+
+function korteDatum(s) {
+  const d = alsDatum(s);
+  return d.getDate() + ' ' + MAANDEN[d.getMonth()].slice(0, 3);
+}
+
+/* ---------- dagen en tellingen ---------- */
+
+function dag(datum, maak) {
+  if (!st.dagen[datum] && maak) st.dagen[datum] = {};
+  return st.dagen[datum] || {};
+}
+
+function gedaanOp(datum, gewoonte) {
+  const d = dag(datum);
+  if (gewoonte.uitEten) return d.eten === gewoonte.uitEten;
+  if (gewoonte.uitTraining) return !!d.training;
+  return !!d[gewoonte.id];
+}
+
+function telWeek(maandag, gewoonte) {
+  let n = 0;
+  for (const datum of weekDagen(maandag)) if (gedaanOp(datum, gewoonte)) n++;
+  return n;
+}
+
+function doelVan(gewoonte) {
+  const v = st.doelen[gewoonte.id];
+  return Number.isFinite(v) ? v : STANDAARD_DOELEN[gewoonte.id];
+}
+
+/* ---------- taken ---------- */
+
+function nieuwId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+/* Wat gisteren niet afkwam, staat vandaag gewoon weer bovenaan. Geen rood,
+   geen "te laat" — alleen stilletjes bijhouden hoe vaak iets is opgeschoven,
+   want zes keer opschuiven zegt meestal dat het geen taak van één regel is. */
+function rolDoor() {
+  const nu = vandaag();
+  let veranderd = false;
+  for (const t of st.taken) {
+    if (!t.klaar && t.voor < nu) {
+      t.voor = nu;
+      t.verschoven = (t.verschoven || 0) + 1;
+      veranderd = true;
+    }
+  }
+  if (veranderd) bewaar();
+}
+
+function takenVoorVandaag() {
+  const nu = vandaag();
+  return st.taken.filter(t => !t.klaar && t.voor <= nu);
+}
+
+function takenVoorLater() {
+  const nu = vandaag();
+  return st.taken.filter(t => !t.klaar && t.voor > nu).sort((a, b) => a.voor < b.voor ? -1 : 1);
+}
+
+function takenAfVandaag() {
+  const nu = vandaag();
+  return st.taken.filter(t => t.klaar === nu);
+}
+
+/* ---------- schermstaat (niet bewaard) ---------- */
+
+const ui = {
+  tab: 'start',
+  blokOpen: {},         // welke briefing-blokken uitgeklapt staan
+  oefOpen: {},          // welke oefeningen hun uitleg tonen
+  smoothieOpen: {},     // welke smoothie zijn ingrediënten toont
+  kopOpen: {},          // welke tussenkopjes binnen een blok open staan
+  briefingDag: null,    // null = vandaag, anders een datum uit het archief
+  label: null,          // voorgekozen etiket bij het invoerveld
+  filter: null,         // filter op de lijst van vandaag
+  bewerkt: null,        // id van de taak die je aan het bewerken bent
+  toonGedaan: false,
+  toonLater: false,
+  weken: 8,             // hoeveel weken de terugblik toont
+};
+
+/* ---------- wat is er nieuw sinds je vorige bezoek ---------- */
+
+/* De briefing wordt elk uur verst en er staan er honderd in. Zonder dit moest je
+   na de ronde van 14:00 alles opnieuw langs om te zien wat erbij was gekomen.
+
+   Het tijdstip van je vorige bezoek staat los van `oprij.v1`: het is een gemak
+   van dít toestel en niet iets dat in je reservekopie hoort, net als de
+   snelheid van de speler. We lezen het één keer bij het opstarten en houden dat
+   vast zolang de app open is -- schreven we er meteen "nu" in, dan waren de
+   stipjes verdwenen op het moment dat je ze wilde zien. */
+const GEZIEN = 'dagstart.gezien';
+const gezienMs = (() => {
+  try { return Date.parse(localStorage.getItem(GEZIEN) || '') || 0; }
+  catch (e) { return 0; }
+})();
+
+function gezienBijwerken() {
+  try { localStorage.setItem(GEZIEN, new Date().toISOString()); } catch (e) {}
+}
+
+/* `sorteer` draagt een tijdzone ("...+01:00"), dus vergelijken gaat via
+   Date.parse en niet als tekst: bij twee verschillende offsets geeft een
+   tekstvergelijking het verkeerde antwoord. En bij het eerste bezoek ooit is
+   er geen ijkpunt -- dan is niets nieuw, in plaats van alles. */
+function isNieuw(it) {
+  if (!gezienMs || !it.sorteer) return false;
+  const t = Date.parse(it.sorteer);
+  return !!t && t > gezienMs;
+}
+
+/* ---------- bewaarde berichten ---------- */
+
+/* De link is de identiteit; alleen als die er niet is de titel. Twee redacties
+   over hetzelfde verhaal zijn dus twee berichten, en dat is hier juist goed. */
+function bewaarSleutel(it) { return it.link || it.titel || ''; }
+
+function isBewaard(it) {
+  const k = bewaarSleutel(it);
+  return !!k && st.bewaard.some((b) => b.sleutel === k);
+}
+
+function bewaarWissel(it) {
+  const k = bewaarSleutel(it);
+  if (!k) return;
+  const n = st.bewaard.findIndex((b) => b.sleutel === k);
+  if (n >= 0) {
+    st.bewaard.splice(n, 1);
+    zeg('Niet meer bewaard');
+  } else {
+    st.bewaard.unshift({
+      sleutel: k, titel: it.titel || '', bron: it.bron || '',
+      tijd: it.tijd || '', link: it.link || '', op: vandaag(),
+    });
+    /* Zonder dit tik je op een ster, gebeurt er zichtbaar niets, en vraag je je
+       af waar het bericht heen is. Precies wat Gert op 30 oktober 2026 vroeg. */
+    zeg('Bewaard \u00b7 bovenaan de briefing');
+  }
+  bewaar();
+}
+
+/* ---------- hulpjes voor het tekenen ---------- */
+
+function el(tag, opties, kinderen) {
+  const n = document.createElement(tag);
+  if (opties) for (const k in opties) {
+    if (k === 'class') n.className = opties[k];
+    else if (k === 'tekst') n.textContent = opties[k];
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), opties[k]);
+    else if (opties[k] !== null && opties[k] !== false) n.setAttribute(k, opties[k]);
+  }
+  if (kinderen) for (const kind of [].concat(kinderen)) if (kind) n.appendChild(kind);
+  return n;
+}
+
+let meldingKlok = null;
+function zeg(tekst) {
+  const m = document.getElementById('melding');
+  m.textContent = tekst;
+  m.classList.add('aan');
+  clearTimeout(meldingKlok);
+  meldingKlok = setTimeout(() => m.classList.remove('aan'), 1900);
+}
+
+function paneel(titel, bij, inhoud) {
+  const kop = el('div', { class: 'kop' }, [
+    el('h2', { tekst: titel }),
+    bij ? el('div', { class: 'bij', tekst: bij }) : null,
+  ]);
+  return el('section', { class: 'panel' }, [kop, el('div', { class: 'body' }, inhoud)]);
+}
+
+/* Bolletjes voor één gewoonte in één week. Nooit rood: wat niet gebeurd is,
+   is grijs, en een overschrijding is warm geel — geen alarm. */
+function stippenRij(aantal, doel, soort) {
+  const rij = el('div', { class: 'stippen' });
+  if (soort === 'min') {
+    for (let i = 0; i < doel; i++) rij.appendChild(el('div', { class: 'stip' + (i < aantal ? ' vol' : '') }));
+    for (let i = doel; i < aantal; i++) rij.appendChild(el('div', { class: 'stip extra' }));
+  } else {
+    for (let i = 0; i < doel; i++) rij.appendChild(el('div', { class: 'stip' + (i < aantal ? ' let' : '') }));
+    for (let i = doel; i < aantal; i++) rij.appendChild(el('div', { class: 'stip let' }));
+  }
+  return rij;
+}
+
+function tellingTekst(aantal, doel, soort) {
+  if (soort === 'min') {
+    return { tekst: aantal + ' van ' + doel + (aantal >= doel ? ' · gehaald' : ''), klasse: aantal >= doel ? 'gehaald' : '' };
+  }
+  if (aantal === 0) return { tekst: 'geen', klasse: 'gehaald' };
+  if (aantal <= doel) return { tekst: aantal + ' van hoogstens ' + doel, klasse: '' };
+  return { tekst: aantal + '× · hoogstens ' + doel, klasse: 'let' };
+}
+
+/* ===================================================================
+   Tabblad Vandaag
+   =================================================================== */
+
+function tekenVandaag() {
+  const doel = document.getElementById('tab-vandaag');
+  doel.textContent = '';
+  const nu = vandaag();
+  const d = dag(nu);
+
+  /* --- de vinkjes van vandaag --- */
+  const tegels = el('div', { class: 'tegels' });
+  for (const g of GEWOONTES.filter(x => x.tegel)) {
+    tegels.appendChild(el('button', {
+      class: 'tegel',
+      'aria-pressed': d[g.id] ? 'true' : 'false',
+      onclick: () => {
+        const r = dag(nu, true);
+        r[g.id] = !r[g.id];
+        bewaar();
+        tekenVandaag();
+      },
+    }, [el('span', { class: 'bol' }), el('span', { tekst: g.kort })]));
+  }
+
+  const etenKeuze = el('div', { class: 'keuze' });
+  const etenOpties = [
+    { id: 'veg',  naam: 'Vegetarisch' },
+    { id: 'geen', naam: 'Geen zoogdier' },
+    { id: 'zoog', naam: 'Wel zoogdier' },
+  ];
+  for (const o of etenOpties) {
+    etenKeuze.appendChild(el('button', {
+      class: o.id === 'zoog' ? 'let' : '',
+      'aria-pressed': d.eten === o.id ? 'true' : 'false',
+      tekst: o.naam,
+      onclick: () => {
+        const r = dag(nu, true);
+        r.eten = (r.eten === o.id) ? null : o.id;
+        bewaar();
+        tekenVandaag();
+      },
+    }));
+  }
+
+  const alcohol = el('div', { class: 'stil' }, [
+    el('span', { tekst: d.alcohol ? 'Alcohol — vandaag wel' : 'Alcohol — alleen als het zo was' }),
+    el('button', {
+      class: 'schakel',
+      'aria-pressed': d.alcohol ? 'true' : 'false',
+      tekst: d.alcohol ? 'wel gedronken' : 'wel gedronken',
+      onclick: () => {
+        const r = dag(nu, true);
+        r.alcohol = !r.alcohol;
+        bewaar();
+        tekenVandaag();
+      },
+    }),
+  ]);
+
+  /* Moet de bak vandaag of morgen aan de weg, dan staat dat bovenaan: dat is
+     het enige op dit scherm met een deadline die vanavond afloopt. Anders
+     hangt het onderaan bij de taken, waar het hoort. */
+  const afvalkaart = tekenAfval();
+  const afvalDringt = afvalkaart && afvalkaart.dataset.dringt === '1';
+  if (afvalDringt) doel.appendChild(afvalkaart);
+
+  doel.appendChild(paneel('Vandaag', langeDatum(nu), [
+    tegels,
+    el('div', { class: 'rij-titel', tekst: 'Gegeten' }),
+    etenKeuze,
+    alcohol,
+  ]));
+
+  /* --- hoe de week ervoor staat --- */
+  const maandag = maandagVan(nu);
+  const lijst = el('ul', { class: 'week' });
+  for (const g of GEWOONTES) {
+    const aantal = telWeek(maandag, g);
+    const dl = doelVan(g);
+    const t = tellingTekst(aantal, dl, g.soort);
+    lijst.appendChild(el('li', null, [
+      el('div', { class: 'naam', tekst: g.naam }),
+      stippenRij(aantal, dl, g.soort),
+      el('div', { class: 'telling ' + t.klasse, tekst: t.tekst }),
+    ]));
+  }
+  doel.appendChild(tekenSmoothies());
+
+  doel.appendChild(paneel('Deze week', 'week ' + weekVan(nu).split('-W')[1], [lijst]));
+
+  if (afvalkaart && !afvalDringt) doel.appendChild(afvalkaart);
+
+  /* --- de taken --- */
+  doel.appendChild(tekenTaken());
+}
+
+/* ---------- smoothies ---------------------------------------------------
+   Dezelfde rijen als bij de oefeningen: een naam met een pijltje, en de
+   ingrediënten verschijnen pas als je erop tikt. Dichtgevouwen zijn het drie
+   regels, en dat is precies wat je 's ochtends nodig hebt — kiezen, niet lezen. */
+function tekenSmoothies() {
+  const lijst = el('div', { class: 'inhoud' });
+
+  SMOOTHIES.forEach(([naam, kort, spul, tip], n) => {
+    const sleutel = 'sm-' + n;
+    const open = !!ui.smoothieOpen[sleutel];
+    const o = el('div', { class: 'oef' + (open ? ' open' : '') });
+
+    const bovenkant = document.createElement('button');
+    bovenkant.className = 'oef-top';
+    bovenkant.innerHTML =
+      '<span class="picto"><svg viewBox="0 0 60 60" fill="none" stroke="currentColor" ' +
+        'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+        PICTO['Smoothie'] + '</svg></span>' +
+      '<span class="oef-mid"><span class="oef-naam">' + naam + '</span>' +
+        '<span class="oef-kit">' + kort + '</span></span>' +
+      '<span class="pijl">&#9656;</span>';
+    bovenkant.dataset.sleutel = 'sm:' + sleutel;
+    bovenkant.addEventListener('click', () => {
+      ui.smoothieOpen[sleutel] = !open;
+      herteken(tekenVandaag, 'sm:' + sleutel);
+    });
+    o.append(bovenkant);
+
+    if (open) {
+      const body = el('div', { class: 'oef-body' });
+      body.innerHTML = '<p>' + spul.join('<br>') + '</p><p class="cue">' + tip + '</p>';
+      o.append(body);
+    }
+    lijst.append(o);
+  });
+
+  /* Hier stond uitleg over de volle schep eiwitpoeder. Die is eruit op Gerts
+     verzoek: het staat in elk recept zelf, en een tekst die je elke ochtend
+     opnieuw voorbij ziet komen terwijl je hem al kent, is ruis. */
+  return paneel('Smoothie', 'vier varianten', [lijst]);
+}
+
+/* ---------- afvalkalender ----------------------------------------------
+   De ophaaldagen komen uit de briefing, want rechtstreeks uit de browser kan
+   niet: ROVA stuurt geen CORS-headers. De Mac haalt ze elke ronde op en zet ze
+   in briefing.json; hier worden ze alleen getoond.
+
+   Geen taak met een vinkje. Een taak die je elke week opnieuw krijgt en elke
+   week moet afvinken is werk erbij, en wat er écht toe doet is de avond
+   ervóór: dan moet de bak aan de weg. Vandaar één regel die zegt wat er aan de
+   beurt is, en een lijstje met de weken erna. */
+function dagenTot(datum) {
+  return Math.round((alsDatum(datum) - alsDatum(vandaag())) / 86400000);
+}
+
+function tekenAfval() {
+  const rij = (briefing && briefing.afval || [])
+    .filter(a => dagenTot(a.datum) >= 0)
+    .slice(0, 5);
+  if (!rij.length) return null;
+
+  const eerst = rij[0];
+  const n = dagenTot(eerst.datum);
+  const kop = n === 0 ? eerst.naam + ' wordt vandaag opgehaald'
+            : n === 1 ? eerst.naam + ' wordt morgen opgehaald'
+            : eerst.naam + ' — ' + langeDatum(eerst.datum);
+  const bij = (n === 0 ? 'Staat hij buiten?'
+             : n === 1 ? 'Vanavond aan de weg zetten.'
+             : 'Nog ' + n + ' dagen.')
+            /* Een verzette ophaaldag is juist het ding dat je over het hoofd
+               ziet: rond de feestdagen schuift ROVA een dag op. */
+            + (eerst.afwijkend ? ' Let op: verzette dag.' : '');
+
+  const lijst = el('ul', { class: 'afval-lijst' });
+  for (const a of rij.slice(1, 4)) {
+    lijst.appendChild(el('li', null, [
+      el('span', { tekst: a.naam + (a.afwijkend ? ' (verzette dag)' : '') }),
+      el('span', { class: 'wanneer', tekst: langeDatum(a.datum) }),
+    ]));
+  }
+
+  const kaart = paneel('Aan de weg', 'ROVA', [
+    el('div', { class: 'afval-nu' + (n <= 1 ? ' straks' : ''), tekst: kop }),
+    el('div', { class: 'afval-bij', tekst: bij }),
+    lijst,
+  ]);
+  /* tekenVandaag() leest dit af om te bepalen of de kaart bovenaan hoort. */
+  kaart.dataset.dringt = n <= 1 ? '1' : '0';
+  return kaart;
+}
+
+function tekenTaken() {
+  const nu = vandaag();
+  const invoer = el('input', { type: 'text', placeholder: 'Wat moet er gebeuren?', enterkeyhint: 'done', autocapitalize: 'sentences' });
+  const voegToe = () => {
+    const tekst = invoer.value.trim();
+    if (!tekst) return;
+    st.taken.push({ id: nieuwId(), tekst, label: ui.label, gemaakt: nu, voor: nu, klaar: null, verschoven: 0 });
+    bewaar();
+    invoer.value = '';
+    tekenVandaag();
+    // het veld houdt de aandacht, zodat je er vijf achter elkaar in kunt tikken
+    const nieuw = document.querySelector('#tab-vandaag .invoer input');
+    if (nieuw) nieuw.focus();
+  };
+  invoer.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); voegToe(); } });
+
+  /* Etiket voor wat je nu intikt. Blijft staan, zodat je vijf telefoontjes
+     achter elkaar kunt invoeren zonder telkens opnieuw te kiezen. */
+  const chips = el('div', { class: 'chips' }, [el('span', { class: 'chips-kop', tekst: 'Etiket' })]);
+  for (const l of LABELS) {
+    chips.appendChild(el('button', {
+      class: 'chip',
+      'aria-pressed': ui.label === l.id ? 'true' : 'false',
+      tekst: l.naam,
+      onclick: () => { ui.label = ui.label === l.id ? null : l.id; tekenVandaag(); },
+    }));
+  }
+
+  const open = takenVoorVandaag();
+  const zichtbaar = ui.filter ? open.filter(t => t.label === ui.filter) : open;
+
+  const lijst = el('ul', { class: 'taken' });
+  if (!open.length) {
+    lijst.appendChild(el('li', null, [el('div', { class: 'leeg', tekst: 'Niks meer voor vandaag.' })]));
+  } else if (!zichtbaar.length) {
+    lijst.appendChild(el('li', null, [el('div', { class: 'leeg', tekst: 'Niks met dit etiket.' })]));
+  } else {
+    for (const t of zichtbaar) lijst.appendChild(taakRegel(t));
+  }
+
+  const onderdelen = [el('div', { class: 'invoer' }, [invoer, el('button', { tekst: 'Zet erbij', onclick: voegToe })]), chips, lijst];
+
+  /* filterknoppen alleen tonen als er iets te filteren valt */
+  const gebruikt = LABELS.filter(l => open.some(t => t.label === l.id));
+  if (gebruikt.length > 1) {
+    const filters = el('div', { class: 'chips', style: 'margin-top:10px' }, [el('span', { class: 'chips-kop', tekst: 'Toon' })]);
+    filters.appendChild(el('button', {
+      class: 'chip', 'aria-pressed': ui.filter === null ? 'true' : 'false', tekst: 'Alles',
+      onclick: () => { ui.filter = null; tekenVandaag(); },
+    }));
+    for (const l of gebruikt) {
+      filters.appendChild(el('button', {
+        class: 'chip', 'aria-pressed': ui.filter === l.id ? 'true' : 'false', tekst: l.naam,
+        onclick: () => { ui.filter = ui.filter === l.id ? null : l.id; tekenVandaag(); },
+      }));
+    }
+    onderdelen.splice(2, 0, filters);
+  }
+
+  const later = takenVoorLater();
+  if (later.length) {
+    onderdelen.push(el('button', {
+      class: 'vouw',
+      tekst: (ui.toonLater ? '▾ ' : '▸ ') + later.length + ' voor later',
+      onclick: () => { ui.toonLater = !ui.toonLater; tekenVandaag(); },
+    }));
+    if (ui.toonLater) {
+      const l2 = el('ul', { class: 'taken' });
+      for (const t of later) l2.appendChild(taakRegel(t, true));
+      onderdelen.push(l2);
+    }
+  }
+
+  const af = takenAfVandaag();
+  if (af.length) {
+    onderdelen.push(el('button', {
+      class: 'vouw',
+      tekst: (ui.toonGedaan ? '▾ ' : '▸ ') + af.length + ' vandaag gedaan',
+      onclick: () => { ui.toonGedaan = !ui.toonGedaan; tekenVandaag(); },
+    }));
+    if (ui.toonGedaan) {
+      const l3 = el('ul', { class: 'taken' });
+      for (const t of af) l3.appendChild(taakRegel(t));
+      onderdelen.push(l3);
+    }
+  }
+
+  return paneel('Taken', open.length ? open.length + ' open' : '', onderdelen);
+}
+
+function taakRegel(t, toonDatum) {
+  if (ui.bewerkt === t.id) return bewerkRegel(t);
+
+  const naam = LABELS.find(l => l.id === t.label);
+  const meta = el('div', { class: 'meta' });
+  if (naam) meta.appendChild(el('span', { class: 'label', tekst: naam.naam }));
+  if (toonDatum) meta.appendChild(el('span', { class: 'zacht', tekst: korteDatum(t.voor) }));
+  if ((t.verschoven || 0) >= 3 && !t.klaar) meta.appendChild(el('span', { class: 'zacht', tekst: t.verschoven + '× doorgeschoven' }));
+
+  const acties = el('div', { class: 'acties' });
+  if (!t.klaar) {
+    acties.appendChild(el('button', {
+      title: 'Naar morgen', 'aria-label': 'Naar morgen', tekst: '→',
+      onclick: () => { t.voor = plusDagen(vandaag(), 1); bewaar(); tekenVandaag(); zeg('Naar morgen'); },
+    }));
+  }
+  acties.appendChild(el('button', {
+    title: 'Weghalen', 'aria-label': 'Weghalen', tekst: '×',
+    onclick: () => { st.taken = st.taken.filter(x => x.id !== t.id); bewaar(); tekenVandaag(); },
+  }));
+
+  return el('li', { class: t.klaar ? 'af' : '' }, [
+    el('button', {
+      class: 'vink', 'aria-pressed': t.klaar ? 'true' : 'false', 'aria-label': 'Afvinken',
+      onclick: () => {
+        t.klaar = t.klaar ? null : vandaag();
+        if (!t.klaar) t.voor = vandaag();
+        bewaar();
+        tekenVandaag();
+      },
+    }),
+    el('div', { class: 'inhoud' }, [
+      el('button', { class: 'tekst', tekst: t.tekst, onclick: () => { ui.bewerkt = t.id; tekenVandaag(); } }),
+      meta.childNodes.length ? meta : null,
+    ]),
+    acties,
+  ]);
+}
+
+function bewerkRegel(t) {
+  const veld = el('input', { type: 'text', value: t.tekst, enterkeyhint: 'done' });
+  const chips = el('div', { class: 'chips' });
+  let gekozen = t.label;
+  const tekenChips = () => {
+    chips.textContent = '';
+    for (const l of LABELS) {
+      chips.appendChild(el('button', {
+        class: 'chip', 'aria-pressed': gekozen === l.id ? 'true' : 'false', tekst: l.naam,
+        onclick: () => { gekozen = gekozen === l.id ? null : l.id; tekenChips(); },
+      }));
+    }
+  };
+  tekenChips();
+
+  const opslaan = () => {
+    const tekst = veld.value.trim();
+    if (tekst) t.tekst = tekst;
+    t.label = gekozen;
+    ui.bewerkt = null;
+    bewaar();
+    tekenVandaag();
+  };
+  veld.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); opslaan(); } });
+
+  const regel = el('li', null, [el('div', { class: 'inhoud bewerk' }, [
+    veld, chips,
+    el('div', { class: 'knoppen' }, [
+      el('button', { class: 'btn primair', tekst: 'Klaar', onclick: opslaan }),
+      el('button', { class: 'btn', tekst: 'Laat maar', onclick: () => { ui.bewerkt = null; tekenVandaag(); } }),
+    ]),
+  ])]);
+  setTimeout(() => { veld.focus(); veld.select(); }, 0);
+  return regel;
+}
+
+/* ===================================================================
+   Tabblad Terugblik
+   =================================================================== */
+
+function wekenMetGegevens(hoeveel) {
+  const uit = [];
+  let maandag = maandagVan(vandaag());
+  for (let i = 0; i < hoeveel; i++) {
+    uit.push(maandag);
+    maandag = plusDagen(maandag, -7);
+  }
+  return uit;
+}
+
+function telBlok(maandagen, gewoonte) {
+  let n = 0;
+  for (const m of maandagen) n += telWeek(m, gewoonte);
+  return n;
+}
+
+function heeftIets(maandag) {
+  for (const datum of weekDagen(maandag)) {
+    const d = st.dagen[datum];
+    if (d && (d.eten || d.sport || d.wandeling || d.mindful || d.smoothie || d.alcohol)) return true;
+    if (st.taken.some(t => t.klaar === datum)) return true;
+  }
+  return false;
+}
+
+function tekenTerugblik() {
+  const doel = document.getElementById('tab-terugblik');
+  doel.textContent = '';
+
+  const alle = wekenMetGegevens(ui.weken + 4);
+  const recent = alle.slice(0, 4);
+  const ervoor = alle.slice(4, 8);
+  const erIetsDavoor = ervoor.some(heeftIets);
+
+  /* --- vier weken tegen de vier daarvoor --- */
+  if (erIetsDavoor) {
+    const rijen = [];
+    for (const g of GEWOONTES) {
+      const nu = telBlok(recent, g);
+      const toen = telBlok(ervoor, g);
+      const verschil = nu - toen;
+      /* omhoog is goed bij een minimum, omlaag is goed bij een maximum */
+      const goed = g.soort === 'min' ? verschil > 0 : verschil < 0;
+      const pijl = verschil === 0 ? 'gelijk' : (verschil > 0 ? '+' : '−') + Math.abs(verschil);
+      rijen.push(el('div', { class: 'vgl' }, [
+        el('div', { class: 'naam', tekst: g.naam }),
+        el('div', { class: 'cijfer', tekst: nu + '×' }),
+        el('div', { class: 'pijl' + (goed ? ' op' : ''), tekst: 'was ' + toen + '× · ' + pijl }),
+      ]));
+    }
+    doel.appendChild(paneel('Laatste vier weken', 'tegen de vier daarvoor', rijen));
+  }
+
+  /* --- week voor week --- */
+  const kaarten = [];
+  let getoond = 0;
+  for (const maandag of alle.slice(0, ui.weken)) {
+    const isNu = maandag === maandagVan(vandaag());
+    if (!isNu && !heeftIets(maandag)) continue;
+    getoond++;
+    const lijst = el('ul', { class: 'week' });
+    for (const g of GEWOONTES) {
+      const aantal = telWeek(maandag, g);
+      const dl = doelVan(g);
+      const t = tellingTekst(aantal, dl, g.soort);
+      lijst.appendChild(el('li', null, [
+        el('div', { class: 'naam', tekst: g.naam }),
+        stippenRij(aantal, dl, g.soort),
+        el('div', { class: 'telling ' + t.klasse, tekst: t.tekst }),
+      ]));
+    }
+    const afgevinkt = st.taken.filter(t => t.klaar && weekDagen(maandag).includes(t.klaar)).length;
+    kaarten.push(el('div', { style: 'margin-bottom:16px' }, [
+      el('div', { class: 'weekkop' }, [
+        el('b', { tekst: isNu ? 'Deze week' : 'Week ' + weekVan(maandag).split('-W')[1] }),
+        el('span', { tekst: korteDatum(maandag) + ' – ' + korteDatum(plusDagen(maandag, 6)) + (afgevinkt ? ' · ' + afgevinkt + (afgevinkt === 1 ? ' taak' : ' taken') + ' gedaan' : '') }),
+      ]),
+      lijst,
+    ]));
+  }
+
+  if (!getoond) kaarten.push(el('div', { class: 'leeg', tekst: 'Nog niets om op terug te kijken. Over een week staat hier je eerste rij.' }));
+  else kaarten.push(el('button', {
+    class: 'vouw', tekst: '▸ verder terug kijken',
+    onclick: () => { ui.weken += 8; tekenTerugblik(); },
+  }));
+
+  doel.appendChild(paneel('Week voor week', '', kaarten));
+}
+
+/* ===================================================================
+   Tabblad Instellingen
+   =================================================================== */
+
+function tekenInstellingen() {
+  const doel = document.getElementById('tab-instellingen');
+  doel.textContent = '';
+
+  /* --- doelen --- */
+  const rijen = [];
+  for (const g of GEWOONTES) {
+    const veld = el('input', { type: 'number', min: '0', max: '7', inputmode: 'numeric', value: String(doelVan(g)) });
+    veld.addEventListener('change', () => {
+      let v = parseInt(veld.value, 10);
+      if (!Number.isFinite(v)) v = STANDAARD_DOELEN[g.id];
+      v = Math.max(0, Math.min(7, v));
+      veld.value = String(v);
+      st.doelen[g.id] = v;
+      bewaar();
+      zeg('Aangepast');
+    });
+    rijen.push(el('div', { class: 'doel' }, [
+      el('div', { class: 'naam' }, [
+        document.createTextNode(g.naam),
+        el('div', { class: 'soort', tekst: g.soort === 'min' ? 'minstens, per week' : 'hoogstens, per week' }),
+      ]),
+      veld,
+    ]));
+  }
+  rijen.push(el('p', { class: 'uitleg', tekst: 'Haal je een doel drie weken achter elkaar, schuif het dan een stapje op. Haal je het bijna nooit, zet het lager — een doel dat je elke week mist meet niets.' }));
+  doel.appendChild(paneel('Doelen per week', '', rijen));
+
+  /* --- reservekopie --- */
+  const bestand = el('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' });
+  bestand.addEventListener('change', () => {
+    const f = bestand.files && bestand.files[0];
+    if (!f) return;
+    const lezer = new FileReader();
+    lezer.onload = () => {
+      try {
+        const d = JSON.parse(lezer.result);
+        if (!d || !Array.isArray(d.taken) || typeof d.dagen !== 'object') throw new Error('vorm klopt niet');
+        const aantal = d.taken.length + Object.keys(d.dagen).length;
+        if (!confirm('Deze reservekopie bevat ' + aantal + ' regels en vervangt alles wat er nu in staat. Doorgaan?')) return;
+        st = Object.assign(leeg(), d);
+        st.doelen = Object.assign({}, STANDAARD_DOELEN, d.doelen || {});
+        bewaar();
+        tekenAlles();
+        zeg('Teruggezet');
+      } catch (e) {
+        zeg('Dit bestand kan ik niet lezen');
+      }
+    };
+    lezer.readAsText(f);
+    bestand.value = '';
+  });
+
+  const knoppen = el('div', { class: 'knoprij' }, [
+    el('button', {
+      class: 'btn primair', tekst: 'Reservekopie bewaren',
+      onclick: () => {
+        const naam = 'op-rij-reservekopie-' + vandaag() + '.json';
+        const blob = new Blob([JSON.stringify(st, null, 2)], { type: 'application/json' });
+        const a = el('a', { href: URL.createObjectURL(blob), download: naam });
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        st.laatsteKopie = vandaag();
+        bewaar();
+        setTimeout(tekenInstellingen, 50);
+      },
+    }),
+    el('button', { class: 'btn', tekst: 'Terugzetten', onclick: () => bestand.click() }),
+    bestand,
+  ]);
+
+  const sinds = st.laatsteKopie
+    ? 'Laatste kopie: ' + langeDatum(st.laatsteKopie) + '.'
+    : 'Je hebt nog geen reservekopie gemaakt.';
+
+  doel.appendChild(paneel('Reservekopie', '', [
+    knoppen,
+    el('p', { class: 'uitleg', tekst: sinds + ' Alles staat alleen in deze browser, op deze telefoon. Wis je de browsergegevens of raak je het toestel kwijt, dan is het weg. Een kopie per maand is genoeg — bewaar hem in iCloud of mail hem naar jezelf.' }),
+  ]));
+
+  /* --- meldingen --- */
+  const kanMelden = 'Notification' in window && 'PushManager' in window
+                    && 'serviceWorker' in navigator;
+  const stand = !kanMelden ? 'kan niet'
+    : Notification.permission === 'granted' ? 'aan'
+    : Notification.permission === 'denied' ? 'geweigerd' : 'uit';
+
+  const meldStukken = [];
+  if (stand === 'kan niet') {
+    meldStukken.push(el('p', { class: 'uitleg', tekst: 'Dit toestel of deze browser kan geen meldingen aannemen. Op de iPhone kan het alleen als de app op je beginscherm staat — zet hem daar via Deel → Zet op beginscherm en open hem daarvandaan.' }));
+  } else if (stand === 'geweigerd') {
+    meldStukken.push(el('p', { class: 'uitleg', tekst: 'Je hebt meldingen eerder geweigerd. Dat kan de app niet zelf terugdraaien: zet het aan bij Instellingen → Dagstart → Berichtgeving op je telefoon.' }));
+  } else {
+    meldStukken.push(el('button', {
+      class: 'btn',
+      tekst: stand === 'aan' ? 'Opnieuw aanmelden' : 'Meldingen aanzetten',
+      onclick: async (e) => {
+        e.target.disabled = true;
+        try {
+          if (await Notification.requestPermission() !== 'granted') {
+            zeg('Niet toegestaan'); return;
+          }
+          const reg = await navigator.serviceWorker.ready;
+          const ab = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: sleutelBytes(VAPID_PUBLIEK),
+          });
+          aanmelding = JSON.stringify(ab.toJSON());
+          zeg('Aangemeld');
+        } catch (fout) {
+          zeg('Aanmelden lukte niet');
+        } finally {
+          e.target.disabled = false;
+          herteken(tekenInstellingen, 'tab:instellingen');
+        }
+      },
+    }));
+  }
+
+  if (aanmelding) {
+    const vak = el('textarea', { class: 'aanmelding', readonly: 'readonly', rows: '4' });
+    vak.value = aanmelding;
+    meldStukken.push(vak);
+    meldStukken.push(el('button', {
+      class: 'btn',
+      tekst: 'Kopieer',
+      onclick: () => {
+        vak.select();
+        navigator.clipboard ? navigator.clipboard.writeText(aanmelding).then(() => zeg('Gekopieerd'))
+                            : zeg('Selecteer en kopieer zelf');
+      },
+    }));
+    meldStukken.push(el('p', { class: 'uitleg', tekst: 'Stuur deze regel één keer naar jezelf en zet hem op de Mac in oprij/bron/push-abonnementen.json. Daarna weet je Mac waar hij een melding naartoe moet sturen. Dit hoeft maar één keer, tenzij je de app opnieuw installeert.' }));
+  }
+
+  meldStukken.push(el('p', { class: 'uitleg', tekst: 'Je krijgt er weinig: een topbenoeming in je vakgebied, iemand van gewicht die opstapt, een wereldleider die valt of aantreedt, oorlog, kraanvogels binnen tien kilometer van Dalfsen, en een zeer zeldzame vogel, libel, dagvlinder, zoogdier of bij in diezelfde cirkel. Het bericht zelf is leeg — de app haalt daarna zelf op wat er aan de hand is, zodat er onderweg niets te lezen valt.' }));
+
+  /* Welke servicewerker er draait. Die vervangt zichzelf niet altijd even
+     gewillig op iOS, en dan komt een melding wél aan maar zonder tekst. */
+  const versieregel = el('p', { class: 'uitleg', tekst: 'Versie van de app: aan het opvragen…' });
+  meldStukken.push(versieregel);
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    const kanaal = (ev) => {
+      if (ev.data && ev.data.versie) {
+        versieregel.textContent = 'Versie van de app: ' + ev.data.versie + '.';
+        navigator.serviceWorker.removeEventListener('message', kanaal);
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', kanaal);
+    navigator.serviceWorker.controller.postMessage('versie?');
+    setTimeout(() => {
+      if (versieregel.textContent.endsWith('opvragen…')) {
+        versieregel.textContent = 'Versie van de app: een oude — hij antwoordt niet. '
+          + 'Haal Dagstart van je beginscherm en zet hem er opnieuw op.';
+      }
+    }, 1500);
+  } else {
+    versieregel.textContent = 'Versie van de app: onbekend, er draait geen servicewerker.';
+  }
+
+  doel.appendChild(paneel('Meldingen', stand === 'aan' ? 'aan' : '', meldStukken));
+
+  /* --- over --- */
+  doel.appendChild(paneel('Over deze app', '', [
+    el('p', { class: 'uitleg', tekst: 'Op Rij draait helemaal op je eigen toestel. Er is geen account, geen server en niets wordt gedeeld. Zet hem in Safari op je beginscherm via Deel → Zet op beginscherm, dan opent hij als een gewone app en werkt hij ook zonder bereik.' }),
+    el('p', { class: 'uitleg', tekst: 'Sinds oktober 2026 kan de app wél meldingen aannemen, zie het blok hierboven. Dat werkt alleen vanaf je beginscherm, en alleen als de Mac thuis aanstaat — die kijkt namelijk voor je mee.' }),
+  ]));
+}
+
+/* ===================================================================
+   Ochtendbriefing
+
+   De briefing wordt elke ochtend door bron/ophalen.py op de Mac gemaakt en
+   als briefing.json naast deze app gepubliceerd. De app haalt hem op bij het
+   openen en bewaart de laatste goede versie in de opslag van dit toestel.
+   Dat laatste is geen luxe: zonder bereik zou je anders een leeg scherm
+   krijgen, en juist 's ochtends in de trein is dat het geval.
+   =================================================================== */
+
+/* De briefing, het dagarchief en de opname staan niet naast deze app maar bij
+   GitHub. Reden: Netlify rekent 15 van de 300 maandcredits per publicatie, en
+   publiceren is daar altijd de hele map tegelijk. Zes rondes per dag waren dus
+   zes publicaties per dag en daarmee was de maand in vier dagen op — in
+   augustus, september én oktober 2026. Een bestand bij GitHub vervangen is geen
+   publicatie en kost niets, dus Netlify houdt alleen de app zelf.
+
+   Verander je dit adres, verander dan ook 'eigenaar' in bron/github.json en de
+   bronnenregel in ~/Claude/Scheduled/ochtend-briefing/SKILL.md; die drie moeten
+   naar dezelfde plek wijzen. */
+const DATA_BASIS = 'https://raw.githubusercontent.com/GertVeurink/dagstart-data/main/';
+
+/* De publieke helft van de pushsleutel. Die mág iedereen zien — daar is hij
+   voor: hij zegt alleen tegen Apple wiens meldingen dit toestel wil aannemen.
+   De privéhelft staat in ~/.dagstart-push-sleutel.txt op de Mac. */
+const VAPID_PUBLIEK = 'BALRrHK7q70Lj7UpaSPNZmfzNt-0cAYSFLZYMzrOoEAi9VPl2ADTWU6xuwEyfFiscZOMWSt_CFXT6b0hGI7zSdI';
+
+/* De browser wil de sleutel als kale bytes, niet als tekst. */
+function sleutelBytes(tekst) {
+  const vol = (tekst + '='.repeat((4 - tekst.length % 4) % 4))
+    .replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(vol), (c) => c.charCodeAt(0));
+}
+
+/* Wat de telefoon na het aanmelden moet doorgeven aan de Mac. Er is geen
+   server, dus dat gaat één keer met de hand. Staat hier zodat het scherm het
+   kan tonen zodra het er is. */
+let aanmelding = null;
+
+/* Paden in briefing.json zijn relatief ('audio/20261004.mp3'), zodat het
+   bestand zelf niet weet waar hij gepubliceerd staat. Hier komt het adres
+   ervoor. Een pad dat al met http begint laten we staan. */
+function dataAdres(pad) {
+  return /^https?:/.test(pad) ? pad : DATA_BASIS + pad;
+}
+
+const BRIEF_SLEUTEL = 'dagstart.briefing';
+let briefing = null;
+/* Oudere briefings worden pas opgehaald als je ze opvraagt, en daarna
+   onthouden zolang de app open staat. Ze in de opslag bewaren zou die vol
+   laten lopen met nieuws dat je één keer leest. */
+const archief = {};
+
+function briefingUitOpslag() {
+  try {
+    const rauw = localStorage.getItem(BRIEF_SLEUTEL);
+    return rauw ? JSON.parse(rauw) : null;
+  } catch (e) { return null; }
+}
+
+async function haalBriefing() {
+  briefing = briefingUitOpslag();
+  if (briefing) tekenAlles();
+  try {
+    /* cache: 'no-store' omdat de servicewerker anders die van gisteren mag
+       teruggeven — en dan zie je 's ochtends het nieuws van eergisteren. */
+    const r = await fetch(dataAdres('briefing.json') + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    const verse = await r.json();
+    if (verse && Array.isArray(verse.blokken)) {
+      briefing = verse;
+      try { localStorage.setItem(BRIEF_SLEUTEL, JSON.stringify(verse)); } catch (e) {}
+      tekenAlles();
+      warmArchief(verse.archief || []);
+    }
+  } catch (e) {
+    /* Geen bereik of nog niet gepubliceerd. Dan blijft staan wat er stond;
+       daar hoeft geen foutmelding bij. */
+  }
+}
+
+/* De zeven dagen uit het archief één keer binnenhalen, zodat terugbladeren ook
+   zonder bereik werkt.
+
+   De servicewerker bewaart alles wat van de gegevenshost komt, dus hij hoeft
+   hier niets voor te leren -- maar hij bewaart alleen wat je ooit hebt
+   opgevraagd, en dat is precies de dag die je offline níet meer kunt openen.
+   Vandaar dit zetje. Zeven bestandjes van een paar honderd kilobyte.
+
+   Eerst kijken wat er al in de cache staat, anders zijn het zeven verzoeken bij
+   elke keer dat je de app opent. En één voor één met een pauze ertussen: dit
+   hoeft niet snel te zijn en het is andermans server. */
+async function warmArchief(dagen) {
+  if (!('caches' in window)) return;
+  for (const d of dagen) {
+    if (d === vandaag()) continue;
+    const adres = dataAdres('briefing/' + d + '.json');
+    try {
+      if (await caches.match(adres, { ignoreSearch: true })) continue;
+      await fetch(adres);
+      await new Promise((k) => setTimeout(k, 400));
+    } catch (e) {
+      return;   /* geen bereik -- de rest heeft dan ook geen zin */
+    }
+  }
+}
+
+/* De briefing die nu getoond wordt: die van vandaag, of een dag uit het
+   archief die nog aan het laden kan zijn. */
+function huidigeBriefing() {
+  if (!ui.briefingDag) return briefing;
+  return archief[ui.briefingDag] || null;
+}
+
+async function haalDag(datum) {
+  if (archief[datum]) return;
+  try {
+    const r = await fetch(dataAdres('briefing/' + datum + '.json'), { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    archief[datum] = await r.json();
+  } catch (e) {
+    archief[datum] = 'mislukt';
+  }
+  if (ui.tab === 'briefing') tekenBriefing();
+}
+
+function korteDag(datum) {
+  if (datum === vandaag()) return 'vandaag';
+  const d = new Date(datum + 'T12:00:00');
+  const gisteren = new Date(); gisteren.setDate(gisteren.getDate() - 1);
+  if (datum === sleutelVan(gisteren)) return 'gisteren';
+  return DAGNAMEN[d.getDay()].slice(0, 2) + ' ' + d.getDate();
+}
+
+/* Oudere briefings uit het archief hebben nog geen naam; die zijn allemaal
+   's ochtends gemaakt. */
+function briefingNaam(b) {
+  return (b && b.naam) || 'Ochtendbriefing';
+}
+
+function briefingDatumTekst() {
+  if (!briefing) return '';
+  if (briefing.datum !== vandaag()) return 'van ' + langeDatum(briefing.datum);
+  const wanneer = { Ochtendbriefing: 'vanochtend', Middagbriefing: 'vanmiddag',
+                    Avondbriefing: 'vanavond' }[briefingNaam(briefing)];
+  return 'van ' + (wanneer || 'vandaag');
+}
+
+function tekenStart() {
+  const doel = document.getElementById('tab-start');
+  const open = takenVoorVandaag().length;
+  const berichten = briefing
+    ? briefing.blokken.reduce((n, b) => n + b.items.length, 0) : 0;
+
+  const el = document.createElement('div');
+  el.className = 'start';
+
+  const brief = document.createElement('button');
+  brief.className = 'startkaart briefing';
+  brief.innerHTML =
+    '<h2>' + briefingNaam(briefing) + '</h2>' +
+    '<div class="onder">' +
+      (briefing ? 'Wat er is gebeurd — ' + briefingDatumTekst()
+                : 'Nog niet opgehaald') + '</div>' +
+    '<div class="cijfers">' +
+      (briefing
+        ? briefing.blokken.map(b =>
+            '<span class="pil">' + b.emoji + ' ' + b.titel +
+            (b.items.length ? ' ' + b.items.length : '') + '</span>').join('')
+        : '') +
+      (briefing && briefing.audio ? '<span class="pil groen">🔊 ingesproken</span>' : '') +
+      /* Zodat je van het startscherm af ziet dat je iets hebt weggezet; het
+         staat bovenaan de briefing en die opent deze kaart. */
+      (st.bewaard.length ? '<span class="pil">★ ' + st.bewaard.length + ' bewaard</span>' : '') +
+    '</div>';
+  brief.addEventListener('click', () => { ui.tab = 'briefing'; tekenAlles(); window.scrollTo(0,0); });
+
+  const rij = document.createElement('button');
+  rij.className = 'startkaart oprij';
+  rij.innerHTML =
+    '<h2>Op Rij</h2>' +
+    '<div class="onder">Wat je moet doen, en hoe de week ervoor staat</div>' +
+    '<div class="cijfers">' +
+      '<span class="pil' + (open ? ' groen' : '') + '">' +
+        (open === 0 ? 'geen taken open' : open + (open === 1 ? ' taak open' : ' taken open')) +
+      '</span>' +
+      '<span class="pil">' + gewoontesVandaagTekst() + '</span>' +
+    '</div>';
+  rij.addEventListener('click', () => { ui.tab = 'vandaag'; tekenAlles(); window.scrollTo(0,0); });
+
+  const week = trainingDezeWeek();
+  const vandaagGedaan = trainingVan(vandaag());
+  const voorstel = voorstelVandaag();
+  const tr = document.createElement('button');
+  tr.className = 'startkaart training';
+  tr.innerHTML =
+    '<h2>Training</h2>' +
+    '<div class="onder">' +
+      (vandaagGedaan ? 'Vandaag gedaan: ' + TRAINING[vandaagGedaan].naam
+                     : 'Vandaag aan de beurt: ' + TRAINING[voorstel.id].naam) + '</div>' +
+    '<div class="cijfers">' +
+      '<span class="pil' + (week.gedaan >= week.doel ? ' groen' : '') + '">' +
+        week.gedaan + ' van ' + week.doel + ' deze week</span>' +
+      (vandaagGedaan ? '<span class="pil groen">✓ vandaag</span>' : '') +
+    '</div>';
+  tr.addEventListener('click', () => { ui.tab = 'training'; tekenAlles(); window.scrollTo(0,0); });
+
+  /* Als laatste: het is de beloning, niet het werk. */
+  const sd = spelDag(vandaag());
+  const welk = sd ? sd.welk : spelVan(vandaag());
+  const gespeeld = sd ? sd.scores.length : 0;
+  const rec = spelRecord(welk);
+  const sp = document.createElement('button');
+  sp.className = 'startkaart spel';
+  sp.innerHTML =
+    '<h2>Spelletje</h2>' +
+    '<div class="onder">' +
+      (gespeeld >= SPEL_POGINGEN
+        ? 'Vandaag gespeeld: ' + SPELLEN[welk].naam + ', beste ' + scoreTekst(welk, besteVan(sd.scores))
+        : 'Vandaag: ' + SPELLEN[welk].naam + ' — drie keer anderhalve minuut') + '</div>' +
+    '<div class="cijfers">' +
+      (gespeeld >= SPEL_POGINGEN
+        ? '<span class="pil groen">✓ vandaag</span>'
+        : '<span class="pil">nog ' + (SPEL_POGINGEN - gespeeld) +
+          (SPEL_POGINGEN - gespeeld === 1 ? ' poging' : ' pogingen') + '</span>') +
+      (rec ? '<span class="pil">★ record ' + rec.score + '</span>' : '') +
+    '</div>';
+  sp.addEventListener('click', () => { ui.tab = 'spel'; tekenAlles(); window.scrollTo(0,0); });
+
+  el.append(brief, tr, rij, sp);
+
+  const voet = document.createElement('div');
+  voet.className = 'startvoet';
+  for (const [naam, tab] of [['Terugblik','terugblik'], ['Instellingen','instellingen']]) {
+    const k = document.createElement('button');
+    k.textContent = naam;
+    k.addEventListener('click', () => { ui.tab = tab; tekenAlles(); window.scrollTo(0,0); });
+    voet.append(k);
+  }
+  el.append(voet);
+
+  doel.replaceChildren(el);
+}
+
+/* Hoeveel vinkjes van vandaag al staan — één regel op de startkaart, zodat je
+   ziet of er nog iets te doen is zonder de app in te gaan. */
+function gewoontesVandaagTekst() {
+  const d = dag(vandaag(), false);
+  const tegels = GEWOONTES.filter(g => g.tegel);
+  const n = tegels.filter(g => d[g.id]).length;
+  return n + ' van ' + tegels.length + ' vinkjes';
+}
+
+/* Opnieuw tekenen zonder dat de pagina naar boven springt.
+
+   Elke klik op een blok of kopje tekent het hele briefingscherm opnieuw, en dan
+   staat de pagina weer bovenaan — je klikt onderin op Vogels en moet vervolgens
+   terugscrollen om te zien wat je net opende. Daarom onthouden we waar het
+   aangeklikte element stond ten opzichte van het scherm, en zetten we het daar
+   na het hertekenen weer neer. Bij uitklappen én bij dichtklappen, want in beide
+   gevallen verschuift alles eronder. */
+function herteken(tekenaar, sleutel) {
+  const voor = sleutel
+    ? document.querySelector('[data-sleutel="' + CSS.escape(sleutel) + '"]')
+    : null;
+  const top = voor ? voor.getBoundingClientRect().top : null;
+  tekenaar();
+  if (top === null) return;
+  const na = document.querySelector('[data-sleutel="' + CSS.escape(sleutel) + '"]');
+  if (na) window.scrollBy(0, na.getBoundingClientRect().top - top);
+}
+
+/* De ingesproken briefing, met een eigen speler in plaats van die van de
+   browser. Snelheid zit erbij omdat dit gesproken nieuws is: wie hem al twee
+   maanden hoort, luistert hem liever op anderhalf terwijl hij zich aankleedt.
+   Die keuze blijft staan in de opslag van dit toestel — niet in je gegevens,
+   want het is een gemak en geen instelling die ergens anders moet gelden. */
+const SNELHEDEN = [1, 1.25, 1.5, 1.75];
+
+function klokje(seconden) {
+  if (!isFinite(seconden)) return '–:––';
+  const m = Math.floor(seconden / 60);
+  const s = Math.floor(seconden % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function maakSpeler(bron) {
+  const sp = el('div', { class: 'speler' });
+  sp.innerHTML =
+    '<div class="kop"><div class="label">Ingesproken</div>' +
+      '<span class="duur">–:––</span></div>' +
+    '<div class="bediening">' +
+      '<button class="knop terug" type="button" title="15 seconden terug" ' +
+        'aria-label="Vijftien seconden terug">' +
+        '<svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>' +
+      '</button>' +
+      '<button class="knop afspelen" type="button" aria-label="Afspelen">' +
+        '<svg viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>' +
+      '</button>' +
+      '<input class="voortgang" type="range" min="0" max="1000" value="0" step="1" ' +
+        'aria-label="Positie in de opname">' +
+      '<span class="tijd">0:00</span>' +
+      '<button class="knop snelheid" type="button" aria-label="Afspeelsnelheid">1×</button>' +
+    '</div>';
+
+  /* preload="metadata" en niet "none": zo staat de lengte er meteen, zonder dat
+     de hele opname van een halve megabyte binnengehaald wordt. */
+  const geluid = el('audio', { preload: 'metadata', src: bron });
+  geluid.style.display = 'none';
+  sp.append(geluid);
+
+  const knop = sp.querySelector('.afspelen');
+  const terug = sp.querySelector('.terug');
+  const balk = sp.querySelector('.voortgang');
+  const tijd = sp.querySelector('.tijd');
+  const duur = sp.querySelector('.duur');
+  const snelheid = sp.querySelector('.snelheid');
+  const DRIEHOEK = '<svg viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>';
+  const STREPEN = '<svg viewBox="0 0 24 24"><path d="M7 4h4v16H7zm6 0h4v16h-4z"/></svg>';
+
+  let slepen = false;
+
+  knop.onclick = () => { geluid.paused ? geluid.play() : geluid.pause(); };
+  terug.onclick = () => { geluid.currentTime = Math.max(0, geluid.currentTime - 15); };
+
+  let keuze = 0;
+  try {
+    const bewaard = SNELHEDEN.indexOf(parseFloat(localStorage.getItem('dagstart.snelheid')));
+    if (bewaard >= 0) keuze = bewaard;
+  } catch (e) {}
+  const zetSnelheid = () => {
+    geluid.playbackRate = SNELHEDEN[keuze];
+    snelheid.textContent = String(SNELHEDEN[keuze]).replace('.', ',') + '×';
+    try { localStorage.setItem('dagstart.snelheid', SNELHEDEN[keuze]); } catch (e) {}
+  };
+  zetSnelheid();
+  snelheid.onclick = () => { keuze = (keuze + 1) % SNELHEDEN.length; zetSnelheid(); };
+
+  geluid.onplay = () => { knop.innerHTML = STREPEN; knop.setAttribute('aria-label', 'Pauzeren'); };
+  geluid.onpause = () => { knop.innerHTML = DRIEHOEK; knop.setAttribute('aria-label', 'Afspelen'); };
+  geluid.onended = () => { knop.innerHTML = DRIEHOEK; balk.value = 0; };
+  geluid.onloadedmetadata = () => { duur.textContent = klokje(geluid.duration); };
+  geluid.ontimeupdate = () => {
+    tijd.textContent = klokje(geluid.currentTime);
+    if (!slepen && geluid.duration) {
+      balk.value = Math.round((geluid.currentTime / geluid.duration) * 1000);
+    }
+  };
+  /* Tijdens het slepen niet meeschrijven met ontimeupdate, anders springt het
+     knopje onder je vinger terug naar waar de opname nog staat. */
+  balk.oninput = () => {
+    slepen = true;
+    if (geluid.duration) tijd.textContent = klokje(balk.value / 1000 * geluid.duration);
+  };
+  balk.onchange = () => {
+    if (geluid.duration) geluid.currentTime = balk.value / 1000 * geluid.duration;
+    slepen = false;
+  };
+  return sp;
+}
+
+function tekenBriefing() {
+  const doel = document.getElementById('tab-briefing');
+  const toon = huidigeBriefing();
+  const dagen = (briefing && briefing.archief) ? briefing.archief : [];
+
+  /* De dagkiezer hoort ook zichtbaar te zijn als de gekozen dag nog laadt of
+     mislukte, anders kun je niet terug naar vandaag. */
+  function dagkiezer() {
+    if (dagen.length < 2) return null;
+    const rij = document.createElement('div');
+    rij.className = 'dagkiezer';
+    for (const d of dagen) {
+      const k = document.createElement('button');
+      const actief = (ui.briefingDag || vandaag()) === d;
+      k.className = 'dagknop' + (actief ? ' aan' : '');
+      k.textContent = korteDag(d);
+      k.addEventListener('click', () => {
+        ui.briefingDag = (d === vandaag()) ? null : d;
+        if (ui.briefingDag) haalDag(d);
+        tekenBriefing();
+        window.scrollTo(0, 0);
+      });
+      rij.append(k);
+    }
+    return rij;
+  }
+
+  if (ui.briefingDag && !toon) {
+    const k = dagkiezer();
+    const m = document.createElement('div');
+    m.className = 'leeg';
+    m.textContent = archief[ui.briefingDag] === 'mislukt'
+      ? 'Die dag kon ik niet ophalen — oudere briefings staan alleen online.'
+      : 'Even ophalen…';
+    doel.replaceChildren(...(k ? [k, m] : [m]));
+    return;
+  }
+
+  if (!toon) {
+    doel.replaceChildren(Object.assign(document.createElement('div'), {
+      className: 'leeg',
+      textContent: 'De briefing van vanochtend is nog niet opgehaald.',
+    }));
+    return;
+  }
+
+  const stuk = document.createDocumentFragment();
+
+  const kop = document.createElement('div');
+  kop.className = 'briefkop';
+  kop.innerHTML = '<h1>' + briefingNaam(toon) + '</h1>' +
+    '<div class="datum">' + langeDatum(toon.datum) + '</div>';
+  stuk.append(kop);
+
+  const kiezer = dagkiezer();
+  if (kiezer) stuk.append(kiezer);
+
+  if (toon.audio) stuk.append(maakSpeler(dataAdres(toon.audio)));
+
+  const kleuren = { internationaal:'var(--teal)', nationaal:'var(--accent)',
+                    lokaal:'var(--olijf)', ai:'var(--leisteen)', bron:'var(--accent)',
+                    podcasts:'var(--leisteen)', natuur:'var(--olijf)', vogels:'var(--olijf)',
+                    hemel:'var(--leisteen)',
+                    trektellen:'var(--olijf)', weer:'var(--teal)' };
+
+  /* Bewaarde berichten, bovenaan en standaard dicht. Dit hangt niet aan de dag
+     die je bekijkt: het is jouw lijstje en het staat in `oprij.v1`, dus het gaat
+     mee in de reservekopie en overleeft een nieuwe versie van de app. */
+  if (st.bewaard.length) {
+    const vak = document.createElement('section');
+    vak.className = 'blok';
+    /* Dit blok staat standaard open, anders dan de nieuwsblokken: daar klap je
+       iets open omdat je het wilt lezen, hier heb je het zelf weggezet. Klap je
+       het dicht, dan blijft het dicht zolang de app open is. */
+    const open = ui.blokOpen.bewaard !== false;
+    vak.dataset.open = open ? '1' : '0';
+
+    const knop = document.createElement('button');
+    knop.dataset.sleutel = 'blok:bewaard';
+    knop.style.borderLeftColor = 'var(--warm)';
+    knop.innerHTML = '<span>\u2605</span>' +
+      '<span class="naam">Bewaard</span>' +
+      '<span class="aantal">' + st.bewaard.length + '</span>' +
+      '<span class="pijl">&#9656;</span>';
+    knop.addEventListener('click', () => {
+      ui.blokOpen.bewaard = !open;
+      herteken(tekenBriefing, 'blok:bewaard');
+    });
+    vak.append(knop);
+
+    if (open) {
+      const inhoud = document.createElement('div');
+      inhoud.className = 'inhoud';
+      for (const bw of st.bewaard) {
+        const rij = document.createElement('div');
+        rij.className = 'berichtrij';
+        const r = document.createElement(bw.link ? 'a' : 'div');
+        r.className = 'bericht';
+        if (bw.link) { r.href = bw.link; r.target = '_blank'; r.rel = 'noopener'; }
+        r.innerHTML = '<span class="titel">' + bw.titel + '</span>' +
+          '<span class="meta">' +
+          [bw.bron, bw.tijd, bw.op ? 'bewaard ' + korteDatum(bw.op) : '']
+            .filter(Boolean).join(' \u00b7 ') + '</span>';
+        rij.append(r);
+        const k = document.createElement('button');
+        k.type = 'button';
+        k.className = 'bewaarknop aan';
+        k.title = 'Niet meer bewaren';
+        k.setAttribute('aria-label', k.title);
+        k.textContent = '\u2605';
+        k.addEventListener('click', () => {
+          st.bewaard = st.bewaard.filter((x) => x.sleutel !== bw.sleutel);
+          bewaar();
+          herteken(tekenBriefing, 'blok:bewaard');
+        });
+        rij.append(k);
+        inhoud.append(rij);
+      }
+      vak.append(inhoud);
+    }
+    stuk.append(vak);
+  }
+
+  for (const b of toon.blokken) {
+    const el = document.createElement('section');
+    el.className = 'blok';
+    const uit = ui.blokOpen[b.id] ? '1' : '0';
+    el.dataset.open = uit;
+
+    const knop = document.createElement('button');
+    knop.dataset.sleutel = 'blok:' + b.id;
+    knop.style.borderLeftColor = kleuren[b.id] || 'var(--leisteen)';
+    /* Hoeveel er in dit blok nieuw is sinds je vorige bezoek. Juist bij een
+       dichtgeklapt blok is dat de informatie die je nodig hebt om te besluiten
+       of je het opent. */
+    const nieuwInBlok = b.items.filter(isNieuw).length;
+    knop.innerHTML = '<span>' + b.emoji + '</span>' +
+      '<span class="naam">' + b.titel + '</span>' +
+      '<span class="aantal">' + (b.items.length || '') + '</span>' +
+      (nieuwInBlok ? '<span class="nieuwtje">' + nieuwInBlok + ' nieuw</span>' : '') +
+      '<span class="pijl">&#9656;</span>';
+    knop.addEventListener('click', () => {
+      ui.blokOpen[b.id] = !ui.blokOpen[b.id];
+      herteken(tekenBriefing, 'blok:' + b.id);
+    });
+    el.append(knop);
+
+    if (ui.blokOpen[b.id]) {
+      const inhoud = document.createElement('div');
+      inhoud.className = 'inhoud';
+
+      if (b.id === 'weer' && b.weer) {
+        const w = b.weer;
+        const d = document.createElement('div');
+        d.className = 'weerkaart';
+        d.innerHTML =
+          '<div class="groot">' + (w.nu != null ? w.nu + '°' : '') + '</div>' +
+          '<div class="meta" style="color:var(--ink-3);font-size:13px">' +
+            'meetstation ' + w.station + (w.wind ? ' · wind ' + w.wind : '') + '</div>' +
+          /* De cijfers van vandaag zijn er niet altijd: zodra de dag loopt laat
+             Buienradar hem uit de vijfdaagse vallen. Dan tonen we ze gewoon
+             niet, in plaats van die van morgen onder het kopje vandaag — dat
+             stond hier tot 8 oktober 2026 en gaf elke dag het verkeerde getal. */
+          (w.omschrijving || w.min != null
+            ? '<p><b>' + (w.omschrijving || '') + '</b><br>' +
+              (w.min != null ? w.min + ' tot ' + w.max + ' graden' : '') +
+              (w.regenkans != null ? ' · ' + w.regenkans + '% kans op regen' : '') +
+              (w.zonkans != null ? ' · ' + w.zonkans + '% zon' : '') + '</p>'
+            : '') +
+          (w.bericht ? '<p>' + w.bericht + '</p>' : '') +
+          /* Het landelijke weerbericht noemt Dalfsen nooit ("van 16 graden in
+             het Waddengebied tot 17 in het midden"). Deze regel komt van een
+             verwachting op de coördinaten van Dalfsen zelf. */
+          (w.dalfsen && w.dalfsen.zin
+            ? '<p class="dalfsen">' + w.dalfsen.zin + '</p>' : '') +
+          (w.morgen ? '<p><b>Morgen</b> ' + (w.morgen.omschrijving || '').toLowerCase() +
+            (w.morgen.min != null ? ', ' + w.morgen.min + ' tot ' + w.morgen.max + ' graden' : '') +
+            (w.morgen.regenkans != null ? ' · ' + w.morgen.regenkans + '% kans op regen' : '') +
+            '</p>' : '') +
+          (w.omslag ? '<p class="omslag">' + w.omslag + '</p>' : '') +
+          (w.vooruit ? '<p class="vooruit">' + w.vooruit + '</p>' : '');
+        inhoud.append(d);
+      }
+
+      /* Eén bericht als element. Apart, omdat de items nu op twee plekken
+         gemaakt worden: los, en binnen een ingeklapt kopje. */
+      const maakBericht = (it) => {
+        const rij = document.createElement('div');
+        rij.className = 'berichtrij' + (isNieuw(it) ? ' nieuw' : '');
+        const heeftLink = !!it.link;
+        const r = document.createElement(heeftLink ? 'a' : 'div');
+        r.className = 'bericht' + (it.sein ? ' sein' : '');
+        if (heeftLink) { r.href = it.link; r.target = '_blank'; r.rel = 'noopener'; }
+
+        let meta = [it.bron, it.tijd].filter(Boolean).join(' · ');
+        let extra = '';
+        if (it.soorten && it.soorten.length) {
+          extra += '<span class="meta">' +
+            (it.aantal_soorten ? it.aantal_soorten + ' soorten · grootste: ' : '') +
+            it.soorten.join(', ') + '</span>';
+        }
+        if (it.opmerkingen && it.opmerkingen.length) {
+          extra += '<span class="meta">' + it.opmerkingen.join(' — ') + '</span>';
+        }
+        if (it.vergelijking) extra += '<span class="meta">' + it.vergelijking + '</span>';
+        /* Een toelichting is inhoud, geen bijschrift — dus als lopende tekst en
+           niet in het grijs van de metaregel. Bij Nature Today zit daar het
+           enige dat telt: de kop is vaak alleen een datum. */
+        if (it.toelichting) extra += '<p class="toelichting">' + it.toelichting + '</p>';
+        /* Stond dit verhaal gisteren ook in de briefing? Dat zegt `ophalen.py`
+           erbij; zie markeer_vervolg() daar. */
+        if (it.vervolg) extra += '<span class="meta">' + it.vervolg + '</span>';
+        if (it.wanneer) meta = it.wanneer + ' · ' + meta;
+        if (it.tellers) meta += ' · ' + it.tellers;
+
+        r.innerHTML = '<span class="titel">' + it.titel +
+                      (isNieuw(it) ? '<span class="nieuwtje">nieuw</span>' : '') +
+                      '</span>' +
+                      extra + '<span class="meta">' + meta + '</span>';
+        rij.append(r);
+
+        /* De bewaarknop staat náást de link en niet erin: een knop binnen een
+           anchor is ongeldige opmaak, en een tik erop zou het artikel openen. */
+        const k = document.createElement('button');
+        k.type = 'button';
+        k.className = 'bewaarknop' + (isBewaard(it) ? ' aan' : '');
+        k.title = isBewaard(it) ? 'Niet meer bewaren' : 'Bewaren';
+        k.setAttribute('aria-label', k.title);
+        k.textContent = isBewaard(it) ? '\u2605' : '\u2606';
+        k.addEventListener('click', () => {
+          bewaarWissel(it);
+          herteken(tekenBriefing, 'blok:' + b.id);
+        });
+        rij.append(k);
+        return rij;
+      };
+
+      /* Items met een kopje worden gegroepeerd en apart uitklapbaar. Een blok als
+         "Uit de bron" heeft bijna twintig stukken; die allemaal tegelijk tonen is
+         net zo onleesbaar als zonder kopjes. Items zonder kopje — alle andere
+         blokken — komen gewoon achter elkaar. */
+      const groepen = [];
+      for (const it of b.items) {
+        const laatste = groepen[groepen.length - 1];
+        if (laatste && laatste.kop === (it.kop || null)) laatste.items.push(it);
+        else groepen.push({ kop: it.kop || null, items: [it] });
+      }
+
+      for (const g of groepen) {
+        if (!g.kop) {
+          for (const it of g.items) inhoud.append(maakBericht(it));
+          continue;
+        }
+        const sleutel = b.id + '|' + g.kop;
+        const open = !!ui.kopOpen[sleutel];
+        const knop = document.createElement('button');
+        knop.dataset.sleutel = 'kop:' + sleutel;
+        knop.className = 'subkop' + (open ? ' open' : '');
+        knop.innerHTML = '<span class="naam">' + g.kop + '</span>' +
+                         '<span class="aantal">' + g.items.length + '</span>' +
+                         '<span class="pijl">&#9656;</span>';
+        knop.addEventListener('click', () => {
+          ui.kopOpen[sleutel] = !ui.kopOpen[sleutel];
+          herteken(tekenBriefing, 'kop:' + sleutel);
+        });
+        inhoud.append(knop);
+        if (open) for (const it of g.items) inhoud.append(maakBericht(it));
+      }
+      el.append(inhoud);
+    }
+    stuk.append(el);
+  }
+
+  /* Onderaan: ging het goed vanochtend? Alle storingen van deze app zijn stil —
+     een blok dat ontbreekt ziet eruit als "er was niets". Deze regel maakt het
+     verschil zichtbaar zonder dat je in logbestanden hoeft te kijken. */
+  /* Heette `st` tot 30 oktober 2026, en dat was een valstrik: `st` is ook de
+     naam van je eigen gegevens hierboven. Zolang deze functie die niet nodig
+     had viel dat niet op; zodra het blok Bewaard erbij kwam, viel de hele
+     briefing om met "Cannot access 'st' before initialization". */
+  const rapport = toon.status;
+  if (rapport) {
+    const v = document.createElement('div');
+    v.className = 'status' + (rapport.problemen && rapport.problemen.length ? ' let-op' : '');
+    const stukken = [];
+    if (rapport.opgehaald) stukken.push('opgehaald ' + rapport.opgehaald);
+    if (rapport.blokken) stukken.push(rapport.blokken + ' blokken, ' + rapport.berichten + ' berichten');
+    if (toon.audio) {
+      stukken.push('ingesproken door ' +
+        (rapport.audio_herkomst === 'model' ? 'je Mac, tekst van het model' :
+         rapport.audio_herkomst === 'vangnet' ? 'je Mac, tekst van het sjabloon' :
+         rapport.audio_herkomst === 'geplande taak' ? 'de geplande taak' : 'onbekend') +
+        (rapport.audio_aangehaakt ? ', aangehaakt ' + rapport.audio_aangehaakt : ''));
+    } else {
+      stukken.push('nog geen opname');
+    }
+    let tekst = stukken.join(' · ');
+    if (rapport.problemen && rapport.problemen.length) {
+      tekst += '<br>' + rapport.problemen.length +
+        (rapport.problemen.length === 1 ? ' bron gaf een storing: ' : ' bronnen gaven een storing: ') +
+        rapport.problemen.join('; ');
+    }
+    v.innerHTML = tekst;
+    stuk.append(v);
+  }
+
+  doel.replaceChildren(stuk);
+
+  /* Nu je de briefing van vandaag gezien hebt, schuift het ijkpunt op -- maar
+     alleen in de opslag. `gezienMs` hierboven blijft staan zolang de app open
+     is, dus de stipjes verdwijnen niet onder je ogen. */
+  if (!ui.briefingDag) gezienBijwerken();
+}
+
+/* ===================================================================
+   Training
+
+   Eén van de drie per dag, vijf keer per week. Welke van de drie stelt de app
+   voor, en dat is niet willekeurig: het plan schrijft om-en-om voor. Twee
+   krachtdagen achter elkaar geeft te weinig herstel, en elke dag lopen is bij
+   100 kg en 51 jaar vragen om een blessure. Je mag altijd afwijken — er wordt
+   niets geblokkeerd, het is een voorstel.
+   =================================================================== */
+
+function trainingVan(datum) {
+  return dag(datum).training || null;
+}
+
+/* De laatste keren dat er getraind is, nieuwste eerst. */
+function trainingHistorie(aantal) {
+  const uit = [];
+  const d = new Date();
+  for (let i = 0; i < 60 && uit.length < aantal; i++) {
+    const datum = sleutelVan(d);
+    const t = trainingVan(datum);
+    if (t) uit.push({ datum, soort: t });
+    d.setDate(d.getDate() - 1);
+  }
+  return uit;
+}
+
+function voorstelVandaag() {
+  const historie = trainingHistorie(4);
+  if (!historie.length) return { id: 'a', reden: 'Eerste keer — begin met Kracht A.' };
+
+  const laatste = historie[0];
+  if (laatste.datum === vandaag()) return null;   /* vandaag al gedaan */
+
+  if (TRAINING[laatste.soort].soort === 'kracht') {
+    return { id: 'lopen', reden: 'Gisteren kracht, dus vandaag lopen — om en om.' };
+  }
+  /* Na een loopdag weer kracht, en dan de krachtdag die het langst geleden is. */
+  const laatsteKracht = historie.find(h => TRAINING[h.soort].soort === 'kracht');
+  const volgende = laatsteKracht && laatsteKracht.soort === 'a' ? 'b' : 'a';
+  return { id: volgende, reden: 'Na een loopdag weer kracht.' };
+}
+
+function trainingDezeWeek() {
+  const g = GEWOONTES.find(x => x.id === 'training');
+  return { gedaan: telWeek(maandagVan(vandaag()), g), doel: doelVan(g) };
+}
+
+function zetTraining(id) {
+  const d = dag(vandaag(), true);
+  if (d.training === id) delete d.training;   /* nog eens tikken = terugnemen */
+  else d.training = id;
+  bewaar();
+  tekenAlles();
+  zeg(d.training ? TRAINING[id].naam + ' afgevinkt' : 'Afvinken teruggenomen');
+}
+
+function tekenTraining() {
+  const doel = document.getElementById('tab-training');
+  const stuk = document.createDocumentFragment();
+  const gedaanVandaag = trainingVan(vandaag());
+  const week = trainingDezeWeek();
+  const voorstel = voorstelVandaag();
+
+  const kop = document.createElement('div');
+  kop.className = 'briefkop';
+  kop.innerHTML = '<h1>Training</h1><div class="datum">' +
+    week.gedaan + ' van ' + week.doel + ' deze week' +
+    (week.gedaan >= week.doel ? ' — gehaald' : '') + '</div>';
+  stuk.append(kop);
+
+  const advies = document.createElement('div');
+  advies.className = 'speler';
+  advies.innerHTML = gedaanVandaag
+    ? '<div class="label">Vandaag gedaan</div><b style="font-family:var(--serif);font-size:19px">' +
+      TRAINING[gedaanVandaag].naam + '</b>'
+    : '<div class="label">Vandaag aan de beurt</div><b style="font-family:var(--serif);font-size:19px">' +
+      TRAINING[voorstel.id].naam + '</b><div class="label" style="margin:6px 0 0">' +
+      voorstel.reden + '</div>';
+  stuk.append(advies);
+
+  for (const id of TRAINING_VOLGORDE) {
+    const t = TRAINING[id];
+    const el = document.createElement('section');
+    el.className = 'blok';
+    el.dataset.open = ui.blokOpen['tr-' + id] ? '1' : '0';
+
+    const rij = document.createElement('div');
+    rij.className = 'trainingrij';
+
+    const vink = document.createElement('button');
+    vink.className = 'vinkknop' + (gedaanVandaag === id ? ' aan' : '');
+    vink.setAttribute('aria-label', t.naam + ' afvinken voor vandaag');
+    /* Een leeg vlak leest niet als een knop. Een open rondje wel, en het zegt
+       meteen dat er nog niets is afgevinkt. */
+    vink.textContent = gedaanVandaag === id ? '✓' : '○';
+    vink.addEventListener('click', () => zetTraining(id));
+
+    const knop = document.createElement('button');
+    knop.className = 'trainingnaam';
+    if (!gedaanVandaag && voorstel && voorstel.id === id) knop.classList.add('beurt');
+    knop.innerHTML = '<span class="naam">' + t.naam + '</span>' +
+      '<span class="aantal">' + t.onder + ' · ' + t.duur + '</span>' +
+      '<span class="pijl">&#9656;</span>';
+    knop.dataset.sleutel = 'tr:' + id;
+    knop.addEventListener('click', () => {
+      ui.blokOpen['tr-' + id] = !ui.blokOpen['tr-' + id];
+      herteken(tekenTraining, 'tr:' + id);
+    });
+
+    rij.append(vink, knop);
+    el.append(rij);
+
+    if (ui.blokOpen['tr-' + id]) {
+      const inhoud = document.createElement('div');
+      inhoud.className = 'inhoud';
+      t.oefeningen.forEach(([naam, kit, sets, uitleg, tip], n) => {
+        const sleutel = id + '-' + n;
+        const o = document.createElement('div');
+        o.className = 'oef' + (ui.oefOpen[sleutel] ? ' open' : '');
+
+        const bovenkant = document.createElement('button');
+        bovenkant.className = 'oef-top';
+        bovenkant.innerHTML =
+          '<span class="picto"><svg viewBox="0 0 60 60" fill="none" stroke="currentColor" ' +
+            'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+            (PICTO[naam] || '') + '</svg></span>' +
+          '<span class="oef-mid"><span class="oef-naam">' + naam + '</span>' +
+            '<span class="oef-kit">' + kit + '</span></span>' +
+          /* "3 × 8 per been" op één regel duwt de naam over twee regels heen.
+             Het staartje dus eronder, kleiner — net als in het oorspronkelijke
+             schema. */
+          '<span class="oef-num">' +
+            sets.replace(/ (per .+|sec)$/, '<small>$1</small>') + '</span>' +
+          '<span class="pijl">&#9656;</span>';
+        bovenkant.dataset.sleutel = 'oef:' + sleutel;
+        bovenkant.addEventListener('click', () => {
+          ui.oefOpen[sleutel] = !ui.oefOpen[sleutel];
+          herteken(tekenTraining, 'oef:' + sleutel);
+        });
+        o.append(bovenkant);
+
+        if (ui.oefOpen[sleutel]) {
+          const body = document.createElement('div');
+          body.className = 'oef-body';
+          body.innerHTML = '<p>' + uitleg + '</p><p class="cue">' + tip + '</p>';
+          o.append(body);
+        }
+        inhoud.append(o);
+      });
+      el.append(inhoud);
+    }
+    stuk.append(el);
+  }
+
+  const voet = document.createElement('div');
+  voet.className = 'leeg';
+  voet.style.textAlign = 'left';
+  voet.style.fontSize = '13.5px';
+  voet.innerHTML = 'De laatste twee herhalingen moeten zwaar voelen. Lukt een set ' +
+    'makkelijk: meer herhalingen, of drie tellen de tijd nemen voor het zakken.<br><br>' +
+    'De weegschaal staat de eerste weken stil — vocht en spieraanwas maskeren ' +
+    'vetverlies. Meet je buikomvang erbij, die daalt wél door.<br><br>' +
+    'Spierpijn in week één is normaal, gewrichtspijn niet.';
+  stuk.append(voet);
+
+  doel.replaceChildren(stuk);
+}
+
+/* ===================================================================
+   Spelletje — één klein spel per dag.
+
+   Gert wilde 's ochtends iets kleins om te spelen, zonder dat het de hele
+   ochtend kost. Daarom drie pogingen per dag van precies anderhalve minuut,
+   en de beste telt: meer dan vijf minuten wordt het nooit. Een vaste tijd en
+   geen levens, want met levens duurt een goede ronde Snake tien minuten — en
+   dan zijn scores van verschillende dagen ook niet meer te vergelijken.
+
+   De datum bepaalt welk spel aan de beurt is én hoe het die dag loopt: alle
+   drie de pogingen krijgen dezelfde reeks appels. Zo leer je het bord een
+   beetje kennen en gaat de tweede keer beter. Morgen is het een andere reeks.
+
+   De scores staan in `dagen[datum].spel` = { welk, scores: [..] }, net als de
+   training, en gaan daarmee vanzelf mee in de reservekopie. Een poging wordt
+   bij de start al als 0 weggeschreven: wie halverwege wegtikt of de app
+   herlaadt, heeft die poging gebruikt. Anders is "drie keer" geen drie keer.
+   =================================================================== */
+
+const SPEL_POGINGEN = 3;
+const SPEL_DUUR = 90;   /* seconden per poging */
+
+/* De spellen zelf staan verderop; elk spel zet zich in deze lijst. */
+const SPELLEN = {};
+/* De beurtvolgorde: elke dag de volgende, en na vijf dagen weer de eerste. Een
+   spel erbij zetten verschuift de hele rij, maar de scores houden hun spel vast:
+   die staan bij `welk` en niet bij de plek in deze lijst. */
+const SPEL_VOLGORDE = ['snake', 'breakout', '2048', 'frogger', 'tetris'];
+
+function spelVan(datum) {
+  const dagnr = Math.round(alsDatum(datum).getTime() / 864e5);
+  const n = SPEL_VOLGORDE.length;
+  return SPEL_VOLGORDE[((dagnr % n) + n) % n];
+}
+
+function spelDag(datum) {
+  const s = dag(datum).spel;
+  return s && Array.isArray(s.scores) ? s : null;
+}
+
+function besteVan(scores) { return scores.length ? Math.max(...scores) : 0; }
+
+function scoreTekst(welk, n) {
+  const e = SPELLEN[welk].eenheid;
+  return n + ' ' + (n === 1 ? e[0] : e[1]);
+}
+
+/* Het beste dagresultaat ooit; met `voor` alleen van de dagen daarvóór, om te
+   zien of vandaag een record is. */
+function spelRecord(welk, voor) {
+  let beste = null;
+  for (const datum in st.dagen) {
+    if (voor && datum >= voor) continue;
+    const s = st.dagen[datum].spel;
+    if (!s || s.welk !== welk || !Array.isArray(s.scores) || !s.scores.length) continue;
+    const b = besteVan(s.scores);
+    /* Een 0 is geen record, en het is ook wat er staat tijdens een lopende
+       poging. */
+    if (b > 0 && (!beste || b > beste.score)) beste = { score: b, datum };
+  }
+  return beste;
+}
+
+function spelHistorie(welk, aantal) {
+  return Object.keys(st.dagen).sort().reverse()
+    .filter((d) => {
+      const s = st.dagen[d].spel;
+      return s && s.welk === welk && Array.isArray(s.scores) && s.scores.length;
+    })
+    .slice(0, aantal)
+    .map((d) => ({ datum: d, score: besteVan(st.dagen[d].spel.scores) }));
+}
+
+/* Toeval dat op dezelfde dag steeds hetzelfde uitvalt: een kleine rekenmachine
+   (mulberry32) met de datum als beginwaarde. Math.random kan dat niet. */
+function dagToeval(tekst) {
+  let h = 2166136261;
+  for (let i = 0; i < tekst.length; i++) { h ^= tekst.charCodeAt(i); h = Math.imul(h, 16777619); }
+  let a = h >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- het speelwerk dat alle spellen delen ----------
+
+   Elk spel in SPELLEN levert hetzelfde rijtje:
+   - begin(toeval)        de beginstand; `toeval` is die van vandaag
+   - verder(t, ms)        de tijd loopt door; geeft een reden terug als het mis
+                          gaat ('bots', 'nat', 'vol', …), anders niets
+   - veeg(t, dx, dy)      een veeg of een pijltjestoets; ook een reden of niets
+   - tik(t)               een tik zonder te vegen (mag ontbreken)
+   - sleep(t, fx)         de vinger staat op fx (0 links … 1 rechts); alleen
+                          voor spellen die je vinger volgen, zoals Breakout
+   - teken(g, maat, kleur, t)
+   De klok, de pogingen, het opslaan en de knoppen zitten hier en niet in elk
+   spel apart. */
+
+let spel = null;   /* de poging van nu (of de laatst afgelopen), niet bewaard */
+
+function spelVanVandaag() {
+  const s = spelDag(vandaag());
+  return s && SPELLEN[s.welk] ? s.welk : spelVan(vandaag());
+}
+
+function startPoging() {
+  const datum = vandaag();
+  const d = dag(datum, true);
+  if (!spelDag(datum) || !SPELLEN[d.spel.welk]) d.spel = { welk: spelVan(datum), scores: [] };
+  if (d.spel.scores.length >= SPEL_POGINGEN) return;
+  const welk = d.spel.welk;
+  d.spel.scores.push(0);
+  bewaar();
+  spel = {
+    datum, welk, nr: d.spel.scores.length - 1,
+    t: SPELLEN[welk].begin(dagToeval(welk + ':' + datum)),
+    over: SPEL_DUUR * 1000, vorige: 0,
+    gestart: false, pauze: false, klaar: false, reden: null,
+  };
+  tekenSpel();
+  requestAnimationFrame(spelLus);
+}
+
+function spelLus(nu) {
+  if (!spel || spel.klaar) return;
+  /* Hoogstens een kwart seconde per beeldje: na een hapering mag er niet
+     ineens van alles tegelijk gebeuren. */
+  const dt = spel.vorige ? Math.min(nu - spel.vorige, 250) : 0;
+  spel.vorige = nu;
+  if (spel.gestart && !spel.pauze) {
+    spel.over -= dt;
+    const einde = SPELLEN[spel.welk].verder(spel.t, dt);
+    if (einde) eindPoging(einde);
+    else if (spel.over <= 0) { spel.over = 0; eindPoging('tijd'); }
+  }
+  tekenBord();
+  werkStandBij();
+  if (!spel.klaar) requestAnimationFrame(spelLus);
+}
+
+/* Elke vorm van invoer begint de klok, en haalt een gepauzeerd spel van de
+   pauze af. */
+function invoer(soort, a, b) {
+  if (!spel || spel.klaar) return;
+  if (!spel.gestart) spel.gestart = true;
+  if (spel.pauze) { spel.pauze = false; spel.vorige = 0; }
+  const f = SPELLEN[spel.welk][soort];
+  const einde = f ? f.call(SPELLEN[spel.welk], spel.t, a, b) : null;
+  if (einde) eindPoging(einde);
+}
+
+function eindPoging(reden) {
+  if (!spel || spel.klaar) return;
+  spel.klaar = true;
+  spel.reden = reden;
+  const s = spelDag(spel.datum);
+  if (s && s.scores.length > spel.nr) s.scores[spel.nr] = spel.t.score;
+  bewaar();
+  if (ui.tab === 'spel') tekenSpel();
+}
+
+const SPEL_EINDE = {
+  tijd: 'Tijd!', bots: 'Botsing!', nat: 'Plons!', mis: 'Gemist!', vol: 'Vol!', vast: 'Vast!',
+};
+
+/* Een afgerond vakje; oudere Safari kent roundRect nog niet. */
+function rondVak(g, x, y, b, h, r) {
+  g.beginPath();
+  if (g.roundRect) g.roundRect(x, y, b, h, r);
+  else g.rect(x, y, b, h);
+  g.fill();
+}
+
+/* Voordat je begint, laat het bord al zien hoe het er vandaag uitziet. */
+let voorbeeldBord = null;
+function voorbeeld(welk) {
+  const sleutel = welk + ':' + vandaag();
+  if (!voorbeeldBord || voorbeeldBord.sleutel !== sleutel)
+    voorbeeldBord = { sleutel, t: SPELLEN[welk].begin(dagToeval(sleutel)) };
+  return voorbeeldBord.t;
+}
+
+function tekenBord() {
+  const c = document.getElementById('spelbord');
+  if (!c || !c.clientWidth) return;
+  const welk = spel ? spel.welk : spelVanVandaag();
+  const maat = Math.round(c.clientWidth * (window.devicePixelRatio || 1));
+  const hoog = Math.round(maat * (SPELLEN[welk].verhouding || 1));
+  if (c.width !== maat || c.height !== hoog) { c.width = maat; c.height = hoog; }
+  const g = c.getContext('2d');
+  const stijl = getComputedStyle(document.documentElement);
+  const kleur = (n) => stijl.getPropertyValue(n).trim();
+  g.clearRect(0, 0, maat, hoog);
+  g.globalAlpha = 1;
+  SPELLEN[welk].teken(g, maat, kleur, spel ? spel.t : voorbeeld(welk));
+  g.globalAlpha = 1;
+}
+
+/* Een heel zacht dambord, zodat je ziet hoeveel vakjes er nog zijn. */
+function dambord(g, maat, kleur, n) {
+  const vak = maat / n;
+  g.fillStyle = kleur('--line');
+  g.globalAlpha = .45;
+  for (let x = 0; x < n; x++)
+    for (let y = 0; y < n; y++) if ((x + y) % 2) g.fillRect(x * vak, y * vak, vak, vak);
+  g.globalAlpha = 1;
+}
+
+/* ---------- Snake ---------- */
+
+const SNAKE_VAK = 15;          /* 15 × 15 vakjes: op een telefoon ruim 20 px per vakje */
+const SNAKE_TEMPO = 160;       /* milliseconden per stap aan het begin */
+const SNAKE_SNELST = 90;
+
+/* Steeds de volgende uit de reeks van vandaag; valt hij op de slang, dan de
+   volgende. Zo krijgen alle pogingen dezelfde appels zolang je hetzelfde rijdt. */
+function snakeAppel(t) {
+  for (let i = 0; i < 500; i++) {
+    const p = [Math.floor(t.toeval() * SNAKE_VAK), Math.floor(t.toeval() * SNAKE_VAK)];
+    if (!t.slang.some(([x, y]) => x === p[0] && y === p[1])) return p;
+  }
+  return null;
+}
+
+function snakeStap(t) {
+  if (t.wachtrij.length) t.richting = t.wachtrij.shift();
+  const [x, y] = t.slang[0];
+  const kop = [x + t.richting[0], y + t.richting[1]];
+  const eet = !!t.appel && kop[0] === t.appel[0] && kop[1] === t.appel[1];
+  /* De staart schuift deze stap op, dus daar mag de kop wél komen — behalve
+     als hij net eet, want dan blijft de staart staan. */
+  const lijf = eet ? t.slang : t.slang.slice(0, -1);
+  if (kop[0] < 0 || kop[1] < 0 || kop[0] >= SNAKE_VAK || kop[1] >= SNAKE_VAK ||
+      lijf.some(([a, b]) => a === kop[0] && b === kop[1])) {
+    t.botsing = true;
+    return 'bots';
+  }
+  t.slang.unshift(kop);
+  if (eet) {
+    t.score++;
+    t.stap = Math.max(SNAKE_SNELST, t.stap - 3);
+    t.appel = snakeAppel(t);
+  } else {
+    t.slang.pop();
+  }
+  return null;
+}
+
+SPELLEN.snake = {
+  naam: 'Snake', eenheid: ['appel', 'appels'],
+  uitleg: 'Veeg om te sturen en eet zoveel mogelijk appels. Rand of jezelf geraakt: poging voorbij.',
+  hint: 'Veeg om te beginnen', mac: 'op de Mac: de pijltjestoetsen',
+  begin(toeval) {
+    const t = { toeval, slang: [[4, 7], [3, 7], [2, 7]], richting: [1, 0], wachtrij: [],
+                appel: null, score: 0, stap: SNAKE_TEMPO, opgespaard: 0, botsing: false };
+    t.appel = snakeAppel(t);
+    return t;
+  },
+  verder(t, dt) {
+    t.opgespaard += dt;
+    while (t.opgespaard >= t.stap) {
+      t.opgespaard -= t.stap;
+      const einde = snakeStap(t);
+      if (einde) return einde;
+    }
+    return null;
+  },
+  /* Twee bochten mogen in de wachtrij: wie snel "omhoog, links" veegt, wil dat
+     allebei, ook als ze binnen één stap vallen. Omkeren kan niet — dan rijd je
+     jezelf in. */
+  veeg(t, dx, dy) {
+    const laatste = t.wachtrij.length ? t.wachtrij[t.wachtrij.length - 1] : t.richting;
+    if (laatste[0] === dx && laatste[1] === dy) return null;
+    if (laatste[0] === -dx && laatste[1] === -dy) return null;
+    if (t.wachtrij.length < 2) t.wachtrij.push([dx, dy]);
+    return null;
+  },
+  teken(g, maat, kleur, t) {
+    dambord(g, maat, kleur, SNAKE_VAK);
+    const vak = maat / SNAKE_VAK;
+    if (t.appel) {
+      g.fillStyle = kleur('--warm');
+      g.beginPath();
+      g.arc((t.appel[0] + .5) * vak, (t.appel[1] + .5) * vak, vak * .34, 0, Math.PI * 2);
+      g.fill();
+    }
+    t.slang.forEach(([x, y], n) => {
+      g.fillStyle = n === 0 ? kleur('--accent-ink') : kleur('--accent');
+      rondVak(g, x * vak + vak * .07, y * vak + vak * .07, vak * .86, vak * .86, vak * .25);
+    });
+    if (t.botsing) {
+      const [x, y] = t.slang[0];
+      g.strokeStyle = kleur('--warm');
+      g.lineWidth = vak * .12;
+      g.strokeRect(x * vak + vak * .1, y * vak + vak * .1, vak * .8, vak * .8);
+    }
+  },
+};
+
+/* ---------- 2048 ----------
+   Vier bij vier; elke veeg schuift alles die kant op en twee gelijke tegels
+   worden er één. De punten zijn de som van alle samenvoegingen, zoals in het
+   origineel. Waar de nieuwe tegel komt, volgt de reeks van vandaag. */
+
+function zet2048(t) {
+  const leeg = [];
+  t.bord.forEach((v, i) => { if (!v) leeg.push(i); });
+  if (!leeg.length) return;
+  const i = leeg[Math.floor(t.toeval() * leeg.length)];
+  t.bord[i] = t.toeval() < .9 ? 2 : 4;
+  t.nieuw = i;
+}
+
+/* De vier rijen (of kolommen) in de volgorde waarin ze schuiven: de eerste
+   index is de kant waar de tegels naartoe gaan. */
+function rijen2048(dx, dy) {
+  const uit = [];
+  for (let a = 0; a < 4; a++) {
+    const rij = [];
+    for (let b = 0; b < 4; b++) rij.push(dx ? a * 4 + b : b * 4 + a);
+    uit.push((dx > 0 || dy > 0) ? rij.reverse() : rij);
+  }
+  return uit;
+}
+
+function kan2048(t) {
+  for (let i = 0; i < 16; i++) {
+    if (!t.bord[i]) return true;
+    if (i % 4 < 3 && t.bord[i] === t.bord[i + 1]) return true;
+    if (i < 12 && t.bord[i] === t.bord[i + 4]) return true;
+  }
+  return false;
+}
+
+SPELLEN['2048'] = {
+  naam: '2048', eenheid: ['punt', 'punten'],
+  uitleg: 'Veeg om alle tegels te schuiven. Twee gelijke tegels worden er één, en dat levert punten op.',
+  hint: 'Veeg om te beginnen', mac: 'op de Mac: de pijltjestoetsen', eenPerVeeg: true,
+  begin(toeval) {
+    const t = { toeval, bord: new Array(16).fill(0), score: 0, nieuw: -1 };
+    zet2048(t);
+    zet2048(t);
+    t.nieuw = -1;   /* het kadertje om de nieuwste tegel pas na je eerste zet */
+    return t;
+  },
+  verder() { return null; },
+  veeg(t, dx, dy) {
+    let veranderd = false;
+    for (const rij of rijen2048(dx, dy)) {
+      const waarden = rij.map((i) => t.bord[i]).filter((v) => v);
+      const nieuw = [];
+      for (let k = 0; k < waarden.length; k++) {
+        if (waarden[k] === waarden[k + 1]) {
+          nieuw.push(waarden[k] * 2);
+          t.score += waarden[k] * 2;
+          k++;
+        } else nieuw.push(waarden[k]);
+      }
+      rij.forEach((i, k) => {
+        const v = nieuw[k] || 0;
+        if (t.bord[i] !== v) { t.bord[i] = v; veranderd = true; }
+      });
+    }
+    if (!veranderd) return null;
+    zet2048(t);
+    return kan2048(t) ? null : 'vast';
+  },
+  teken(g, maat, kleur, t) {
+    const rand = maat * .03;
+    const vak = (maat - rand * 5) / 4;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    for (let i = 0; i < 16; i++) {
+      const x = rand + (i % 4) * (vak + rand), y = rand + Math.floor(i / 4) * (vak + rand);
+      const v = t.bord[i];
+      g.fillStyle = kleur('--line');
+      g.globalAlpha = .6;
+      rondVak(g, x, y, vak, vak, vak * .1);
+      if (!v) { g.globalAlpha = 1; continue; }
+      /* Hoe hoger de tegel, hoe voller het groen; vanaf 256 wordt het warm,
+         zodat een grote tegel eruit springt. */
+      const stap = Math.log2(v);
+      g.fillStyle = v >= 256 ? kleur('--warm') : kleur('--accent');
+      g.globalAlpha = v >= 256 ? 1 : Math.min(1, .18 + stap * .11);
+      rondVak(g, x, y, vak, vak, vak * .1);
+      g.globalAlpha = 1;
+      g.fillStyle = (v >= 256 || stap >= 6) ? kleur('--op-accent') : kleur('--ink');
+      const cijfers = String(v).length;
+      g.font = '600 ' + Math.round(vak * (cijfers <= 2 ? .42 : cijfers === 3 ? .34 : .27)) +
+        'px ui-sans-serif, -apple-system, sans-serif';
+      g.fillText(String(v), x + vak / 2, y + vak / 2 + vak * .02);
+      if (i === t.nieuw) {
+        g.strokeStyle = kleur('--accent-ink');
+        g.lineWidth = maat * .006;
+        g.strokeRect(x + vak * .06, y + vak * .06, vak * .88, vak * .88);
+      }
+    }
+  },
+};
+
+/* ---------- Breakout ----------
+   Alles in fracties van het bord (0 tot 1), dan maakt de schermgrootte niet
+   uit. Het batje volgt je vinger, waar op het bord je ook bent: dan zit je duim
+   niet voor de bal. Bal gemist is poging voorbij, net als een botsing bij
+   Snake. Is de muur leeg, dan komt er een nieuwe. */
+
+const BO_KOLOMMEN = 8, BO_RIJEN = 5;
+const BO_BATJE_Y = .9, BO_BATJE_B = .2, BO_BATJE_H = .025, BO_BAL = .016;
+
+function muurBreakout(t) {
+  t.stenen = [];
+  for (let r = 0; r < BO_RIJEN; r++)
+    for (let k = 0; k < BO_KOLOMMEN; k++) {
+      /* Een paar gaten en een paar stenen die twee keer geraakt moeten worden,
+         elke dag op een andere plek. */
+      if (t.toeval() < .12) continue;
+      t.stenen.push({ k, r, sterk: t.toeval() < .18 ? 2 : 1 });
+    }
+}
+
+function balOpnieuw(t) {
+  const hoek = (t.toeval() - .5) * Math.PI / 3;
+  t.bal = { x: t.batje, y: BO_BATJE_Y - .06, vx: Math.sin(hoek) * t.tempo, vy: -Math.cos(hoek) * t.tempo };
+}
+
+SPELLEN.breakout = {
+  naam: 'Breakout', eenheid: ['steen', 'stenen'],
+  uitleg: 'Het batje volgt je vinger. Kaats de bal tegen de stenen; mis je hem, dan is de poging voorbij.',
+  hint: 'Raak het bord aan om te beginnen', mac: 'op de Mac: slepen, of de pijltjestoetsen',
+  begin(toeval) {
+    const t = { toeval, batje: .5, doel: .5, tempo: .6, score: 0, stenen: [], bal: null };
+    muurBreakout(t);
+    balOpnieuw(t);
+    return t;
+  },
+  sleep(t, fx) { t.doel = fx; return null; },
+  veeg(t, dx) { t.doel = Math.max(0, Math.min(1, t.doel + dx * .08)); return null; },
+  verder(t, ms) {
+    /* Het batje volgt de vinger meteen, maar niet buiten het bord. */
+    const half = BO_BATJE_B / 2;
+    t.batje = Math.max(half, Math.min(1 - half, t.doel));
+    /* In stapjes van hooguit 4 ms, anders schiet een snelle bal door een steen. */
+    let rest = ms / 1000;
+    while (rest > 0) {
+      const dt = Math.min(rest, .004);
+      rest -= dt;
+      const b = t.bal;
+      const px = b.x, py = b.y;
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      if (b.x < BO_BAL) { b.x = BO_BAL; b.vx = Math.abs(b.vx); }
+      if (b.x > 1 - BO_BAL) { b.x = 1 - BO_BAL; b.vx = -Math.abs(b.vx); }
+      if (b.y < BO_BAL) { b.y = BO_BAL; b.vy = Math.abs(b.vy); }
+      /* Het batje: waar je raakt bepaalt de hoek, zoals in het origineel. Aan
+         de rand kaatst hij schuin weg, in het midden recht omhoog. */
+      if (b.vy > 0 && b.y + BO_BAL >= BO_BATJE_Y && py + BO_BAL <= BO_BATJE_Y + .01 &&
+          Math.abs(b.x - t.batje) <= half + BO_BAL) {
+        const waar = Math.max(-1, Math.min(1, (b.x - t.batje) / half));
+        const hoek = waar * Math.PI / 3;
+        t.tempo = Math.min(1.1, t.tempo + .012);
+        b.vx = Math.sin(hoek) * t.tempo;
+        b.vy = -Math.cos(hoek) * t.tempo;
+        b.y = BO_BATJE_Y - BO_BAL;
+      }
+      if (b.y > 1 + BO_BAL) return 'mis';
+      for (let i = 0; i < t.stenen.length; i++) {
+        const s = t.stenen[i];
+        const sx = s.k / BO_KOLOMMEN, sy = .1 + s.r * .05, sb = 1 / BO_KOLOMMEN, sh = .05;
+        if (b.x + BO_BAL < sx || b.x - BO_BAL > sx + sb || b.y + BO_BAL < sy || b.y - BO_BAL > sy + sh) continue;
+        /* Kwam hij van opzij, dan kaatst hij horizontaal terug, anders verticaal. */
+        if (px + BO_BAL <= sx || px - BO_BAL >= sx + sb) b.vx = -b.vx;
+        else b.vy = -b.vy;
+        b.x = px; b.y = py;
+        s.sterk--;
+        if (!s.sterk) { t.stenen.splice(i, 1); t.score++; }
+        break;
+      }
+      if (!t.stenen.length) { muurBreakout(t); }
+    }
+    return null;
+  },
+  teken(g, maat, kleur, t) {
+    const kleuren = ['--teal', '--accent', '--olijf', '--leisteen', '--accent-ink'];
+    for (const s of t.stenen) {
+      g.fillStyle = s.sterk > 1 ? kleur('--warm') : kleur(kleuren[s.r % kleuren.length]);
+      rondVak(g, (s.k / BO_KOLOMMEN) * maat + maat * .004, (.1 + s.r * .05) * maat + maat * .004,
+              maat / BO_KOLOMMEN - maat * .008, .05 * maat - maat * .008, maat * .008);
+    }
+    g.fillStyle = kleur('--accent-ink');
+    rondVak(g, (t.batje - BO_BATJE_B / 2) * maat, BO_BATJE_Y * maat, BO_BATJE_B * maat,
+            BO_BATJE_H * maat, BO_BATJE_H * maat / 2);
+    g.fillStyle = kleur('--ink');
+    g.beginPath();
+    g.arc(t.bal.x * maat, t.bal.y * maat, BO_BAL * maat, 0, Math.PI * 2);
+    g.fill();
+  },
+};
+
+/* ---------- Frogger ----------
+   Elf bij elf. Onderaan begin je, bovenaan is de overkant. Daartussen vier
+   rijstroken, een veilige berm en vier rijen water met boomstammen. In het
+   water moet je op een stam staan; die neemt je mee, en drijf je het bord af,
+   dan lig je erin. Elke keer dat je overkomt, gaat alles iets sneller.
+
+   De rijen (snelheid, lengte van auto's en stammen, de gaten ertussen) komen uit
+   de reeks van vandaag. */
+
+const FR_N = 11;
+const FR_WATER = [1, 2, 3, 4], FR_WEG = [6, 7, 8, 9];
+
+function froggerRij(toeval, rij, water) {
+  const richting = rij % 2 ? 1 : -1;
+  const snelheid = (water ? .7 : .9) + toeval() * (water ? .9 : 1.4);
+  const dingen = [];
+  let x = 0;
+  const aantal = water ? 3 : 2 + Math.floor(toeval() * 2);
+  for (let i = 0; i < aantal; i++) {
+    const lengte = water ? 2 + Math.floor(toeval() * 3) : 1 + Math.floor(toeval() * 2);
+    dingen.push({ x, lengte });
+    /* Op het water niet te veel gat, anders is er geen doorkomen aan. */
+    x += lengte + (water ? 1.5 + toeval() * 2 : 2.5 + toeval() * 3);
+  }
+  return { rij, water, richting, snelheid, dingen, rond: Math.max(FR_N + 3, x), schuif: 0 };
+}
+
+function froggerPlek(rijdata, ding) {
+  const x = (ding.x + rijdata.schuif) % rijdata.rond;
+  return (x < 0 ? x + rijdata.rond : x) - 2;
+}
+
+function froggerTempo(t) { return 1 + t.score * .15; }
+
+/* Staat de kikker goed? Op de weg mag niets hem raken; op het water moet er
+   een stam onder hem liggen. */
+function froggerCheck(t) {
+  const r = t.rijen[t.y];
+  if (!r) return null;
+  const midden = t.x + .5;
+  const onder = r.dingen.find((d) => {
+    const x = froggerPlek(r, d);
+    return r.water ? (midden >= x && midden <= x + d.lengte)
+                   : (midden + .32 > x && midden - .32 < x + d.lengte);
+  });
+  if (r.water) {
+    if (!onder || t.x < -.45 || t.x > FR_N - .55) { t.dood = true; return 'nat'; }
+  } else if (onder) { t.dood = true; return 'bots'; }
+  return null;
+}
+
+SPELLEN.frogger = {
+  naam: 'Frogger', eenheid: ['oversteek', 'oversteken'],
+  uitleg: 'Tik om een sprong vooruit te maken, veeg voor opzij of terug. Ontwijk de auto’s en spring op de stammen.',
+  hint: 'Tik of veeg om te beginnen', mac: 'op de Mac: de pijltjestoetsen', eenPerVeeg: true,
+  begin(toeval) {
+    const rijen = {};
+    for (const r of FR_WATER) rijen[r] = froggerRij(toeval, r, true);
+    for (const r of FR_WEG) rijen[r] = froggerRij(toeval, r, false);
+    /* Bij de start staat er niets recht voor je neus: de eerste sprong mag niet
+       meteen onder een auto eindigen voordat je hebt kunnen kijken. */
+    const eerste = rijen[FR_WEG[FR_WEG.length - 1]];
+    for (let i = 0; i < 40 && eerste.dingen.some((d) => {
+      const x = froggerPlek(eerste, d);
+      return x < 6.7 && x + d.lengte > 4.3;
+    }); i++) eerste.schuif += .5;
+    return { toeval, rijen, x: 5, y: FR_N - 1, score: 0, dood: false };
+  },
+  verder(t, ms) {
+    const dt = ms / 1000 * froggerTempo(t);
+    for (const r of Object.values(t.rijen)) {
+      r.schuif = (r.schuif + r.richting * r.snelheid * dt) % r.rond;
+      if (r.rij === t.y && r.water) t.x += r.richting * r.snelheid * dt;
+    }
+    return froggerCheck(t);
+  },
+  veeg(t, dx, dy) {
+    /* Bij een sprong omhoog of omlaag recht op een vakje landen, ook als de
+       stam je net een half vakje had meegenomen. */
+    if (dy) t.x = Math.round(t.x);
+    t.x = Math.max(0, Math.min(FR_N - 1, t.x + dx));
+    t.y = Math.max(0, Math.min(FR_N - 1, t.y + dy));
+    if (t.y === 0) {
+      t.score++;
+      t.x = 5;
+      t.y = FR_N - 1;
+      return null;
+    }
+    return froggerCheck(t);
+  },
+  tik(t) { return this.veeg(t, 0, -1); },
+  teken(g, maat, kleur, t) {
+    const vak = maat / FR_N;
+    for (let r = 0; r < FR_N; r++) {
+      const rij = t.rijen[r];
+      if (r === 0) { g.fillStyle = kleur('--accent'); g.globalAlpha = .25; }
+      else if (rij && rij.water) { g.fillStyle = kleur('--teal'); g.globalAlpha = .3; }
+      else if (rij) { g.fillStyle = kleur('--ink-3'); g.globalAlpha = .16; }
+      else { g.fillStyle = kleur('--line'); g.globalAlpha = .5; }
+      g.fillRect(0, r * vak, maat, vak);
+      g.globalAlpha = 1;
+      if (!rij) continue;
+      /* Stammen in het grijsbruin, auto's warm, en de kikker als enige groen:
+         dan zie je hem ook staan als hij op een stam zit. */
+      g.fillStyle = rij.water ? kleur('--ink-3') : kleur('--warm');
+      for (const d of rij.dingen) {
+        const x = froggerPlek(rij, d);
+        rondVak(g, x * vak + vak * .05, r * vak + vak * (rij.water ? .14 : .18),
+                d.lengte * vak - vak * .1, vak * (rij.water ? .72 : .64), vak * .2);
+      }
+    }
+    g.fillStyle = kleur('--accent-ink');
+    rondVak(g, t.x * vak + vak * .14, t.y * vak + vak * .14, vak * .72, vak * .72, vak * .3);
+    if (t.dood) {
+      g.strokeStyle = kleur('--ink');
+      g.lineWidth = vak * .1;
+      g.beginPath();
+      g.arc((t.x + .5) * vak, (t.y + .5) * vak, vak * .48, 0, Math.PI * 2);
+      g.stroke();
+    }
+    g.fillStyle = kleur('--panel');
+    for (const ox of [.36, .64]) {
+      g.beginPath();
+      g.arc((t.x + ox) * vak, (t.y + .36) * vak, vak * .08, 0, Math.PI * 2);
+      g.fill();
+    }
+  },
+};
+
+/* ---------- Tetris ----------
+   Tien breed, twintig hoog, in het midden van het bord; rechts staat het
+   volgende blok. Tik om te draaien, veeg opzij om te schuiven en omlaag om te
+   laten zakken. De blokken komen in zakjes van zeven, zoals in het echte spel:
+   zo komen er nooit vijf keer achter elkaar dezelfde, en de volgorde van
+   vandaag is voor alle drie de pogingen gelijk. */
+
+const TE_B = 10, TE_H = 20;
+const TE_VORMEN = {
+  I: [4, [[0, 1], [1, 1], [2, 1], [3, 1]]],
+  O: [2, [[0, 0], [1, 0], [0, 1], [1, 1]]],
+  T: [3, [[1, 0], [0, 1], [1, 1], [2, 1]]],
+  S: [3, [[1, 0], [2, 0], [0, 1], [1, 1]]],
+  Z: [3, [[0, 0], [1, 0], [1, 1], [2, 1]]],
+  J: [3, [[0, 0], [0, 1], [1, 1], [2, 1]]],
+  L: [3, [[2, 0], [0, 1], [1, 1], [2, 1]]],
+};
+const TE_KLEUR = { I: '--teal', O: '--warm', T: '--leisteen', S: '--accent', Z: '--olijf',
+                   J: '--accent-ink', L: '--ink-3' };
+
+function tetrisVolgende(t) {
+  if (!t.zak.length) {
+    const z = Object.keys(TE_VORMEN);
+    for (let i = z.length - 1; i > 0; i--) {
+      const j = Math.floor(t.toeval() * (i + 1));
+      [z[i], z[j]] = [z[j], z[i]];
+    }
+    t.zak = z;
+  }
+  return t.zak.shift();
+}
+
+function tetrisPast(t, cellen, x, y) {
+  return cellen.every(([cx, cy]) => {
+    const px = x + cx, py = y + cy;
+    return px >= 0 && px < TE_B && py < TE_H && (py < 0 || !t.bord[py][px]);
+  });
+}
+
+function tetrisNieuw(t) {
+  const soort = t.straks;
+  t.straks = tetrisVolgende(t);
+  const [n, cellen] = TE_VORMEN[soort];
+  t.blok = { soort, n, cellen: cellen.map((c) => c.slice()), x: Math.floor((TE_B - n) / 2), y: 0 };
+  return tetrisPast(t, t.blok.cellen, t.blok.x, t.blok.y) ? null : 'vol';
+}
+
+function tetrisSchuif(t, dx, dy) {
+  const b = t.blok;
+  if (!tetrisPast(t, b.cellen, b.x + dx, b.y + dy)) return false;
+  b.x += dx;
+  b.y += dy;
+  return true;
+}
+
+/* Het blok ligt vast: in het bord zetten, volle rijen weghalen, en het volgende. */
+function tetrisVast(t) {
+  const b = t.blok;
+  for (const [cx, cy] of b.cellen) if (b.y + cy >= 0) t.bord[b.y + cy][b.x + cx] = b.soort;
+  const over = t.bord.filter((rij) => rij.some((v) => !v));
+  const weg = TE_H - over.length;
+  while (over.length < TE_H) over.unshift(new Array(TE_B).fill(null));
+  t.bord = over;
+  t.score += weg;
+  return tetrisNieuw(t);
+}
+
+SPELLEN.tetris = {
+  naam: 'Tetris', eenheid: ['lijn', 'lijnen'],
+  uitleg: 'Tik om te draaien, veeg opzij om te schuiven en omlaag om te laten zakken. Elke volle rij telt.',
+  hint: 'Tik of veeg om te beginnen', mac: 'op de Mac: pijltjes, en omhoog draait', drempel: 22,
+  /* Hoger dan breed: in een vierkant werden de blokjes op een telefoon te klein
+     om goed te zien in welke kolom je zit. */
+  verhouding: 1.3,
+  begin(toeval) {
+    const t = { toeval, bord: [], zak: [], straks: null, blok: null, score: 0, opgespaard: 0 };
+    for (let r = 0; r < TE_H; r++) t.bord.push(new Array(TE_B).fill(null));
+    t.straks = tetrisVolgende(t);
+    tetrisNieuw(t);
+    return t;
+  },
+  verder(t, ms) {
+    /* Elke tien lijnen iets sneller, maar nooit sneller dan acht rijen per
+       seconde: het moet met een duim te doen blijven. */
+    const val = Math.max(120, 650 - t.score * 20);
+    t.opgespaard += ms;
+    while (t.opgespaard >= val) {
+      t.opgespaard -= val;
+      if (!tetrisSchuif(t, 0, 1)) {
+        const einde = tetrisVast(t);
+        if (einde) return einde;
+      }
+    }
+    return null;
+  },
+  veeg(t, dx, dy) {
+    if (dy < 0) return this.tik(t);
+    if (dy > 0) { if (tetrisSchuif(t, 0, 1)) t.opgespaard = 0; return null; }
+    tetrisSchuif(t, dx, 0);
+    return null;
+  },
+  /* Draaien met de klok mee. Past het niet, dan een stapje opzij proberen —
+     anders draait een blok tegen de wand nooit. */
+  tik(t) {
+    const b = t.blok;
+    if (b.soort === 'O') return null;
+    const gedraaid = b.cellen.map(([x, y]) => [b.n - 1 - y, x]);
+    for (const opzij of [0, -1, 1, -2, 2]) {
+      if (tetrisPast(t, gedraaid, b.x + opzij, b.y)) {
+        b.cellen = gedraaid;
+        b.x += opzij;
+        break;
+      }
+    }
+    return null;
+  },
+  teken(g, maat, kleur, t) {
+    const hoog = g.canvas.height;
+    const vak = hoog / TE_H;
+    const x0 = (maat - TE_B * vak) / 2 - vak;   /* iets naar links: rechts staat "straks" */
+    g.fillStyle = kleur('--panel');
+    g.fillRect(x0, 0, TE_B * vak, hoog);
+    g.strokeStyle = kleur('--line-2');
+    g.lineWidth = Math.max(1, maat * .003);
+    g.strokeRect(x0, 0, TE_B * vak, hoog);
+    const blokje = (x, y, soort, alfa) => {
+      g.fillStyle = kleur(TE_KLEUR[soort]);
+      g.globalAlpha = alfa;
+      rondVak(g, x0 + x * vak + vak * .06, y * vak + vak * .06, vak * .88, vak * .88, vak * .18);
+      g.globalAlpha = 1;
+    };
+    t.bord.forEach((rij, y) => rij.forEach((v, x) => { if (v) blokje(x, y, v, 1); }));
+    if (t.blok) {
+      /* Een schaduw op de plek waar het blok zou landen: op een telefoon zie je
+         anders moeilijk in welke kolom je zit. */
+      const b = t.blok;
+      let val = 0;
+      while (tetrisPast(t, b.cellen, b.x, b.y + val + 1)) val++;
+      for (const [cx, cy] of b.cellen) if (b.y + cy + val >= 0) blokje(b.x + cx, b.y + cy + val, b.soort, .22);
+      for (const [cx, cy] of b.cellen) if (b.y + cy >= 0) blokje(b.x + cx, b.y + cy, b.soort, 1);
+    }
+    if (t.straks) {
+      const [, cellen] = TE_VORMEN[t.straks];
+      const klein = vak * .6;
+      const sx = x0 + TE_B * vak + vak * .7, sy = vak * 1.6;
+      g.fillStyle = kleur('--ink-3');
+      g.font = Math.round(vak * .6) + 'px ui-sans-serif, -apple-system, sans-serif';
+      g.textAlign = 'left';
+      g.textBaseline = 'alphabetic';
+      g.fillText('straks', sx, vak * 1.1);
+      g.fillStyle = kleur(TE_KLEUR[t.straks]);
+      for (const [cx, cy] of cellen) rondVak(g, sx + cx * klein, sy + cy * klein, klein * .88, klein * .88, klein * .18);
+    }
+  },
+};
+
+/* ---------- tekenen van het scherm ---------- */
+
+/* Alleen de getallen en de melding; de rest van het scherm blijft staan, want
+   dit gebeurt zestig keer per seconde. */
+function werkStandBij() {
+  const score = document.getElementById('spel-score');
+  const klok = document.getElementById('spel-klok');
+  const melding = document.getElementById('spel-melding');
+  if (!score) return;
+  const welk = spel ? spel.welk : spelVanVandaag();
+  const info = SPELLEN[welk];
+  const over = spel ? Math.ceil(spel.over / 1000) : SPEL_DUUR;
+  score.textContent = spel ? spel.t.score : '–';
+  klok.querySelector('b').textContent = klokje(over);
+  klok.classList.toggle('krap', !!spel && !spel.klaar && over <= 15);
+
+  let tekst = '', onder = '';
+  const s = spelDag(vandaag());
+  const gebruikt = s ? s.scores.length : 0;
+  if (!spel) {
+    if (gebruikt >= SPEL_POGINGEN) { tekst = 'Klaar voor vandaag'; onder = 'Morgen weer'; }
+    else { tekst = info.uitleg; }
+  } else if (spel.klaar) {
+    tekst = (SPEL_EINDE[spel.reden] ? SPEL_EINDE[spel.reden] + ' ' : '') + scoreTekst(welk, spel.t.score);
+  } else if (!spel.gestart) {
+    tekst = info.hint; onder = info.mac;
+  } else if (spel.pauze) {
+    tekst = 'Even stil'; onder = 'tik of veeg om verder te gaan';
+  }
+  const span = melding.firstChild;
+  if (span.dataset.tekst !== tekst + onder) {
+    span.dataset.tekst = tekst + onder;
+    span.textContent = tekst;
+    if (onder) span.append(el('small', { tekst: onder }));
+  }
+}
+
+function tekenSpel() {
+  const doel = document.getElementById('tab-spel');
+  const datum = vandaag();
+  if (spel && spel.datum !== datum) spel = null;
+  const s = spelDag(datum);
+  const welk = spelVanVandaag();
+  const info = SPELLEN[welk];
+  const scores = s ? s.scores : [];
+  const bezig = !!spel && !spel.klaar;
+  const op = scores.length >= SPEL_POGINGEN && !bezig;
+
+  const kop = el('div', { class: 'briefkop' }, [
+    el('h1', { tekst: info.naam }),
+    el('div', { class: 'datum', tekst: op ? 'Klaar voor vandaag — morgen ' + SPELLEN[spelVan(plusDagen(datum, 1))].naam
+      : 'Drie pogingen van anderhalve minuut; de beste telt' }),
+  ]);
+
+  const pogingNr = bezig ? spel.nr + 1 : Math.min(scores.length + (op ? 0 : 1), SPEL_POGINGEN);
+  const stand = el('div', { class: 'spelstand' }, [
+    el('span', null, [document.createTextNode('Poging '), el('b', { tekst: pogingNr + '/' + SPEL_POGINGEN })]),
+    el('span', null, [document.createTextNode('· '), el('b', { id: 'spel-score', tekst: '–' })]),
+    el('span', { class: 'klok', id: 'spel-klok' }, [el('b', { tekst: klokje(SPEL_DUUR) })]),
+  ]);
+
+  const bord = el('canvas', { class: 'spelbord', id: 'spelbord',
+    style: info.verhouding ? 'aspect-ratio: 1 / ' + info.verhouding : null });
+  /* Vegen met de vinger, of slepen met de muis. Al na een paar vakjes breedte
+     telt het als een veeg, en daarna begint de meting opnieuw: zo kun je in één
+     beweging twee bochten maken, of een Tetris-blok drie kolommen opschuiven.
+     Bij 2048 en Frogger telt één veeg één keer — één veeg is daar één zet.
+     Wie alleen tikt zonder te vegen, doet een tik. */
+  let veeg = null;
+  const opBord = (e) => {
+    const r = bord.getBoundingClientRect();
+    return (e.clientX - r.left) / r.width;
+  };
+  bord.addEventListener('pointerdown', (e) => {
+    veeg = { x: e.clientX, y: e.clientY, bewogen: false, gedaan: false };
+    try { bord.setPointerCapture(e.pointerId); } catch (_) {}
+    if (spel && SPELLEN[spel.welk].sleep) invoer('sleep', opBord(e));
+    e.preventDefault();
+  });
+  bord.addEventListener('pointermove', (e) => {
+    if (!veeg || !spel) return;
+    const info = SPELLEN[spel.welk];
+    if (info.sleep) { invoer('sleep', opBord(e)); veeg.bewogen = true; return; }
+    const dx = e.clientX - veeg.x, dy = e.clientY - veeg.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 10) veeg.bewogen = true;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < (info.drempel || 18)) return;
+    if (info.eenPerVeeg && veeg.gedaan) return;
+    if (Math.abs(dx) > Math.abs(dy)) invoer('veeg', Math.sign(dx), 0);
+    else invoer('veeg', 0, Math.sign(dy));
+    veeg.x = e.clientX;
+    veeg.y = e.clientY;
+    veeg.gedaan = true;
+  });
+  bord.addEventListener('pointerup', () => {
+    if (veeg && !veeg.bewogen && spel && !SPELLEN[spel.welk].sleep) invoer('tik');
+    veeg = null;
+  });
+  bord.addEventListener('pointercancel', () => { veeg = null; });
+
+  const vak = el('div', { class: 'spelbordvak' }, [
+    bord, el('div', { class: 'spelmelding', id: 'spel-melding' }, [el('span')]),
+  ]);
+
+  const na = el('div', { class: 'spelna' });
+  if (!bezig && !op) {
+    if (spel && spel.klaar) {
+      na.append(el('p', { tekst: 'Poging ' + (spel.nr + 1) + ': ' + scoreTekst(welk, spel.t.score) +
+        ' — nog ' + (SPEL_POGINGEN - scores.length) + ' te gaan.' }));
+    }
+    na.append(el('button', {
+      class: 'btn primair',
+      tekst: scores.length ? 'Poging ' + (scores.length + 1) + ' starten' : 'Starten',
+      onclick: startPoging,
+    }));
+  }
+
+  const overzicht = el('div', { class: 'spelscores' });
+  if (scores.length) {
+    const beste = besteVan(scores);
+    const eerder = spelRecord(welk, datum);
+    const lijst = el('ul');
+    scores.forEach((n, i) => {
+      const loopt = bezig && i === spel.nr;
+      lijst.append(el('li', null, [
+        el('span', { tekst: 'Poging ' + (i + 1) }),
+        el('b', { tekst: loopt ? 'bezig…' : scoreTekst(welk, n) }),
+      ]));
+    });
+    overzicht.append(el('h3', { tekst: 'Vandaag' }), lijst);
+    if (!bezig && beste > 0 && (!eerder || beste > eerder.score)) {
+      overzicht.append(el('p', { class: 'record', tekst: eerder
+        ? '★ Nieuw record — het was ' + eerder.score + ', op ' + korteDatum(eerder.datum)
+        : '★ Je eerste score, en dus meteen het record' }));
+    }
+  }
+  /* Alleen eerdere dagen: wat vandaag gebeurt staat er al boven. */
+  const record = spelRecord(welk, datum);
+  const eerdere = spelHistorie(welk, 6).filter((h) => h.datum !== datum).slice(0, 5);
+  if (record || eerdere.length) {
+    const lijst = el('ul');
+    if (record) lijst.append(el('li', { class: 'record' }, [
+      el('span', { tekst: '★ Record, ' + korteDatum(record.datum) }),
+      el('b', { tekst: scoreTekst(welk, record.score) }),
+    ]));
+    for (const h of eerdere) lijst.append(el('li', null, [
+      el('span', { tekst: langeDatum(h.datum) }),
+      el('b', { tekst: scoreTekst(welk, h.score) }),
+    ]));
+    overzicht.append(el('h3', { tekst: 'Eerder', style: scores.length ? 'margin-top:14px' : null }), lijst);
+  }
+
+  const vakje = el('div', { class: 'spelvak' },
+    [stand, vak, na, overzicht.childNodes.length ? overzicht : null]);
+  doel.replaceChildren(kop, vakje);
+  werkStandBij();
+  /* Het scherm is op dit moment nog verborgen (tekenAlles haalt `hidden` er pas
+     daarna af), dus het bord heeft nog geen breedte. Een beeldje later wel. */
+  requestAnimationFrame(tekenBord);
+}
+
+window.addEventListener('resize', () => { if (ui.tab === 'spel') tekenBord(); });
+
+document.addEventListener('keydown', (e) => {
+  if (ui.tab !== 'spel' || !spel || spel.klaar) return;
+  if (e.key === ' ') { e.preventDefault(); invoer('tik'); return; }
+  const r = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+              w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] }[e.key];
+  if (!r) return;
+  e.preventDefault();
+  invoer('veeg', r[0], r[1]);
+});
+
+/* Telefoon weggelegd of een gesprek binnen: dan staat de klok stil. Bewust
+   wegtikken naar een ander scherm in de app is wél het einde van de poging. */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && spel && spel.gestart && !spel.klaar) spel.pauze = true;
+});
+
+/* ===================================================================
+   Opstarten
+   =================================================================== */
+
+function tekenAlles() {
+  if (ui.tab !== 'spel' && spel && !spel.klaar) eindPoging('weg');
+  document.getElementById('vandaag-tekst').textContent = langeDatum(vandaag());
+  document.body.dataset.scherm = ui.tab;
+  if (ui.tab === 'start') tekenStart();
+  if (ui.tab === 'briefing') tekenBriefing();
+  if (ui.tab === 'training') tekenTraining();
+  if (ui.tab === 'spel') tekenSpel();
+  if (ui.tab === 'vandaag') tekenVandaag();
+  if (ui.tab === 'terugblik') tekenTerugblik();
+  if (ui.tab === 'instellingen') tekenInstellingen();
+  for (const knop of document.querySelectorAll('.tabs button')) {
+    const aan = knop.dataset.tab === ui.tab;
+    knop.setAttribute('aria-selected', aan ? 'true' : 'false');
+  }
+  document.getElementById('tab-start').hidden = ui.tab !== 'start';
+  document.getElementById('tab-briefing').hidden = ui.tab !== 'briefing';
+  document.getElementById('tab-training').hidden = ui.tab !== 'training';
+  document.getElementById('tab-spel').hidden = ui.tab !== 'spel';
+  document.getElementById('tab-vandaag').hidden = ui.tab !== 'vandaag';
+  document.getElementById('tab-terugblik').hidden = ui.tab !== 'terugblik';
+  document.getElementById('tab-instellingen').hidden = ui.tab !== 'instellingen';
+}
+
+document.getElementById('naar-start').addEventListener('click', () => {
+  ui.tab = 'start';
+  tekenAlles();
+  window.scrollTo(0, 0);
+});
+
+for (const knop of document.querySelectorAll('.tabs button')) {
+  knop.addEventListener('click', () => {
+    ui.tab = knop.dataset.tab;
+    ui.bewerkt = null;
+    tekenAlles();
+    window.scrollTo(0, 0);
+  });
+}
+
+/* Ligt de telefoon een nacht op tafel met de app open, dan moet hij bij het
+   oppakken de nieuwe dag tonen en niet die van gisteren. */
+let getekendOp = null;
+function controleerDag() {
+  const nu = vandaag();
+  if (getekendOp !== nu) {
+    getekendOp = nu;
+    rolDoor();
+    tekenAlles();
+    haalBriefing();   /* nieuwe dag: ook een nieuwe briefing proberen */
+  }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) controleerDag(); });
+window.addEventListener('focus', controleerDag);
+setInterval(controleerDag, 60000);
+
+laad();
+rolDoor();
+getekendOp = vandaag();
+tekenAlles();
+
+haalBriefing();
+
+if (!opslagWerkt) zeg('Let op: deze browser bewaart niets');
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
