@@ -125,6 +125,38 @@
   .week .naam { font-size: 14.5px; color: var(--ink-2); flex: 1; min-width: 0; }
   .stippen { display: flex; gap: 4px; flex: none; }
   .stip { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--line-2); }
+  /* De maandchallenge. Eigen, kleinere stippen: er staan er eenentwintig op een
+     rij en die moeten op een telefoon naast elkaar passen. */
+  .uitdaging .stippen { flex-wrap: wrap; gap: 5px; margin: 10px 0 2px; }
+  .uitdaging .stip { width: 9px; height: 9px; }
+  .uitdaging .groot { font-size: 26px; font-weight: 650; line-height: 1.1; }
+  .uitdaging .groot small { font-size: 15px; font-weight: 400; color: var(--ink-3); }
+  .uitdaging .regel { margin-top: 8px; font-size: 14px; }
+  .uitdaging .achter { color: var(--warm); }
+  .meting { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .meting label { flex: 1 1 110px; font-size: 13px; color: var(--ink-3); }
+  .meting input { width: 100%; margin-top: 4px; padding: 9px 10px; font: inherit;
+                  font-size: 16px; border: 1px solid var(--line-2); border-radius: 8px;
+                  background: var(--vlak); color: var(--ink); }
+  .meting button { padding: 10px 16px; }
+  .metinghistorie { margin-top: 10px; font-size: 13.5px; color: var(--ink-3); }
+  .metinghistorie div { padding: 3px 0; }
+  .metinghistorie b { color: var(--ink); font-weight: 600; }
+  .uitlegvak { margin-top: 12px; }
+  .uitlegvak summary { cursor: pointer; font-size: 13.5px; color: var(--accent-ink); }
+  .uitlegvak p { font-size: 13.5px; color: var(--ink-3); line-height: 1.55; margin: 9px 0 0; }
+  /* Confetti: losse blokjes die naar beneden dwarrelen en zichzelf opruimen.
+     Geen bibliotheek -- dat zou het eerste externe pakket in deze map zijn. */
+  .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 99; overflow: hidden; }
+  .snipper { position: absolute; width: 9px; height: 14px; opacity: .9;
+             animation: val 1.8s linear forwards; }
+  @keyframes val {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(70vh) rotate(540deg); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .snipper { animation-duration: .01s; }
+  }
   .stip.vol { background: var(--accent); border-color: var(--accent); }
   .stip.extra { background: var(--accent); border-color: var(--accent); opacity: .45; }
   .stip.let { background: var(--warm); border-color: var(--warm); }
@@ -694,7 +726,7 @@ let opslagWerkt = true;
 
 function leeg() {
   return { versie: 1, taken: [], dagen: {}, doelen: Object.assign({}, STANDAARD_DOELEN),
-           bewaard: [], laatsteKopie: null };
+           bewaard: [], gevierd: [], metingen: {}, laatsteKopie: null };
 }
 
 function laad() {
@@ -707,6 +739,8 @@ function laad() {
     if (!Array.isArray(st.taken)) st.taken = [];
     if (!st.dagen || typeof st.dagen !== 'object') st.dagen = {};
     if (!Array.isArray(st.bewaard)) st.bewaard = [];
+    if (!Array.isArray(st.gevierd)) st.gevierd = [];
+    if (!st.metingen || typeof st.metingen !== 'object') st.metingen = {};
   } catch (e) {
     opslagWerkt = false;
   }
@@ -852,6 +886,7 @@ const ui = {
   bewerkt: null,        // id van de taak die je aan het bewerken bent
   toonGedaan: false,
   toonLater: false,
+  metingOpen: false,    // de invulvelden van de weekmeting opengeklapt
   weken: 8,             // hoeveel weken de terugblik toont
 };
 
@@ -913,6 +948,275 @@ function bewaarWissel(it) {
     zeg('Bewaard \u00b7 bovenaan de briefing');
   }
   bewaar();
+}
+
+/* ---------- de maandchallenge ---------- */
+
+/* Gert wilde in november vijf keer per week trainen en het deze maand ook écht
+   halen. Eén maand, een duidelijk doel, en daarna weg -- dat is wat een
+   challenge een challenge maakt.
+
+   Het doel is een maandtotaal en geen rijtje weken, en dat is met opzet. Vijf
+   per week over dertig dagen is eenentwintig; met weken was 1 november (een
+   zondag) de staart van een oktoberweek geweest en had zijn eerste training
+   nergens geteld. Het weekritme blijft zichtbaar in de regel eronder en in de
+   bolletjes die er al waren.
+
+   Wil je hem volgende maand opnieuw: pas deze vier regels aan. Staat de datum
+   van vandaag erbuiten, dan is het paneel er gewoon niet. */
+const UITDAGING = {
+  naam: 'November',
+  van: '2026-11-01',
+  tot: '2026-11-30',
+  doel: 21,          // vijf per week over dertig dagen
+  perWeek: 5,
+};
+
+function uitdagingLoopt() {
+  const nu = vandaag();
+  return nu >= UITDAGING.van && nu <= UITDAGING.tot;
+}
+
+function uitdagingGedaan() {
+  let n = 0;
+  for (const datum in st.dagen) {
+    if (datum >= UITDAGING.van && datum <= UITDAGING.tot && st.dagen[datum].training) n++;
+  }
+  return n;
+}
+
+/* Confetti bij de vijfde van de week. Gert vroeg erom, en het is het waard:
+   dit is het moment waarop de week binnen is. */
+function confetti() {
+  const kleuren = ['var(--accent)', 'var(--teal)', 'var(--olijf)', 'var(--warm)'];
+  const vak = el('div', { class: 'confetti' });
+  for (let i = 0; i < 40; i++) {
+    const sn = el('div', { class: 'snipper' });
+    sn.style.left = Math.random() * 100 + '%';
+    sn.style.background = kleuren[i % kleuren.length];
+    sn.style.animationDelay = (Math.random() * 0.5).toFixed(2) + 's';
+    sn.style.transform = 'rotate(' + Math.floor(Math.random() * 360) + 'deg)';
+    vak.appendChild(sn);
+  }
+  document.body.appendChild(vak);
+  setTimeout(() => vak.remove(), 2600);
+}
+
+/* Eén keer vieren per week, en dat moet een herlaadbeurt overleven -- anders
+   knalt de confetti elke keer dat je het scherm opent. Vandaar in `st` en niet
+   in `ui`. */
+function vierAls(sleutel, tekst) {
+  if (!Array.isArray(st.gevierd)) st.gevierd = [];
+  if (st.gevierd.includes(sleutel)) return;
+  st.gevierd.push(sleutel);
+  bewaar();
+  confetti();
+  zeg(tekst);
+}
+
+function tekenUitdaging() {
+  if (!uitdagingLoopt()) return null;
+
+  const nu = vandaag();
+  const gedaan = uitdagingGedaan();
+  const maandag = maandagVan(nu);
+  const dezeWeek = telWeek(maandag, GEWOONTES.find(g => g.id === 'training'));
+
+  /* Hoeveel dagen van de maand zijn om, inclusief vandaag. Daarmee reken je uit
+     of je op schema ligt -- en dat is de enige cijferregel die je op een
+     donderdag echt helpt. */
+  const dagNr = Number(nu.slice(8)) ;
+  const totaal = Number(UITDAGING.tot.slice(8));
+  const verwacht = Math.round(dagNr / totaal * UITDAGING.doel);
+  const verschil = gedaan - verwacht;
+
+  const vak = el('div', { class: 'uitdaging' });
+  vak.appendChild(el('div', { class: 'groot' },
+    [el('span', { tekst: gedaan + ' van ' + UITDAGING.doel + ' ' }),
+     el('small', { tekst: 'trainingen' })]));
+  vak.appendChild(stippenRij(gedaan, UITDAGING.doel, 'min'));
+
+  /* Wat heb je deze week nog nodig, en hoeveel dagen heb je er nog voor. Dit is
+     het stukje dat ertoe doet: op een donderdag met twee gedaan is "nog drie in
+     vier dagen" een plan, en "3 van 5" alleen een constatering. */
+  const dagenOver = 7 - ((alsDatum(nu) - alsDatum(maandag)) / 86400000);
+  const tekort = UITDAGING.perWeek - dezeWeek;
+  let week;
+  if (maandag < UITDAGING.van) {
+    /* De eerste dagen vallen in een week die grotendeels vóór de challenge
+       ligt. Die afrekenen op vijf is onzin: op zondag 1 november zou er
+       "vijf haal je niet meer" staan over een week die voor zes zevende in
+       oktober zat. Dus tellen we hem niet mee en zeggen we wanneer het begint. */
+    week = 'De eerste hele week begint maandag';
+  } else if (tekort <= 0) {
+    week = 'Deze week binnen — ' + dezeWeek + ' van ' + UITDAGING.perWeek;
+  } else if (tekort > dagenOver) {
+    week = 'Deze week ' + dezeWeek + ' van ' + UITDAGING.perWeek +
+           ' · vijf haal je niet meer, maar ' + (dezeWeek + dagenOver) + ' wel';
+  } else {
+    week = 'Deze week ' + dezeWeek + ' van ' + UITDAGING.perWeek +
+           ' · nog ' + tekort + (tekort === 1 ? ' te gaan in ' : ' te gaan in ') +
+           dagenOver + (dagenOver === 1 ? ' dag' : ' dagen');
+  }
+  vak.appendChild(el('div', { class: 'regel', tekst: week }));
+
+  const op = verschil >= 0
+    ? (verschil === 0 ? 'Precies op schema' : verschil + ' voor op schema')
+    : Math.abs(verschil) + ' achter op schema';
+  vak.appendChild(el('div', { class: 'regel label' + (verschil < 0 ? ' achter' : ''),
+                              tekst: op }));
+
+  return paneel(UITDAGING.naam, 'vijf per week', [vak]);
+}
+
+/* ---------- wegen en meten ---------- */
+
+/* Gert wilde er op 1 november 2026 bij: elke maandag wegen en de buikomvang
+   meten, met een duwtje om het ook echt in te vullen.
+
+   Per week opgeslagen onder de maandag van die week, niet per dag. Zo is "deze
+   week gemeten" een vraag met één antwoord, en kun je twee metingen uit dezelfde
+   week niet door elkaar halen.
+
+   Buikomvang staat er bewust naast het gewicht. Bij krachttraining komt er spier
+   bij terwijl er vet af gaat, en dan staat de weegschaal weken stil terwijl de
+   centimeters wél bewegen. Eén getal zou dus het verkeerde verhaal vertellen. */
+function metingVanWeek(maandag) {
+  return (st.metingen && st.metingen[maandag]) || null;
+}
+
+function metingWeken(hoeveel) {
+  return Object.keys(st.metingen || {}).sort().reverse().slice(0, hoeveel);
+}
+
+function getal(v) {
+  const n = parseFloat(String(v).replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+function verschilTekst(nu, eerder, eenheid) {
+  if (nu == null || eerder == null) return "";
+  const d = Math.round((nu - eerder) * 10) / 10;
+  if (d === 0) return " (gelijk)";
+  return " (" + (d > 0 ? "+" : "\u2212") + Math.abs(d) + " " + eenheid + ")";
+}
+
+function tekenMeting() {
+  const nu = vandaag();
+  const maandag = maandagVan(nu);
+  const deze = metingVanWeek(maandag);
+  const eerder = metingWeken(8).filter(w => w < maandag);
+  const vorige = eerder.length ? st.metingen[eerder[0]] : null;
+
+  /* Wanneer staat dit paneel er?
+     - Is deze week nog niet gemeten, dan altijd: dat is het duwtje.
+     - Is het wél gemeten, dan alleen als er iets terug te kijken valt. Je reeks
+       is de hele opbrengst van meten, en die zou je anders zes dagen per week
+       niet zien -- precies de dagen waarop je je afvraagt of het wat oplevert.
+     - Staat er één meting en is die van deze week, dan is er niets te tonen en
+       blijft het scherm kort. */
+  if (deze && !ui.metingOpen && metingWeken(2).length < 2) return null;
+
+  const vak = el('div');
+
+  if (deze && !ui.metingOpen) {
+    vak.appendChild(el('div', { class: 'regel' }, [
+      el('span', { tekst: 'Deze week: ' }),
+      el('b', { tekst: deze.gewicht != null ? deze.gewicht + ' kg' : '—' }),
+      el('span', { tekst: deze.buik != null ? ' \u00b7 ' + deze.buik + ' cm' : '' }),
+    ]));
+    vak.appendChild(el('button', {
+      class: 'schakel', tekst: 'Aanpassen',
+      onclick: () => { ui.metingOpen = true; tekenVandaag(); },
+    }));
+  } else {
+    const rij = el('div', { class: 'meting' });
+    const gew = el('input', { type: 'number', step: '0.1', inputmode: 'decimal',
+                              placeholder: 'kg' });
+    const bui = el('input', { type: 'number', step: '0.5', inputmode: 'decimal',
+                              placeholder: 'cm' });
+    if (deze) {
+      if (deze.gewicht != null) gew.value = deze.gewicht;
+      if (deze.buik != null) bui.value = deze.buik;
+    }
+    rij.appendChild(el('label', { tekst: 'Gewicht' }, [gew]));
+    rij.appendChild(el('label', { tekst: 'Buikomvang' }, [bui]));
+    rij.appendChild(el('button', {
+      class: 'schakel', tekst: 'Bewaren',
+      onclick: () => {
+        const g = getal(gew.value), b = getal(bui.value);
+        if (g == null && b == null) { zeg('Niets ingevuld'); return; }
+        st.metingen[maandag] = { gewicht: g, buik: b, op: nu };
+        ui.metingOpen = false;
+        bewaar();
+        tekenVandaag();
+        zeg('Meting bewaard');
+      },
+    }));
+    vak.appendChild(rij);
+
+    /* Gert kreeg wisselende uitkomsten, en dat is bij buikomvang eerder regel
+       dan uitzondering: ademhaling, tijdstip en de hoek van het lint doen er
+       elk een centimeter of twee bij. Daarom staat de werkwijze hier, en niet
+       in een LEESMIJ -- je staat met het lint in je handen, niet achter je
+       laptop.
+
+       De navel als ijkpunt staat er bewust níet in: die verschuift mee als je
+       afvalt, en dan meet je elke maand een andere plek. Het midden tussen je
+       onderste rib en je heupbot blijft staan waar het staat. */
+    vak.appendChild(el('details', { class: 'uitlegvak' }, [
+      el('summary', { tekst: 'Hoe meet ik dat goed?' }),
+      el('div', { class: 'uitleg' }, [
+        el('p', { tekst: 'Op de huid, niet over je kleren. Sta rechtop met je '
+          + 'voeten een stukje uit elkaar en je armen los langs je lichaam.' }),
+        el('p', { tekst: 'Het lint komt midden tussen je onderste rib en de '
+          + 'bovenkant van je heupbot — meestal een paar centimeter boven je '
+          + 'navel. Neem niet de navel zelf als ijkpunt: die zakt mee als je '
+          + 'afvalt, en dan meet je elke maand een andere plek.' }),
+        el('p', { tekst: 'Meet aan het eind van een gewone uitademing. Niet '
+          + 'inhouden en niet je buik intrekken. Hier zit de grootste '
+          + 'schommeling: inademen scheelt zo twee centimeter.' }),
+        el('p', { tekst: 'Houd het lint horizontaal — ook op je rug, want daar '
+          + 'zakt hij vanzelf. Strak genoeg om te blijven liggen, niet zo strak '
+          + 'dat je huid inknijpt.' }),
+        el('p', { tekst: 'Altijd \u2019s ochtends, vóór het ontbijt en na de wc. '
+          + 'Eten en drinken schelen een centimeter of twee, en dat is precies '
+          + 'de verandering waar je naar op zoek bent.' }),
+        el('p', { tekst: 'Meet twee keer. Schelen ze meer dan een centimeter, '
+          + 'dan een derde keer, en noteer het midden.' }),
+      ]),
+    ]));
+
+    if (vorige) {
+      vak.appendChild(el('div', { class: 'label', style: 'margin-top:8px',
+        tekst: 'Vorige keer: '
+               + (vorige.gewicht != null ? vorige.gewicht + ' kg' : '—')
+               + (vorige.buik != null ? ' \u00b7 ' + vorige.buik + ' cm' : '') }));
+    }
+  }
+
+  /* De laatste paar weken eronder: daar zit de hele opbrengst van meten. Eén
+     getal zegt niets, vier op een rij laten een richting zien. */
+  const weken = metingWeken(4);
+  if (weken.length > 1) {
+    const hist = el('div', { class: 'metinghistorie' });
+    for (let i = 0; i < weken.length; i++) {
+      const m = st.metingen[weken[i]];
+      const v = i + 1 < weken.length ? st.metingen[weken[i + 1]] : null;
+      hist.appendChild(el('div', {}, [
+        el('span', { tekst: korteDatum(weken[i]) + ' \u00b7 ' }),
+        el('b', { tekst: m.gewicht != null ? m.gewicht + ' kg' : '—' }),
+        el('span', { tekst: verschilTekst(m.gewicht, v && v.gewicht, 'kg') }),
+        el('span', { tekst: m.buik != null ? ' \u00b7 ' : '' }),
+        el('b', { tekst: m.buik != null ? m.buik + ' cm' : '' }),
+        el('span', { tekst: verschilTekst(m.buik, v && v.buik, 'cm') }),
+      ]));
+    }
+    vak.appendChild(hist);
+  }
+
+  return paneel('Meten', deze ? 'deze week gedaan' : 'maandag: wegen en meten',
+                [vak]);
 }
 
 /* ---------- hulpjes voor het tekenen ---------- */
@@ -1021,6 +1325,14 @@ function tekenVandaag() {
   const afvalkaart = tekenAfval();
   const afvalDringt = afvalkaart && afvalkaart.dataset.dringt === '1';
   if (afvalDringt) doel.appendChild(afvalkaart);
+
+  /* De challenge bovenaan zolang hij loopt: dat is deze maand het eerste wat je
+     wilt zien. Buiten november geeft dit niets terug en is het scherm als altijd. */
+  const uitdaging = tekenUitdaging();
+  if (uitdaging) doel.appendChild(uitdaging);
+
+  const meting = tekenMeting();
+  if (meting) doel.appendChild(meting);
 
   doel.appendChild(paneel('Vandaag', langeDatum(nu), [
     tegels,
@@ -2308,6 +2620,19 @@ function zetTraining(id) {
   bewaar();
   tekenAlles();
   zeg(d.training ? TRAINING[id].naam + ' afgevinkt' : 'Afvinken teruggenomen');
+
+  /* Vieren pas ná het opslaan en alleen bij het aanvinken -- niet als je het
+     terugneemt. De vijfde van de week is het moment: dan is de week binnen. */
+  if (!d.training) return;
+  const maandag = maandagVan(vandaag());
+  const week = telWeek(maandag, GEWOONTES.find(g => g.id === 'training'));
+  if (week >= (st.doelen.training || 5)) {
+    vierAls('week-' + maandag, 'Vijf deze week — binnen!');
+  }
+  if (uitdagingLoopt() && uitdagingGedaan() >= UITDAGING.doel) {
+    vierAls('uitdaging-' + UITDAGING.van, UITDAGING.naam + ' gehaald. Alle ' +
+            UITDAGING.doel + '.');
+  }
 }
 
 function tekenTraining() {
