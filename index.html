@@ -526,8 +526,15 @@ const GEWOONTES = [
   { id: 'mindful',   naam: 'Mindfulness',          kort: 'Mindfulness', soort: 'min', tegel: true },
   { id: 'smoothie',  naam: 'Smoothie-ontbijt',     kort: 'Smoothie',    soort: 'min', tegel: true },
   { id: 'veg',       naam: 'Vegetarisch',          soort: 'min', uitEten: 'veg' },
-  { id: 'zoog',      naam: 'Zoogdier gegeten',     soort: 'max', uitEten: 'zoog' },
-  { id: 'alcohol',   naam: 'Alcohol',              soort: 'max' },
+  /* Alcohol en "zoogdier gegeten" stonden hier tot 1 november 2026. Allebei
+     waren het `max`-gewoontes: iets dat je zo min mogelijk wilde. Gert haalde
+     ze er die dag uit, en niet omdat ze niet werkten -- hij drinkt niet meer en
+     eet geen zoogdieren meer. Dan is een vinkje dat elke week op nul staat geen
+     steun meer maar een herinnering aan iets dat voorbij is.
+
+     Wat erin stond blijft staan: `dagen[datum].alcohol` en `eten: 'zoog'` zitten
+     nog in de opslag en gaan mee in de reservekopie. Alleen toont de app ze niet
+     meer. Wil hij ze ooit terug, dan is dat deze regel. */
   /* Training telt mee als gewone weekgewoonte, zodat de bolletjes van deze
      week en de terugblik hem vanzelf meenemen. Geen tegel: training heeft een
      eigen scherm, want je moet kunnen kiezen wélke van de drie. */
@@ -568,21 +575,21 @@ const TRAINING = {
   b: {
     naam: 'Kracht B', onder: 'Bovenlichaam & core', duur: '30–35 min', soort: 'kracht',
     oefeningen: [
-      ['Bankdrukken', 'halter 20 kg · halterbank met rek', '3 × 8',
+      ['Bankdrukken', 'halter 25 kg · halterbank met rek', '3 × 8',
        'Uit het rek, niet van de grond: leg de haken zo dat je de halter met gestrekte armen net van de steunen tilt. Plat op de bank, voeten op de grond. Halter zakt gecontroleerd tot je borst, ellebogen ongeveer 45 graden van je lichaam — niet wijd opzij. Duw omhoog en leg hem na de laatste herhaling terug in het rek.',
        'Je traint alleen, dus de laatste herhaling moet er een zijn die je zéker haalt — nooit tot je er een mist. Twijfel je, haal er dan een schijf af.'],
-      ['Push-ups', '—', '3 × max',
-       'Handen iets breder dan schouders, lichaam één rechte lijn. Zak tot je borst vlak boven de grond is.',
-       'Lukt het niet vol: handen op het bankje in plaats van op je knieën. Dat traint dezelfde beweging.'],
+      ['Push-ups', 'halter in het rek', '4 × 6',
+       'Leg de halter in het rek op borsthoogte en pak hem iets breder dan je schouders. Lichaam één rechte lijn: billen aanspannen, buik vast, geen doorhangende heupen. Zak in drie tellen tot je borst de stang raakt, duw in één tel omhoog. Gaat dat vier series lang schoon, leg de stang dan een gaatje lager.',
+       'Niet op je knieën en niet drie keer tot het niet meer gaat. Je knieën veranderen de lijn van je lichaam, dus je traint iets anders dan wat je wilt kunnen; en tot mislukkens toe duwen maakt je vooral moe. Vier series van zes die je schoon haalt, met de stang steeds een gaatje lager, brengen je in een paar maanden op de grond. Daar kun je elke week iets aan zien, en dat is precies wat een zware oefening nodig heeft.'],
       ['Schouderdrukken', 'dumbbells 5 kg, later 7,5', '3 × 10',
        'Staand of zittend op de bank. Dumbbells op schouderhoogte, duw recht omhoog tot je armen gestrekt zijn. Buik aanspannen zodat je niet in je rug hangt.',
        'Hiervoor zijn de vaste van 5 kg precies goed. Lukt 3×10 makkelijk, ga dan eerst naar 3×15 en pas daarna naar de 7,5 — boven je hoofd is die stap groter dan hij lijkt. De verstelbare van 11 kg zijn hier voorlopig te zwaar.'],
-      ['Lat pulldown', 'zwarte lus over de balk', '3 × 12',
+      ['Lat pulldown', 'paarse lus over de balk', '3 × 12',
        'Hier is die balk precies goed voor: van bovenaf trekken kan met geen van je andere spullen. Hang de lus over de balk, kniel eronder en pak de twee hangende kanten vast, armen gestrekt. Trek naar je borst; ellebogen naar beneden en naar achteren.',
-       'Knijp onderin je schouderbladen samen. Langzaam terug, drie tellen. Begin met de zwarte; wordt die te makkelijk, dan de paarse. Of kniel verder van de balk af — dan staat het elastiek al onder spanning voordat je begint.'],
-      ['Face pull', 'rode of gele lus over de balk', '3 × 15',
+       'Knijp onderin je schouderbladen samen. Langzaam terug, drie tellen. De zwarte werd te makkelijk, dus nu de paarse. Wordt die ook licht, ga dan níet naar de groene — die is een flinke sprong. Kniel eerst verder van de balk af, dan staat het elastiek al onder spanning voordat je begint.'],
+      ['Face pull', 'zwarte lus over de balk', '3 × 15',
        'Zelfde lus, zelfde balk, alleen trek je nu naar je gezicht in plaats van naar je borst. Ellebogen hóóg, alsof je een dubbele biceps-pose maakt; handen eindigen naast je oren. Dat de lus boven je hangt is geen bezwaar — het trekt dan iets omlaag en dat werkt net zo goed.',
-       'De tegenhanger van een dag achter een scherm. De enige oefening hier die je zonder schade elke dag zou mogen doen. Pak een van je dunste lussen, rood of geel: het gaat om de houding, niet om de kracht. Te zwaar en je schouders rollen juist naar voren — precies wat je wilde verhelpen.'],
+       'De tegenhanger van een dag achter een scherm. De enige oefening hier die je zonder schade elke dag zou mogen doen. Zwart mag, zolang je ellebogen hóóg blijven en je schouders niet naar voren rollen — want dan train je precies wat je wilde verhelpen. Let daar bij de laatste herhalingen op: gaan je ellebogen zakken of trek je met je onderarmen, pak dan de rode. Hier is zwaarder niet beter; het gaat om de houding, niet om de kracht.'],
       ['Dead bug', '—', '3 × 10 per kant',
        'Op je rug, armen recht omhoog, knieën en heupen in 90 graden. Strek tegelijk je rechterarm naar achteren en je linkerbeen naar voren. Terug, dan de andere kant.',
        'Je onderrug blijft tegen de vloer. Dat holle stuk eronder is het enige wat telt.'],
@@ -668,7 +675,7 @@ const PICTO = {
 
 
 
-const STANDAARD_DOELEN = { sport: 2, wandeling: 1, mindful: 3, smoothie: 3, veg: 2, zoog: 1, alcohol: 0, training: 5 };
+const STANDAARD_DOELEN = { sport: 2, wandeling: 1, mindful: 3, smoothie: 3, veg: 2, training: 5 };
 
 const LABELS = [
   { id: 'bellen', naam: 'Bellen' },
@@ -988,14 +995,15 @@ function tekenVandaag() {
   }
 
   const etenKeuze = el('div', { class: 'keuze' });
+  /* "Wel zoogdier" is er op 1 november 2026 uit; dat eet Gert niet meer. De
+     twee die overblijven zijn allebei iets om te kiezen in plaats van iets om
+     te bekennen, en daarmee is het rode knopje ook niet meer nodig. */
   const etenOpties = [
     { id: 'veg',  naam: 'Vegetarisch' },
     { id: 'geen', naam: 'Geen zoogdier' },
-    { id: 'zoog', naam: 'Wel zoogdier' },
   ];
   for (const o of etenOpties) {
     etenKeuze.appendChild(el('button', {
-      class: o.id === 'zoog' ? 'let' : '',
       'aria-pressed': d.eten === o.id ? 'true' : 'false',
       tekst: o.naam,
       onclick: () => {
@@ -1006,21 +1014,6 @@ function tekenVandaag() {
       },
     }));
   }
-
-  const alcohol = el('div', { class: 'stil' }, [
-    el('span', { tekst: d.alcohol ? 'Alcohol — vandaag wel' : 'Alcohol — alleen als het zo was' }),
-    el('button', {
-      class: 'schakel',
-      'aria-pressed': d.alcohol ? 'true' : 'false',
-      tekst: d.alcohol ? 'wel gedronken' : 'wel gedronken',
-      onclick: () => {
-        const r = dag(nu, true);
-        r.alcohol = !r.alcohol;
-        bewaar();
-        tekenVandaag();
-      },
-    }),
-  ]);
 
   /* Moet de bak vandaag of morgen aan de weg, dan staat dat bovenaan: dat is
      het enige op dit scherm met een deadline die vanavond afloopt. Anders
@@ -1033,7 +1026,6 @@ function tekenVandaag() {
     tegels,
     el('div', { class: 'rij-titel', tekst: 'Gegeten' }),
     etenKeuze,
-    alcohol,
   ]));
 
   /* --- hoe de week ervoor staat --- */
@@ -1338,6 +1330,9 @@ function telBlok(maandagen, gewoonte) {
 function heeftIets(maandag) {
   for (const datum of weekDagen(maandag)) {
     const d = st.dagen[datum];
+    /* `d.alcohol` staat er nog in, al wordt het niet meer bijgehouden: anders
+       zou een week uit het archief waarin alleen dat stond opeens als lege week
+       gelden en uit de terugblik vallen. */
     if (d && (d.eten || d.sport || d.wandeling || d.mindful || d.smoothie || d.alcohol)) return true;
     if (st.taken.some(t => t.klaar === datum)) return true;
   }
