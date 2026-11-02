@@ -142,6 +142,52 @@
   .metinghistorie { margin-top: 10px; font-size: 13.5px; color: var(--ink-3); }
   .metinghistorie div { padding: 3px 0; }
   .metinghistorie b { color: var(--ink); font-weight: 600; }
+  .verwachting { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
+                 font-size: 13.5px; color: var(--ink-3); }
+  .verwachting div { padding: 3px 0; }
+  .verwachting b { color: var(--ink); font-weight: 600; }
+  .verwachting .kopje { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+  .verwachting .kant { margin-top: 5px; font-size: 12.5px; line-height: 1.5; }
+  /* Sport. Een uitslag is drie kolommen, zodat de cijfers onder elkaar staan
+     en je de rij niet hoeft te lezen om de score te zien. */
+  .sportkop { padding: 10px 14px 4px; font-size: 12px; letter-spacing: .04em;
+              text-transform: uppercase; color: var(--ink-3); }
+  .uitslag { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px;
+             align-items: baseline; padding: 9px 14px;
+             border-bottom: 1px solid var(--line); }
+  .uitslag:last-child { border-bottom: 0; }
+  .uitslag .thuis { text-align: right; }
+  .uitslag .score { font-weight: 650; font-size: 17px; white-space: nowrap; }
+  .uitslag .wanneer { grid-column: 1 / -1; text-align: center;
+                      color: var(--ink-3); font-size: 12.5px; }
+  .uitslag .bezig { color: var(--accent); font-weight: 600; }
+  .uitslag.eigen { background: var(--accent-zacht); }
+  .uitslag.eigen .thuis, .uitslag.eigen .gast { font-weight: 600; }
+  .ritrij { display: flex; gap: 10px; align-items: baseline; padding: 6px 14px;
+            border-bottom: 1px solid var(--line); font-size: 14.5px; }
+  .ritrij:last-child { border-bottom: 0; }
+  .ritrij .plek { color: var(--ink-3); width: 22px; flex: none; }
+  .ritrij .naam { flex: 1; }
+  .ritrij .punten { font-weight: 650; }
+  .ritrij.eigen { background: var(--accent-zacht); font-weight: 600; }
+  table.stand { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.stand th { text-align: right; color: var(--ink-3); font-weight: 500;
+                   font-size: 12px; padding: 7px 6px 5px;
+                   border-bottom: 1px solid var(--line); }
+  table.stand th.club, table.stand td.club { text-align: left; }
+  table.stand td { text-align: right; padding: 6px;
+                   border-bottom: 1px solid var(--line); }
+  /* Alleen buitenom de volle marge. Met 14 pixels aan weerskanten van élke cel
+     bleef er op een telefoon zo weinig over dat "Go Ahead Eagles" over twee
+     regels ging. */
+  table.stand th:first-child, table.stand td:first-child { padding-left: 14px; }
+  table.stand th:last-child, table.stand td:last-child { padding-right: 14px; }
+  table.stand td.plek { color: var(--ink-3); width: 1px; }
+  table.stand td.punten { font-weight: 650; }
+  table.stand tr:last-child td { border-bottom: 0; }
+  table.stand tr.eigen td { background: var(--accent-zacht); font-weight: 600; }
+  .sportvoet { padding: 9px 14px; color: var(--ink-3); font-size: 12.5px;
+               line-height: 1.5; }
   .uitlegvak { margin-top: 12px; }
   .uitlegvak summary { cursor: pointer; font-size: 13.5px; color: var(--accent-ink); }
   .uitlegvak p { font-size: 13.5px; color: var(--ink-3); line-height: 1.55; margin: 9px 0 0; }
@@ -558,6 +604,15 @@ const GEWOONTES = [
   { id: 'mindful',   naam: 'Mindfulness',          kort: 'Mindfulness', soort: 'min', tegel: true },
   { id: 'smoothie',  naam: 'Smoothie-ontbijt',     kort: 'Smoothie',    soort: 'min', tegel: true },
   { id: 'veg',       naam: 'Vegetarisch',          soort: 'min', uitEten: 'veg' },
+  /* Geen chips, vijf dagen per week (2 november 2026, op Gerts verzoek). Twee
+     dagen ruimte is met opzet: een gewoonte die zeven van de zeven eist is op
+     woensdag al mislukt, en dan tik je de rest van de week niets meer aan.
+
+     Een `min`-gewoonte en geen `max`, net als Vegetarisch: je vinkt aan wat je
+     gedaan hebt. "Vandaag geen chips" is iets om te halen, "chips gehad" is
+     iets om te bekennen -- en dat laatste is precies waarom alcohol en zoogdier
+     er hierboven uit gingen. */
+  { id: 'chips',     naam: 'Geen chips',           kort: 'Geen chips',  soort: 'min', tegel: true },
   /* Alcohol en "zoogdier gegeten" stonden hier tot 1 november 2026. Allebei
      waren het `max`-gewoontes: iets dat je zo min mogelijk wilde. Gert haalde
      ze er die dag uit, en niet omdat ze niet werkten -- hij drinkt niet meer en
@@ -707,7 +762,8 @@ const PICTO = {
 
 
 
-const STANDAARD_DOELEN = { sport: 2, wandeling: 1, mindful: 3, smoothie: 3, veg: 2, training: 5 };
+const STANDAARD_DOELEN = { sport: 2, wandeling: 1, mindful: 3, smoothie: 3, veg: 2,
+                           training: 5, chips: 5 };
 
 const LABELS = [
   { id: 'bellen', naam: 'Bellen' },
@@ -1094,11 +1150,155 @@ function getal(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+/* Een getal zoals een Nederlander het schrijft: 0,4 en niet 0.4. */
+function nl(n) { return String(Math.round(n * 10) / 10).replace('.', ','); }
+
 function verschilTekst(nu, eerder, eenheid) {
   if (nu == null || eerder == null) return "";
   const d = Math.round((nu - eerder) * 10) / 10;
   if (d === 0) return " (gelijk)";
-  return " (" + (d > 0 ? "+" : "\u2212") + Math.abs(d) + " " + eenheid + ")";
+  return " (" + (d > 0 ? "+" : "\u2212") + nl(Math.abs(d)) + " " + eenheid + ")";
+}
+
+/* ---------- waar loopt dit op uit? ---------- */
+
+/* Gert vroeg op 2 november 2026 wat er op 1 december en 1 januari zou staan als
+   hij het schema volhoudt. Dat is precies de vraag waar een losse maandag geen
+   antwoord op geeft en zijn eigen reeks wel -- dus rekent de app het voor in
+   plaats van dat iemand er een getal bij verzint.
+
+   Vier keuzes zitten erin, en ze zijn er alle vier omdat het zonder hen een
+   verkeerd verhaal vertelt:
+
+   - **Een kleinste-kwadratenlijn door alle metingen**, niet de eerste tegen de
+     laatste. Anders bepaalt een rare maandag de hele verwachting, en bij
+     buikomvang is een rare maandag normaal: alleen de ademhaling scheelt al
+     twee centimeter.
+   - **Onder MEETRUIS heet het "staat stil"** en wordt er niets doorgetrokken.
+     Een halve kilo over drie weken is geen richting, en een lijn door ruis
+     leest als een belofte.
+   - **De snelheid wordt afgetopt op MAX_PER_WEEK.** De eerste weken gaan altijd
+     het hardst -- dat is vocht en glycogeen, geen vet -- en zonder die rem
+     staat er na drie weken dat hij in januari op 89 kilo zit. Een procent van
+     je lichaamsgewicht per week is wat er aan vet af kan.
+   - **Gewicht en omvang krijgen elk hun eigen lijn.** Bij krachttraining komt er
+     spier bij terwijl er vet af gaat; dan staat de weegschaal stil terwijl de
+     centimeters wel bewegen. Dat ze elkaar tegenspreken is geen fout maar de
+     hele reden dat er twee getallen staan.
+
+   Minder dan drie metingen levert geen lijn op: met twee punten is elke lijn
+   precies passend en dus nergens op gebaseerd. */
+const MEETRUIS = { gewicht: 0.6, buik: 1.0 };
+const MAX_PER_WEEK = { gewicht: 1.0, buik: 1.0 };
+const VELDNAAM = { gewicht: 'gewicht', buik: 'omvang' };
+const EENHEID = { gewicht: 'kg', buik: 'cm' };
+
+function dagenTussen(a, b) { return Math.round((alsDatum(b) - alsDatum(a)) / 86400000); }
+
+function trendVan(veld) {
+  const weken = Object.keys(st.metingen || {}).sort();
+  const punten = [];
+  for (const w of weken) {
+    const v = st.metingen[w] ? st.metingen[w][veld] : null;
+    if (v != null) punten.push([w, v]);
+  }
+  if (punten.length < 3) return null;
+
+  const nul = punten[0][0];
+  const n = punten.length;
+  let sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const [w, y] of punten) {
+    const x = dagenTussen(nul, w);
+    sx += x; sy += y; sxx += x * x; sxy += x * y;
+  }
+  const noemer = n * sxx - sx * sx;
+  if (!noemer) return null;
+
+  const ruw = (n * sxy - sx * sy) / noemer;        // eenheid per dag
+  const begin = (sy - ruw * sx) / n;
+  const laatste = punten[n - 1][0];
+  const span = dagenTussen(nul, laatste);
+
+  /* De lijn op de dag van de laatste meting is het beginpunt, en niet die
+     meting zelf: anders trekt de app een lijn vanaf precies het punt waar de
+     ademhaling van afgelopen maandag in zit. */
+  const basis = begin + ruw * span;
+  const stil = Math.abs(ruw * span) < MEETRUIS[veld];
+  const grens = MAX_PER_WEEK[veld] / 7;
+  const afgetopt = !stil && Math.abs(ruw) > grens;
+  const perDag = stil ? 0 : (afgetopt ? Math.sign(ruw) * grens : ruw);
+
+  return { veld, aantal: n, stil, afgetopt, perDag, basis, vanaf: laatste,
+           perWeek: perDag * 7 };
+}
+
+/* De eerstvolgende eerste van de maand die ver genoeg weg ligt, en de maand
+   daarna. Te dichtbij heeft geen zin: op 28 december is "1 januari" geen
+   verwachting meer maar bijna de meting van volgende week. Tien dagen is de
+   grens -- met 21 sloeg hij op 16 november 1 december over en begon hij bij
+   januari, precies de maand waar je dan niet naar kijkt.
+
+   Hoeveel datums je krijgt hangt af van hoeveel metingen eronder liggen: met
+   drie weken reeks mag je niet drie maanden vooruit rekenen. */
+function verwachtingDatums(vanaf, hoeveel) {
+  const uit = [];
+  const d = alsDatum(vanaf);
+  d.setDate(1);
+  for (let i = 0; i < 6 && uit.length < hoeveel; i++) {
+    d.setMonth(d.getMonth() + 1);
+    const s = sleutelVan(d);
+    if (dagenTussen(vanaf, s) >= 10) uit.push(s);
+  }
+  return uit;
+}
+
+function tekenVerwachting() {
+  const t = { gewicht: trendVan('gewicht'), buik: trendVan('buik') };
+  const velden = ['gewicht', 'buik'].filter(v => t[v]);
+  if (!velden.length) return null;
+
+  const vak = el('div', { class: 'verwachting' });
+  vak.appendChild(el('div', { class: 'kopje', tekst: 'Als deze reeks doorzet' }));
+
+  if (velden.every(v => t[v].stil)) {
+    vak.appendChild(el('div', {
+      tekst: velden.map(v => VELDNAAM[v]).join(' en ')
+             + (velden.length > 1 ? ' staan stil' : ' staat stil') }));
+  } else {
+    vak.appendChild(el('div', { tekst: velden.map(v => t[v].stil
+      ? VELDNAAM[v] + ' staat stil'
+      : (t[v].perWeek > 0 ? '+' : '\u2212') + nl(Math.abs(t[v].perWeek)) + ' ' + EENHEID[v]
+    ).join(' en ') + ' per week' }));
+  }
+
+  /* Pas bij vijf metingen de tweede maand erbij. Drie weken reeks is genoeg
+     voor een richting en te weinig voor een kwartaal. */
+  const minst = Math.min.apply(null, velden.map(v => t[v].aantal));
+  for (const datum of verwachtingDatums(vandaag(), minst >= 5 ? 2 : 1)) {
+    const delen = velden.map(v => {
+      const x = t[v];
+      return nl(x.basis + x.perDag * dagenTussen(x.vanaf, datum)) + ' ' + EENHEID[v];
+    });
+    vak.appendChild(el('div', {}, [
+      el('span', { tekst: korteDatum(datum) + ' \u00b7 ' }),
+      el('b', { tekst: delen.join(' \u00b7 ') }),
+    ]));
+  }
+
+  /* Wat de getallen hierboven niet kunnen zeggen, staat eronder. Een
+     verwachting zonder die twee regels leest als een toezegging. */
+  if (minst < 5) {
+    vak.appendChild(el('div', { class: 'kant',
+      tekst: 'Nog maar ' + minst + ' metingen: dat is een richting, geen '
+             + 'voorspelling. Na een maand of twee zegt deze lijn pas iets.' }));
+  }
+  if (velden.some(v => t[v].afgetopt)) {
+    vak.appendChild(el('div', { class: 'kant',
+      tekst: 'Afgetopt op een kilo en een centimeter per week. Je begin gaat '
+             + 'altijd het hardst, en dat is vooral vocht \u2014 doortrekken zou '
+             + 'een getal geven dat niet kan.' }));
+  }
+  return vak;
 }
 
 function tekenMeting() {
@@ -1223,8 +1423,116 @@ function tekenMeting() {
     vak.appendChild(hist);
   }
 
+  const vooruit = tekenVerwachting();
+  if (vooruit) vak.appendChild(vooruit);
+
   return paneel('Meten', deze ? 'deze week gedaan' : 'maandag: wegen en meten',
                 [vak]);
+}
+
+/* Het sportblok: twee uitslagenlijstjes en twee tabellen, dus het tekent
+   zichzelf -- net als het weerblok. Geen berichten, geen links.
+
+   Wie oplicht is `eigen`, en dat wordt in ophalen.py bepaald: bij de Formule 1
+   een Nederlandse coureur, bij het voetbal de club uit `EIGEN_CLUB` (die staat
+   leeg tot Gert zegt waar hij voor is). In een uitslagenlijst zoek je eerst de
+   onze, en dan hoef je niet te lezen maar te kijken. */
+function tekenSport(sp) {
+  const vak = document.createElement('div');
+  const kopje = (t) => {
+    const d = document.createElement('div');
+    d.className = 'sportkop';
+    d.textContent = t;
+    vak.append(d);
+  };
+  const voet = (t) => {
+    const d = document.createElement('div');
+    d.className = 'sportvoet';
+    d.textContent = t;
+    vak.append(d);
+  };
+
+  const v = sp.voetbal || {};
+  if ((v.uitslagen || []).length) {
+    kopje('Eredivisie');
+    for (const u of v.uitslagen) {
+      const rij = document.createElement('div');
+      rij.className = 'uitslag' + (u.eigen ? ' eigen' : '');
+      rij.innerHTML =
+        '<span class="thuis"></span><span class="score"></span>' +
+        '<span class="gast"></span><span class="wanneer"></span>';
+      rij.children[0].textContent = u.thuis;
+      rij.children[1].textContent = u.score || '\u2014';
+      rij.children[2].textContent = u.uit;
+      rij.children[3].textContent = u.wanneer || '';
+      if (u.bezig) {
+        const b = document.createElement('span');
+        b.className = 'bezig';
+        b.textContent = ' \u00b7 ' + u.bezig;
+        rij.children[3].append(b);
+      }
+      vak.append(rij);
+    }
+  }
+
+  if ((v.stand || []).length) {
+    kopje('Stand');
+    const t = document.createElement('table');
+    t.className = 'stand';
+    t.innerHTML = '<tr><th></th><th class="club">club</th><th>gesp</th>'
+                + '<th>ptn</th><th>saldo</th></tr>';
+    for (const r of v.stand) {
+      const rij = document.createElement('tr');
+      if (r.eigen) rij.className = 'eigen';
+      rij.innerHTML = '<td class="plek"></td><td class="club"></td><td></td>'
+                    + '<td class="punten"></td><td></td>';
+      const cel = rij.children;
+      cel[0].textContent = r.plek;
+      cel[1].textContent = r.team;
+      cel[2].textContent = r.gespeeld;
+      cel[3].textContent = r.punten;
+      cel[4].textContent = r.saldo;
+      t.append(rij);
+    }
+    vak.append(t);
+  }
+
+  const f = sp.f1 || {};
+  if ((f.uitslag || []).length) {
+    kopje('Formule 1' + (f.race ? ' \u00b7 ' + f.race : ''));
+    for (const r of f.uitslag) {
+      const rij = document.createElement('div');
+      rij.className = 'ritrij' + (r.eigen ? ' eigen' : '');
+      rij.innerHTML = '<span class="plek"></span><span class="naam"></span>';
+      rij.children[0].textContent = r.plek;
+      rij.children[1].textContent = r.naam;
+      vak.append(rij);
+    }
+  }
+
+  if ((f.stand || []).length) {
+    kopje('WK-stand');
+    for (const r of f.stand) {
+      const rij = document.createElement('div');
+      rij.className = 'ritrij' + (r.eigen ? ' eigen' : '');
+      rij.innerHTML = '<span class="plek"></span><span class="naam"></span>'
+                    + '<span class="punten"></span>';
+      rij.children[0].textContent = r.plek;
+      rij.children[1].textContent = r.naam;
+      rij.children[2].textContent = r.punten;
+      vak.append(rij);
+    }
+  }
+
+  if (f.volgende && f.volgende.wanneer) {
+    voet('Volgende race: ' + f.volgende.naam + ', ' + f.volgende.wanneer + '.');
+  }
+  /* De stand loopt achter op de uitslagen -- een wedstrijd van vanmiddag staat
+     er 's avonds soms nog niet in. Dat is geen fout van de app, dus zeggen we
+     het erbij in plaats van het te verbergen. */
+  voet('Standen bijgewerkt om ' + (sp.bijgewerkt || '?')
+       + '. Een uitslag van vandaag staat er soms nog niet in.');
+  return vak;
 }
 
 /* ---------- hulpjes voor het tekenen ---------- */
@@ -2322,7 +2630,8 @@ function tekenBriefing() {
                     lokaal:'var(--olijf)', ai:'var(--leisteen)', bron:'var(--accent)',
                     podcasts:'var(--leisteen)', natuur:'var(--olijf)', vogels:'var(--olijf)',
                     hemel:'var(--leisteen)',
-                    trektellen:'var(--olijf)', weer:'var(--teal)' };
+                    trektellen:'var(--olijf)', weer:'var(--teal)',
+                    sport:'var(--teal)' };
 
   /* Bewaarde berichten, bovenaan en standaard dicht. Dit hangt niet aan de dag
      die je bekijkt: het is jouw lijstje en het staat in `oprij.v1`, dus het gaat
@@ -2397,7 +2706,11 @@ function tekenBriefing() {
     const nieuwInBlok = b.items.filter(isNieuw).length;
     knop.innerHTML = '<span>' + b.emoji + '</span>' +
       '<span class="naam">' + b.titel + '</span>' +
-      '<span class="aantal">' + (b.items.length || '') + '</span>' +
+      /* Een blok mag zelf zeggen wat er op de knop staat. Het sportblok heeft
+         geen berichten maar wel negen uitslagen, en dichtgeklapt is dat getal
+         het enige wat je ervan ziet. */
+      '<span class="aantal">' + (b.aantal != null ? b.aantal
+                                 : (b.items.length || '')) + '</span>' +
       (nieuwInBlok ? '<span class="nieuwtje">' + nieuwInBlok + ' nieuw</span>' : '') +
       '<span class="pijl">&#9656;</span>';
     knop.addEventListener('click', () => {
@@ -2442,6 +2755,8 @@ function tekenBriefing() {
           (w.vooruit ? '<p class="vooruit">' + w.vooruit + '</p>' : '');
         inhoud.append(d);
       }
+
+      if (b.id === 'sport' && b.sport) inhoud.append(tekenSport(b.sport));
 
       /* Eén bericht als element. Apart, omdat de items nu op twee plekken
          gemaakt worden: los, en binnen een ingeklapt kopje. */
