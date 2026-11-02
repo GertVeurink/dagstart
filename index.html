@@ -144,10 +144,19 @@
   .metinghistorie b { color: var(--ink); font-weight: 600; }
   .verwachting { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
                  font-size: 13.5px; color: var(--ink-3); }
-  .verwachting div { padding: 3px 0; }
+  .verwachting div { padding: 3px 0; border: 0; }
   .verwachting b { color: var(--ink); font-weight: 600; }
   .verwachting .kopje { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
   .verwachting .kant { margin-top: 5px; font-size: 12.5px; line-height: 1.5; }
+  /* De ambitie staat er anders bij dan de kanttekeningen: dit is waar je heen
+     wilt, niet een voorbehoud bij een getal. Vandaar een eigen blokje met een
+     lijn erboven, en niet nog een grijze regel in de rij. */
+  .verwachting .ambitie { margin-top: 9px; padding-top: 8px;
+                          border-top: 1px solid var(--line); color: var(--accent-ink); }
+  .verwachting .ambitie div { font-size: 12.5px; line-height: 1.5; }
+  .panel .kant { margin-top: 6px; font-size: 12.5px; line-height: 1.5;
+                 color: var(--ink-3); }
+  .panel .regel { margin-top: 8px; font-size: 14px; }
   /* Sport. Een uitslag is drie kolommen, zodat de cijfers onder elkaar staan
      en je de rij niet hoeft te lezen om de score te zien. */
   .sportkop { padding: 10px 14px 4px; font-size: 12px; letter-spacing: .04em;
@@ -686,15 +695,69 @@ const TRAINING = {
     ],
   },
   lopen: {
-    naam: 'Lopen', onder: '20–25 min rustig', duur: '20–25 min', soort: 'lopen',
+    naam: 'Lopen', onder: 'lange dag of je rondje', duur: '22–42 min', soort: 'lopen',
     oefeningen: [
-      ['Een regel', '—', '20–25 min',
-       'Je moet kunnen praten tijdens het lopen. Kan dat niet, dan ga je te hard.',
-       'Geen tempoblokken, geen afstandsdoelen, geen app die je beoordeelt. Schoenen de avond ervoor klaar. Regent het, is het glad of zijn je knieën er niet naar: de crosstrainer in de schuur telt ook, met dezelfde regel. Dan sla je deze dag niet over, en dat is het enige wat telt.'],
+      ['De lange dag', 'rustig, je moet kunnen praten', 'zie het paneel',
+       'Dit is de dag die groeit. Je loopt op de klok en niet op afstand: tot de tijd om is, in een tempo waarbij je hele zinnen kunt uitspreken. Dat is rustiger dan je rondje van 3 km — waarschijnlijk zo\u2019n halve minuut per kilometer. Elke week komt er drie minuten bij, en elke vierde week niets.',
+       'Dit tempo voelt te langzaam, en dat is precies waarom het werkt: de lange dag is langzaam zodat hij lang kan worden. Ga je hem op je rondjetempo lopen, dan kun je er geen minuten meer bij doen en loopt de opbouw vast. De snelheid komt van de andere dag, later.'],
+      ['Je rondje van 3 km', 'dezelfde route, dezelfde meting', 'zoals je het doet',
+       'Je eigen rondje om het huis, in het tempo dat je gewend bent. Niet rustiger dan nodig en niet elke keer een wedstrijd: dit is je meetlat. Dezelfde route en dezelfde manier van klokken, dus wat er verandert is jij en niet het parcours.',
+       'Klok hem niet elke keer op de seconde — eens in de twee à drie weken is genoeg, anders meet je vooral de wind en hoe je die ochtend sliep. Vanaf januari komen hier korte stukjes sneller bij: zes keer een minuut stevig met twee minuten wandelen ertussen. Niet eerder, en nooit in dezelfde week waarin de lange dag langer wordt.'],
+      ['Als het niet gaat', 'crosstrainer', 'zelfde tijd',
+       'Regent het, is het glad of zijn je knieën er niet naar: de crosstrainer in de schuur telt ook, met dezelfde regel en dezelfde tijd. Dan sla je deze dag niet over, en dat is het enige wat telt.',
+       'Een gemiste loopdag haal je niet in door de volgende harder te doen. Schoenen de avond ervoor klaar.'],
     ],
   },
 };
 const TRAINING_VOLGORDE = ['a', 'b', 'lopen'];
+
+/* ---------- waar dit naartoe gaat ----------
+ *
+ * Gert vroeg op 2 november 2026 om een ambitie naast de verwachting. Het
+ * verschil tussen die twee is het hele punt: de verwachting komt uit zijn
+ * eigen cijfers en zegt waar hij uitkomt, de ambitie zegt waar hij heen wil.
+ * Staat er alleen een verwachting, dan is het een thermometer; staat er
+ * alleen een ambitie, dan is het een voornemen.
+ *
+ * Alle drie de doelen staan op dezelfde datum, en dat is geen toeval: het
+ * gewicht en de centimeters zijn er omdat ze de looptijd goedkoper maken.
+ * Ongeveer 2 à 3 seconden per kilometer per kilo, dus negen kilo is al gauw
+ * een halve minuut per kilometer -- ruim een derde van wat er tot 5 km onder
+ * de 30 minuten nog bij moet. De rest komt uit lopen.
+ *
+ * De 102 cm is niet verzonnen maar de grens waarboven de buikomvang zelf als
+ * risico telt. De 92 kg hoort daarbij en is een schatting; Gert heeft geen
+ * streefgewicht genoemd. Wil hij iets anders, dan is dat deze regel.
+ */
+const AMBITIE = {
+  op: '2027-07-01',
+  opWoord: '1 juli',
+  gewicht: 92,
+  buik: 102,
+};
+
+/* 5 km onder de 30 minuten is 6:00 per kilometer. Zijn rondje van 3 km ging op
+ * 2 november in 22 minuten, en dat is 7:20 -- nét boven zijn praattempo. Er
+ * moet dus twee kilometer bij én anderhalve minuut per kilometer af. Dat zijn
+ * twee projecten, en ze gaan niet tegelijk. */
+const LOOPDOEL = { afstand: 5, tijd: 30, rondje: 3 };
+
+/* De opbouw van de lange dag, in minuten.
+ *
+ * Minuten en geen kilometers: je hoeft geen route uit te meten, je loopt tot
+ * de klok zegt dat het klaar is. En het schaalt vanzelf mee -- word je
+ * sneller, dan komen er in dezelfde tijd meer kilometers in.
+ *
+ * Elke vierde week komt er niets bij. Een week waarin je niet méér vraagt is
+ * wat een opbouw heel houdt; zonder die pas op de plaats stapelt het door tot
+ * er iets protesteert, en een blessure kost meer weken dan hij oplevert.
+ */
+const LOOPOPBOUW = {
+  van: '2026-11-02',      // de maandag waarop dit begint (moet een maandag zijn)
+  startMin: 24,
+  perWeek: 3,
+  maxMin: 42,             // daarboven wordt het niet langer maar sneller
+};
 
 /* Drie smoothies, zodat de ochtend niet elke keer dezelfde is zonder dat er
    iets te bedenken valt. Alles gaat tegelijk in de blender; de volgorde van de
@@ -1202,6 +1265,13 @@ function trendVan(veld) {
     const v = st.metingen[w] ? st.metingen[w][veld] : null;
     if (v != null) punten.push([w, v]);
   }
+  return trendPunten(punten, MEETRUIS[veld], MAX_PER_WEEK[veld]);
+}
+
+/* De rekensom zelf, los van waar de punten vandaan komen -- het looppaneel
+   gebruikt hem ook, met zijn eigen ruis en zijn eigen plafond. `punten` is een
+   lijst [datumsleutel, waarde], op datum gesorteerd. */
+function trendPunten(punten, ruis, maxPerWeek) {
   if (punten.length < 3) return null;
 
   const nul = punten[0][0];
@@ -1223,13 +1293,15 @@ function trendVan(veld) {
      meting zelf: anders trekt de app een lijn vanaf precies het punt waar de
      ademhaling van afgelopen maandag in zit. */
   const basis = begin + ruw * span;
-  const stil = Math.abs(ruw * span) < MEETRUIS[veld];
-  const grens = MAX_PER_WEEK[veld] / 7;
+  const stil = Math.abs(ruw * span) < ruis;
+  const grens = maxPerWeek / 7;
   const afgetopt = !stil && Math.abs(ruw) > grens;
   const perDag = stil ? 0 : (afgetopt ? Math.sign(ruw) * grens : ruw);
 
-  return { veld, aantal: n, stil, afgetopt, perDag, basis, vanaf: laatste,
-           perWeek: perDag * 7 };
+  return { aantal: n, stil, afgetopt, perDag, basis, vanaf: laatste,
+           perWeek: perDag * 7,
+           /* Waar deze lijn op een gegeven dag staat. */
+           op: (datum) => basis + perDag * dagenTussen(laatste, datum) };
 }
 
 /* De eerstvolgende eerste van de maand die ver genoeg weg ligt, en de maand
@@ -1275,10 +1347,7 @@ function tekenVerwachting() {
      voor een richting en te weinig voor een kwartaal. */
   const minst = Math.min.apply(null, velden.map(v => t[v].aantal));
   for (const datum of verwachtingDatums(vandaag(), minst >= 5 ? 2 : 1)) {
-    const delen = velden.map(v => {
-      const x = t[v];
-      return nl(x.basis + x.perDag * dagenTussen(x.vanaf, datum)) + ' ' + EENHEID[v];
-    });
+    const delen = velden.map(v => nl(t[v].op(datum)) + ' ' + EENHEID[v]);
     vak.appendChild(el('div', {}, [
       el('span', { tekst: korteDatum(datum) + ' \u00b7 ' }),
       el('b', { tekst: delen.join(' \u00b7 ') }),
@@ -1292,6 +1361,12 @@ function tekenVerwachting() {
       tekst: 'Nog maar ' + minst + ' metingen: dat is een richting, geen '
              + 'voorspelling. Na een maand of twee zegt deze lijn pas iets.' }));
   }
+  const doelen = velden.map(v => ambitieRegel(v, t[v])).filter(Boolean);
+  if (doelen.length) {
+    vak.appendChild(el('div', { class: 'ambitie' },
+      doelen.map(r => el('div', { tekst: r }))));
+  }
+
   if (velden.some(v => t[v].afgetopt)) {
     vak.appendChild(el('div', { class: 'kant',
       tekst: 'Afgetopt op een kilo en een centimeter per week. Je begin gaat '
@@ -1322,8 +1397,8 @@ function tekenMeting() {
   if (deze && !ui.metingOpen) {
     vak.appendChild(el('div', { class: 'regel' }, [
       el('span', { tekst: 'Deze week: ' }),
-      el('b', { tekst: deze.gewicht != null ? deze.gewicht + ' kg' : '—' }),
-      el('span', { tekst: deze.buik != null ? ' \u00b7 ' + deze.buik + ' cm' : '' }),
+      el('b', { tekst: deze.gewicht != null ? nl(deze.gewicht) + ' kg' : '—' }),
+      el('span', { tekst: deze.buik != null ? ' \u00b7 ' + nl(deze.buik) + ' cm' : '' }),
     ]));
     vak.appendChild(el('button', {
       class: 'schakel', tekst: 'Aanpassen',
@@ -1398,8 +1473,8 @@ function tekenMeting() {
     if (vorige) {
       vak.appendChild(el('div', { class: 'label', style: 'margin-top:8px',
         tekst: 'Vorige keer: '
-               + (vorige.gewicht != null ? vorige.gewicht + ' kg' : '—')
-               + (vorige.buik != null ? ' \u00b7 ' + vorige.buik + ' cm' : '') }));
+               + (vorige.gewicht != null ? nl(vorige.gewicht) + ' kg' : '—')
+               + (vorige.buik != null ? ' \u00b7 ' + nl(vorige.buik) + ' cm' : '') }));
     }
   }
 
@@ -1413,10 +1488,10 @@ function tekenMeting() {
       const v = i + 1 < weken.length ? st.metingen[weken[i + 1]] : null;
       hist.appendChild(el('div', {}, [
         el('span', { tekst: korteDatum(weken[i]) + ' \u00b7 ' }),
-        el('b', { tekst: m.gewicht != null ? m.gewicht + ' kg' : '—' }),
+        el('b', { tekst: m.gewicht != null ? nl(m.gewicht) + ' kg' : '—' }),
         el('span', { tekst: verschilTekst(m.gewicht, v && v.gewicht, 'kg') }),
         el('span', { tekst: m.buik != null ? ' \u00b7 ' : '' }),
-        el('b', { tekst: m.buik != null ? m.buik + ' cm' : '' }),
+        el('b', { tekst: m.buik != null ? nl(m.buik) + ' cm' : '' }),
         el('span', { tekst: verschilTekst(m.buik, v && v.buik, 'cm') }),
       ]));
     }
@@ -1533,6 +1608,287 @@ function tekenSport(sp) {
   voet('Standen bijgewerkt om ' + (sp.bijgewerkt || '?')
        + '. Een uitslag van vandaag staat er soms nog niet in.');
   return vak;
+}
+
+/* Het looppaneel onder aan het trainingsscherm.
+ *
+ * Drie dingen onder elkaar, in de volgorde waarin je ze nodig hebt: wat je
+ * deze week moet doen, wat je gedaan hebt, en waar dat op uitloopt. De
+ * verwachting komt uit zijn eigen rondjes; de ambitie staat eronder en zegt
+ * wat het doel vraagt. Het verschil tussen die twee is het hele punt.
+ */
+function tekenLoop() {
+  if (vandaag() < LOOPOPBOUW.van) return null;
+
+  const vandaagLoop = trainingVan(vandaag()) === 'lopen';
+  const vanVandaag = (st.dagen[vandaag()] || {}).loop || null;
+  const dagen = loopDagen(4);
+  const vak = el('div');
+
+  /* De lange dag van deze week. Minuten en geen kilometers: je loopt tot de
+     klok zegt dat het klaar is, en word je sneller, dan komen er in dezelfde
+     tijd vanzelf meer kilometers in. */
+  const lang = langeDagVan(loopWeekNr());
+  const rust = langeDagVan(loopWeekNr()) === langeDagVan(loopWeekNr() - 1)
+               && loopWeekNr() > 0;
+  vak.appendChild(el('div', { class: 'regel' }, [
+    el('span', { tekst: 'Deze week: lange dag ' }),
+    el('b', { tekst: lang + ' minuten' }),
+    el('span', { tekst: ' rustig, en je rondje zoals je het doet.'
+                        + (rust ? ' Deze week komt er niets bij \u2014 dat is de'
+                                + ' pas op de plaats.' : '') }),
+  ]));
+
+  if (lang >= LOOPOPBOUW.maxMin) {
+    vak.appendChild(el('div', { class: 'kant',
+      tekst: 'De lange dag groeit niet verder. Vanaf hier wordt het niet langer '
+             + 'maar sneller, op je rondje.' }));
+  } else {
+    const week = vijfKmWeek();
+    if (week) {
+      vak.appendChild(el('div', { class: 'kant',
+        tekst: dagenTussen(vandaag(), week) <= 7
+          ? '5 km aan \u00e9\u00e9n stuk zit er deze week in.'
+          : '5 km aan \u00e9\u00e9n stuk komt in zicht rond ' + korteDatum(week)
+            + ', op je huidige duurtempo.' }));
+    }
+  }
+
+  /* Invullen kan op de dag dat je Lopen hebt afgevinkt. Niet elke dag: een
+     invulveld dat zes dagen per week niets te doen heeft, is ruis. */
+  if (vandaagLoop) {
+    if (vanVandaag && !ui.loopOpen) {
+      vak.appendChild(el('div', { class: 'regel' }, [
+        el('span', { tekst: 'Vandaag: ' }),
+        el('b', { tekst: nl(vanVandaag.km) + ' km in ' + nl(vanVandaag.min) + ' min' }),
+        el('span', { tekst: ' \u00b7 ' + tempoTekst(tempoVan(vanVandaag)) + ' per km' }),
+      ]));
+      vak.appendChild(el('button', {
+        class: 'schakel', tekst: 'Aanpassen',
+        onclick: () => { ui.loopOpen = true; tekenAlles(); },
+      }));
+    } else {
+      const rij = el('div', { class: 'meting' });
+      const kmv = el('input', { type: 'number', step: '0.1', inputmode: 'decimal',
+                                placeholder: 'km' });
+      const mnv = el('input', { type: 'number', step: '0.5', inputmode: 'decimal',
+                                placeholder: 'min' });
+      if (vanVandaag) { kmv.value = vanVandaag.km; mnv.value = vanVandaag.min; }
+      rij.appendChild(el('label', { tekst: 'Afstand' }, [kmv]));
+      rij.appendChild(el('label', { tekst: 'Tijd' }, [mnv]));
+      rij.appendChild(el('button', {
+        class: 'schakel', tekst: 'Bewaren',
+        onclick: () => {
+          const km = getal(kmv.value), mn = getal(mnv.value);
+          if (km == null || mn == null) { zeg('Vul allebei in'); return; }
+          dag(vandaag(), true).loop = { km, min: mn };
+          ui.loopOpen = false;
+          bewaar();
+          tekenAlles();
+          zeg('Loopje bewaard');
+        },
+      }));
+      vak.appendChild(rij);
+    }
+  }
+
+  /* De laatste vier, met het tempo erachter. Eén loopje zegt niets; vier op
+     een rij laten zien welke kant het op gaat. */
+  if (dagen.length) {
+    const hist = el('div', { class: 'metinghistorie' });
+    for (const d of dagen) {
+      const l = st.dagen[d].loop;
+      const opRondje = Math.abs(l.km - LOOPDOEL.rondje) <= LOOPDOEL.rondje * 0.1;
+      hist.appendChild(el('div', {}, [
+        el('span', { tekst: korteDatum(d) + ' \u00b7 ' }),
+        el('b', { tekst: nl(l.km) + ' km' }),
+        el('span', { tekst: ' in ' + nl(l.min) + ' min \u00b7 ' }),
+        el('b', { tekst: tempoTekst(tempoVan(l)) }),
+        el('span', { tekst: ' per km' + (opRondje ? ' \u00b7 je rondje' : '') }),
+      ]));
+    }
+    vak.appendChild(hist);
+  }
+
+  /* De verwachting, en alleen op het vaste rondje: dezelfde route en dezelfde
+     manier van klokken, dus wat er verandert ben jij en niet het parcours.
+     Loopjes van wisselende afstand naast elkaar leggen meet vooral de
+     afstand. */
+  const punten = rondjes().slice().reverse()
+    .map(d => [d, tempoVan(st.dagen[d].loop)]);
+  const trend = trendPunten(punten, LOOPRUIS, LOOPMAX_PER_WEEK);
+  const vooruit = el('div', { class: 'verwachting' });
+  vooruit.appendChild(el('div', { class: 'kopje', tekst: 'Waar dit heen gaat' }));
+
+  if (trend) {
+    vooruit.appendChild(el('div', {
+      tekst: trend.stil
+        ? 'Je rondje staat op ' + tempoTekst(trend.basis) + ' per km en beweegt nog niet.'
+        : (trend.perWeek < 0 ? '\u2212' : '+')
+          + Math.round(Math.abs(trend.perWeek) * 60) + ' seconden per km per week'
+          + ' \u00b7 nu ' + tempoTekst(trend.basis) }));
+    if (!trend.stil && trend.perWeek < 0) {
+      /* Zes weken vooruit en niet verder. Een looptrend is ruiziger dan een
+         weegschaal -- wind, slaap en of je net gegeten hebt zitten er allemaal
+         in -- en die ruis vermenigvuldigt zich met de afstand. */
+      const d = plusDagen(vandaag(), 42);
+      vooruit.appendChild(el('div', {}, [
+        el('span', { tekst: korteDatum(d) + ' \u00b7 ' }),
+        el('b', { tekst: tempoTekst(trend.op(d)) + ' per km op je rondje' }),
+      ]));
+    }
+    if (trend.aantal < 5) {
+      vooruit.appendChild(el('div', { class: 'kant',
+        tekst: 'Nog maar ' + trend.aantal + ' keer geklokt op dezelfde route. Klok '
+               + 'hem eens in de twee \u00e0 drie weken \u2014 vaker meet vooral de wind.' }));
+    }
+  } else {
+    vooruit.appendChild(el('div', { class: 'kant',
+      tekst: 'Vanaf je derde rondje van ' + LOOPDOEL.rondje + ' km staat hier wat '
+             + 'je tempo doet. Vul je loopjes in, dan rekent hij het uit.' }));
+  }
+
+  /* De ambitie. Het verschil tussen 3 en 5 km staat er met opzet bij: 6:00 op
+     je rondje is nog geen 6:00 over vijf kilometer, en dat is precies het
+     soort detail waar een doel op stukloopt. */
+  const nodigRondje = LOOPDOEL.tijd / LOOPDOEL.afstand - LANGER_IS_TRAGER;
+  const mijlpaal = LOOPMIJLPALEN.find(([d]) => d >= vandaag());
+  const doelblok = el('div', { class: 'ambitie' }, [
+    el('div', { tekst: 'Ambitie: ' + LOOPDOEL.afstand + ' km onder de ' + LOOPDOEL.tijd
+           + ' minuten, dat is ' + tempoTekst(LOOPDOEL.tijd / LOOPDOEL.afstand)
+           + ' per km. Over ' + LOOPDOEL.afstand + ' km loop je zo\u2019n kwart '
+           + 'minuut per km rustiger dan over ' + LOOPDOEL.rondje + ', dus je rondje '
+           + 'moet richting ' + tempoTekst(nodigRondje) + '.' }),
+    mijlpaal ? el('div', { tekst: 'Eerstvolgende mijlpaal: ' + mijlpaal[1] + ', rond '
+             + korteDatum(mijlpaal[0]) + '.' }) : null,
+  ]);
+  vooruit.appendChild(doelblok);
+  vak.appendChild(vooruit);
+
+  return paneel('Lopen', 'week ' + (loopWeekNr() + 1) + ' van de opbouw', [vak]);
+}
+
+/* ---------- de ambitie naast de verwachting ---------- */
+
+function maandJaar(datum) {
+  const d = alsDatum(datum);
+  return MAANDEN[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+/* Wat het doel per week vraagt, en wanneer je er op je eigen tempo bent.
+ *
+ * Bewust geen oordeel ("je loopt achter"). Een tempo en een datum kun je iets
+ * mee; een cijfer dat zegt dat je het niet haalt, kun je alleen wegklikken.
+ * Hetzelfde onderscheid als bij de challenge: "nog 3 te gaan in 4 dagen" is
+ * een plan, "3 van 5" is een constatering. */
+function ambitieRegel(veld, trend) {
+  const doel = AMBITIE[veld];
+  if (doel == null || !trend) return '';
+  const weken = dagenTussen(vandaag(), AMBITIE.op) / 7;
+  if (weken < 2) return '';
+  const teGaan = trend.basis - doel;
+  const kop = 'Ambitie: ' + nl(doel) + ' ' + EENHEID[veld] + ' op ' + AMBITIE.opWoord;
+  if (teGaan <= 0) return kop + ' \u2014 die staat er al.';
+  const nodig = teGaan / weken;
+  const regel = kop + ' \u2014 dat vraagt ' + nl(nodig) + ' ' + EENHEID[veld] + ' per week. ';
+  if (trend.stil || trend.perWeek >= 0) return regel + 'Daar gaat je reeks nu niet heen.';
+  const eigen = -trend.perWeek;
+  if (eigen >= nodig) return regel + 'Je zit op ' + nl(eigen) + ', dus je loopt voor.';
+  const datum = plusDagen(vandaag(), Math.round((teGaan / eigen) * 7));
+  return regel + 'Je zit op ' + nl(eigen) + '; op dit tempo wordt het ' + maandJaar(datum) + '.';
+}
+
+/* ---------- lopen ---------- */
+
+/* Gert loopt een vast rondje van 3 km om zijn huis en deed daar op 2 november
+ * 2026 zo\u2019n 22 minuten over -- net boven zijn praattempo. Het doel is 5 km
+ * onder de 30 minuten. Dat is twee kilometer erbij en anderhalve minuut per
+ * kilometer eraf, en dat zijn twee projecten.
+ *
+ * Eerst de afstand, en wel hierom: je komt niet aan 5 km door 3 km harder te
+ * lopen, en het tempo zakt onderweg vanzelf mee -- deels door de opbouw,
+ * deels doordat er gewicht af gaat. Pas als 5 km staat, gaat er op de andere
+ * dag snelheid bij. Nooit allebei in dezelfde week.
+ *
+ * Opgeslagen als dagen[datum].loop = { km, min }, dus het zit in oprij.v1 en
+ * gaat mee in de reservekopie -- net als de training en het spelletje.
+ */
+const LOOPRUIS = 0.25;          // minuten per km die een dag nu eenmaal scheelt
+const LOOPMAX_PER_WEEK = 0.12;  // 7 sec per km per week; sneller houdt niemand maanden vol
+
+/* Over 5 km loop je rustiger dan over 3. Zo\u2019n vijftien seconden per
+ * kilometer, en dat verschil is precies groot genoeg om het te noemen:
+ * 6:00 over 5 km vraagt ongeveer 5:45 op zijn rondje. */
+const LANGER_IS_TRAGER = 0.25;
+
+const LOOPMIJLPALEN = [
+  ['2026-12-21', '5 km aan \u00e9\u00e9n stuk, rond de 40 minuten'],
+  ['2027-02-01', '5 km onder de 37 minuten'],
+  ['2027-04-01', '5 km onder de 33 minuten'],
+  ['2027-07-01', '5 km onder de 30 minuten'],
+];
+
+function loopDagen(hoeveel) {
+  return Object.keys(st.dagen || {})
+    .filter(d => st.dagen[d] && st.dagen[d].loop && st.dagen[d].loop.km > 0)
+    .sort().reverse().slice(0, hoeveel || 999);
+}
+
+function tempoVan(l) { return l && l.km > 0 ? l.min / l.km : null; }
+
+/* 7,33 minuten per kilometer leest niemand; 7:20 wel. */
+function tempoTekst(minPerKm) {
+  if (minPerKm == null) return '';
+  let m = Math.floor(minPerKm);
+  let sec = Math.round((minPerKm - m) * 60);
+  if (sec === 60) { m++; sec = 0; }
+  return m + ':' + String(sec).padStart(2, '0');
+}
+
+/* Loopjes op het vaste rondje: dezelfde route, dus onderling te vergelijken.
+   Een marge van tien procent, want niemand loopt precies 3,00 km. */
+function rondjes(hoeveel) {
+  return loopDagen().filter(d => {
+    const km = st.dagen[d].loop.km;
+    return Math.abs(km - LOOPDOEL.rondje) <= LOOPDOEL.rondje * 0.1;
+  }).slice(0, hoeveel || 999);
+}
+
+/* Het tempo waarop de lange dag gelopen wordt. Uit een echte lange loop als
+   die er is, anders het rondjetempo plus een halve minuut -- want de lange
+   dag hoort rustiger te zijn dan het rondje, en zonder dat verschil loopt de
+   opbouw vast. */
+function duurtempo() {
+  const lang = loopDagen().map(d => st.dagen[d].loop)
+    .filter(l => l.km >= LOOPDOEL.rondje * 1.15);
+  if (lang.length) return tempoVan(lang[0]);
+  const r = rondjes(1);
+  if (r.length) return tempoVan(st.dagen[r[0]].loop) + 0.5;
+  return 8;
+}
+
+function loopWeekNr() {
+  return Math.max(0, Math.floor(dagenTussen(LOOPOPBOUW.van, maandagVan(vandaag())) / 7));
+}
+
+/* De lange dag van week n. Elke vierde week komt er niets bij: een week
+   waarin je niet méér vraagt is wat een opbouw heel houdt. */
+function langeDagVan(n) {
+  const stappen = n - Math.floor(n / 4);
+  return Math.min(LOOPOPBOUW.maxMin, LOOPOPBOUW.startMin + stappen * LOOPOPBOUW.perWeek);
+}
+
+/* De week waarin die lange dag lang genoeg is voor vijf kilometer. Dat is
+   rekenwerk en geen voorspelling: de minuten liggen vast, het tempo komt uit
+   zijn eigen loopjes. */
+function vijfKmWeek() {
+  const nodig = LOOPDOEL.afstand * duurtempo();
+  const nu = loopWeekNr();
+  for (let n = nu; n < nu + 60; n++) {
+    if (langeDagVan(n) >= nodig) return plusDagen(maandagVan(vandaag()), (n - nu) * 7);
+    if (langeDagVan(n) >= LOOPOPBOUW.maxMin) return null;
+  }
+  return null;
 }
 
 /* ---------- hulpjes voor het tekenen ---------- */
@@ -3055,6 +3411,9 @@ function tekenTraining() {
     }
     stuk.append(el);
   }
+
+  const looppaneel = tekenLoop();
+  if (looppaneel) stuk.append(looppaneel);
 
   const voet = document.createElement('div');
   voet.className = 'leeg';
