@@ -20,7 +20,7 @@
  * briefing zonder bereik niet meer te lezen zou zijn. Juist in de trein.
  */
 const DATA_HOST = 'raw.githubusercontent.com';
-const VERSIE = 'oprij-9c133364';
+const VERSIE = 'oprij-452e5403';
 const BESTANDEN = [
   './',
   './index.html',
