@@ -712,21 +712,21 @@ const TRAINING = {
       ['Bulgarian split squat', 'dumbbells 7,5 kg · bank', '3 × 8 per been',
        'Rug naar de bank, een grote stap ervandaan. Wreef van je achterste voet op de bank. Zak recht omlaag tot je voorste bovenbeen horizontaal is — knie boven je voet, romp rechtop. Omhoog via je voorste hiel.',
        'De vaste van 7,5 kg: eenbenig maakt die ineens wél zwaar. Dit is de zwaarste oefening van het schema. Haal je 3 × 8 per been met gemak, dan zijn de verstelbare van 11 kg de volgende stap — en wordt dát te veel, draai er dan per kant een schijf af, het zijn draaidoppen.'],
-      ['Romanian deadlift', 'halter 20 kg', '3 × 10',
+      ['Romanian deadlift', 'halter 25 kg', '3 × 10',
        'Halter voor je dijen, voeten heupbreedte. Knieën licht buigen en dán vastzetten. Duw je heupen naar achteren, halter langs je benen omlaag tot je rek voelt in je hamstrings. Rug recht. Omhoog door je heupen naar voren te duwen.',
-       'Het is een heupbeweging, geen kniebeweging. Voel je het in je onderrug, dan zak je te diep of rond je je rug.'],
-      ['Roeien voorovergebogen', 'halter 20 kg', '3 × 10',
+       'Het is een heupbeweging, geen kniebeweging. Voel je het in je onderrug, dan zak je te diep of rond je je rug. De halter staat op 25 kg en blijft daar ook staan: het roeien hierna en het bankdrukken op dag B gaan op hetzelfde gewicht, dus je hoeft geen enkele keer schijven te verwisselen. Dit is wel de oefening waar 25 het eerst te licht wordt — je heupen zijn sterker dan je borst. Rek dat eerst met drie tellen omlaag; pas als dat ook makkelijk gaat, gaan er schijven bij en verschuift de halter dus toch van dag.'],
+      ['Roeien voorovergebogen', 'halter 25 kg', '3 × 10',
        'Zelfde houding als de RDL, maar blijf voorovergebogen staan. Trek de halter naar je navel, ellebogen langs je lichaam. Knijp bovenin je schouderbladen samen, laat dan langzaam zakken.',
        'Je rug doet het werk, niet je armen. Denk aan ellebogen naar achteren, niet aan handen omhoog.'],
       ['Eenbenige heupbrug', '—', '3 × 10 per been',
        'Op je rug op de grond, één voet plat neergezet een stukje van je billen, knie gebogen. Het andere been strek je omhoog of je trekt de knie naar je borst — als dat been maar niet meehelpt. Duw je heup omhoog tot knie, heup en schouder een rechte lijn vormen, houd een tel vast en laat gecontroleerd zakken tot je net de grond raakt.',
        'Eén been maakt dit zwaar genoeg zonder dat er gewicht bij hoeft: je tilt dezelfde heup met de helft van de spieren. De weg omhoog is korter dan op het bankje, en dat scheelt niets voor je billen — die doen bovenin hun werk, en daar kom je nog steeds. Wordt het makkelijk, maak het dan niet zwaarder met een halter maar langzamer: drie tellen omlaag, twee tellen vasthouden bovenin. Voel je het in je hamstrings in plaats van in je billen, zet je voet dan dichter bij je billen.'],
-      ['Pallof press', 'rode lus om een stijl', '3 × 10 per kant',
+      ['Pallof press', 'zwarte lus om een stijl', '3 × 10 per kant',
        'Dit is de enige oefening die de lus niet hoog maar opzij van je wil hebben. Om een stijl van je halterbank, om een deurpost bij de scharnieren, of onder de halter door op de grond. Ga er haaks op staan, pak de lus met beide handen tegen je borst, duw recht naar voren. Het elastiek probeert je te draaien; jij laat dat niet gebeuren.',
-       'Borsthoogte is het mooiste, heuphoogte werkt ook — het trekt dan iets schuiner, dat merk je nauwelijks. Het tegenhouden ís de oefening; er beweegt verder niets, dus neem een dunne lus. Ga je draaien, dan is hij te zwaar.'],
-      ['Plank', '—', '3 × 40 sec',
+       'Borsthoogte is het mooiste, heuphoogte werkt ook — het trekt dan iets schuiner, dat merk je nauwelijks. De zwarte is één dikker dan de rode, en dat is hier de bovengrens: het tegenhouden ís de oefening, er beweegt verder niets. Let dus op je romp en niet op de lus — ga je draaien of kantelen, dan pak je de rode terug. Zwaarder maken gaat beter door verder van het ankerpunt af te gaan staan, dan is het nog steeds jij die het tegenhoudt.'],
+      ['Plank', '—', '3 × 45 sec',
        'Op je onderarmen, lichaam één rechte lijn van hoofd tot hielen. Billen aanspannen, buik intrekken.',
-       'Zakt je bekken door, dan stop je — niet doorbijten met een holle rug.'],
+       'Zakt je bekken door, dan stop je — niet doorbijten met een holle rug. Boven de minuut wordt dit vooral een kwestie van volhouden en traint het niets extra’s meer. Is 45 seconden drie keer makkelijk, maak hem dan zwaarder in plaats van langer: voeten op de bank, of om en om een voet van de grond.'],
       ['Boksbal', 'punchingbal · bandages', '3 × 1 min',
        'De afsluiter. Korte, snelle stoten en de bal in beweging houden — hij komt terug, dus je raakt hem op het ritme in plaats van zo hard mogelijk. Blijf zelf ook bewegen: linksom, rechtsom, met je voeten mee. Een minuut aan, een minuut rust, drie keer.',
        'Dit is een bal op een voet, geen stootzak: vol doorhalen kiepert hem om en zet alles op je pols. Het ritme en je schouders zijn hier de training, niet de klap. Bandages om, ook voor één minuut. De eerste die je overslaat als je weinig tijd hebt.'],
@@ -909,7 +909,32 @@ let opslagWerkt = true;
 
 function leeg() {
   return { versie: 1, taken: [], dagen: {}, doelen: Object.assign({}, STANDAARD_DOELEN),
-           bewaard: [], gevierd: [], metingen: {}, laatsteKopie: null };
+           bewaard: [], gevierd: [], dossiers: [], metingen: {}, laatsteKopie: null };
+}
+
+/* Elk veld hier moet ook in leeg() staan, en andersom.
+   Op 3 november 2026 ging dat mis: de dossiers kwamen erbij, maar niet in
+   leeg() en niet hier -- en toen was st.dossiers undefined. De lus eroverheen
+   wierp "st.dossiers is not iterable", tekenBriefing() brak halverwege af en
+   het hele briefingscherm bleef leeg. Je zag een app die niet reageerde op een
+   tik, zonder dat er iets in beeld kwam dat op een fout leek.
+
+   Dat het bij het bouwen niet opviel, komt doordat een browser waarin je zelf
+   net een dossier hebt aangemaakt het veld wél heeft. Het sloeg pas toe bij
+   iemand die nog nooit een dossier had -- dus bij Gert, en bij elke verse
+   installatie.
+
+   Daarom staat de controle nu op één plek en loopt het terugzetten van een
+   reservekopie er ook doorheen: dat deed zijn eigen Object.assign en sloeg
+   deze toetsen over. Komt er een veld bij, zet het dan in leeg() én hier. */
+function vormGoed() {
+  st.doelen = Object.assign({}, STANDAARD_DOELEN, st.doelen || {});
+  if (!Array.isArray(st.taken)) st.taken = [];
+  if (!st.dagen || typeof st.dagen !== 'object') st.dagen = {};
+  if (!Array.isArray(st.bewaard)) st.bewaard = [];
+  if (!Array.isArray(st.gevierd)) st.gevierd = [];
+  if (!Array.isArray(st.dossiers)) st.dossiers = [];
+  if (!st.metingen || typeof st.metingen !== 'object') st.metingen = {};
 }
 
 function laad() {
@@ -918,12 +943,7 @@ function laad() {
     if (!ruw) return;
     const d = JSON.parse(ruw);
     st = Object.assign(leeg(), d);
-    st.doelen = Object.assign({}, STANDAARD_DOELEN, d.doelen || {});
-    if (!Array.isArray(st.taken)) st.taken = [];
-    if (!st.dagen || typeof st.dagen !== 'object') st.dagen = {};
-    if (!Array.isArray(st.bewaard)) st.bewaard = [];
-    if (!Array.isArray(st.gevierd)) st.gevierd = [];
-    if (!st.metingen || typeof st.metingen !== 'object') st.metingen = {};
+    vormGoed();
   } catch (e) {
     opslagWerkt = false;
   }
@@ -2759,7 +2779,7 @@ function tekenInstellingen() {
         const aantal = d.taken.length + Object.keys(d.dagen).length;
         if (!confirm('Deze reservekopie bevat ' + aantal + ' regels en vervangt alles wat er nu in staat. Doorgaan?')) return;
         st = Object.assign(leeg(), d);
-        st.doelen = Object.assign({}, STANDAARD_DOELEN, d.doelen || {});
+        vormGoed();
         bewaar();
         tekenAlles();
         zeg('Teruggezet');
