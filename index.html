@@ -2988,8 +2988,15 @@ function tekenDuiding(draden) {
       for (const v of d.verwijzingen) {
         const r = document.createElement(v.link ? 'a' : 'span');
         if (v.link) { r.href = v.link; r.target = '_blank'; r.rel = 'noopener'; }
-        r.textContent = '\u2192 ' + (v.titel || '') +
-          (v.bron ? ' (' + v.bron + ')' : '');
+        /* Afgekapt, want de transcriptietitels van de Tweede Kamer zijn lang
+           ("Mevrouw Coenradie (JA21) over korpsleiding (Begrotingsonderdeel
+           Artikel 31 Politie)") en met vijf bronnen onder één alinea nemen ze
+           meer ruimte dan de duiding zelf. Je moet eruit kunnen opmaken welk
+           bericht het is; lezen doe je het in zijn eigen blok. */
+        const naam = (v.titel || '').length > 64
+          ? (v.titel || '').slice(0, 64).replace(/\s+\S*$/, '') + '\u2026'
+          : (v.titel || '');
+        r.textContent = '\u2192 ' + naam + (v.bron ? ' (' + v.bron + ')' : '');
         uit.append(r);
       }
       el.append(uit);
