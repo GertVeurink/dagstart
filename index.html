@@ -4087,16 +4087,13 @@ function tekenTraining() {
   const looppaneel = tekenLoop();
   if (looppaneel) stuk.append(looppaneel);
 
-  const voet = document.createElement('div');
-  voet.className = 'leeg';
-  voet.style.textAlign = 'left';
-  voet.style.fontSize = '13.5px';
-  voet.innerHTML = 'De laatste twee herhalingen moeten zwaar voelen. Lukt een set ' +
-    'makkelijk: meer herhalingen, of drie tellen de tijd nemen voor het zakken.<br><br>' +
-    'De weegschaal staat de eerste weken stil — vocht en spieraanwas maskeren ' +
-    'vetverlies. Meet je buikomvang erbij, die daalt wél door.<br><br>' +
-    'Spierpijn in week één is normaal, gewrichtspijn niet.';
-  stuk.append(voet);
+  /* Hier stond een blok algemene uitleg -- hoe zwaar een set moet voelen, dat
+     de weegschaal de eerste weken stilstaat, spierpijn tegenover gewrichtspijn.
+     Gert heeft het er op 3 november 2026 uit gehaald, en terecht: het stond
+     onder elk trainingsscherm, elke dag, en hij kent het. Wat per oefening
+     telt staat bij die oefening, en het algemene verhaal staat op de PDF die
+     in de schuur hangt -- daar lees je het één keer en niet honderd keer.
+     Zet het niet terug bij een opruiming. */
 
   doel.replaceChildren(stuk);
 }
@@ -4121,7 +4118,11 @@ function tekenTraining() {
    =================================================================== */
 
 const SPEL_POGINGEN = 3;
-const SPEL_DUUR = 90;   /* seconden per poging */
+/* Seconden per poging. Een spel mag er zelf een andere neerzetten (`duur`):
+   Tetris heeft er meer nodig, want daar is de eerste minuut vooral opbouwen en
+   begint het pas te tellen als de stapel er staat. De andere blijven op 90 --
+   dat is kort genoeg om er 's ochtends niet in te blijven hangen. */
+const SPEL_DUUR = 90;
 
 /* De spellen zelf staan verderop; elk spel zet zich in deze lijst. */
 const SPELLEN = {};
@@ -4221,7 +4222,7 @@ function startPoging() {
   spel = {
     datum, welk, nr: d.spel.scores.length - 1,
     t: SPELLEN[welk].begin(dagToeval(welk + ':' + datum)),
-    over: SPEL_DUUR * 1000, vorige: 0,
+    over: (SPELLEN[welk].duur || SPEL_DUUR) * 1000, vorige: 0,
     gestart: false, pauze: false, klaar: false, reden: null,
   };
   tekenSpel();
@@ -4806,6 +4807,12 @@ SPELLEN.tetris = {
   /* Hoger dan breed: in een vierkant werden de blokjes op een telefoon te klein
      om goed te zien in welke kolom je zit. */
   verhouding: 1.3,
+  /* Tweeënhalve minuut in plaats van anderhalve, op Gerts verzoek. Dit is het
+     enige spel waarin de eerste minuut vooral opbouwen is: je hebt een stapel
+     nodig voordat er rijen vol raken, en bij 90 seconden was de klok op
+     ongeveer het moment dat het interessant werd. De andere spellen scoren
+     vanaf de eerste seconde en blijven daarom op 90. */
+  duur: 150,
   begin(toeval) {
     const t = { toeval, bord: [], zak: [], straks: null, blok: null, score: 0, opgespaard: 0 };
     for (let r = 0; r < TE_H; r++) t.bord.push(new Array(TE_B).fill(null));
@@ -4957,6 +4964,14 @@ function tekenSpel() {
      Bij 2048 en Frogger telt één veeg één keer — één veeg is daar één zet.
      Wie alleen tikt zonder te vegen, doet een tik. */
   let veeg = null;
+  /* Welke kant een beweging op wijst. De as die het duidelijkst wint telt;
+     bij een schuine haal waar niets duidelijk wint gebeurt er niets, want dan
+     raden we en is raden fout -- in Snake is een verkeerde bocht de dood. */
+  const stuurVeeg = (dx, dy) => {
+    if (Math.abs(dx) > Math.abs(dy) * 1.3) invoer('veeg', Math.sign(dx), 0);
+    else if (Math.abs(dy) > Math.abs(dx) * 1.3) invoer('veeg', 0, Math.sign(dy));
+  };
+
   const opBord = (e) => {
     const r = bord.getBoundingClientRect();
     return (e.clientX - r.left) / r.width;
@@ -4975,14 +4990,28 @@ function tekenSpel() {
     if (Math.max(Math.abs(dx), Math.abs(dy)) > 10) veeg.bewogen = true;
     if (Math.max(Math.abs(dx), Math.abs(dy)) < (info.drempel || 18)) return;
     if (info.eenPerVeeg && veeg.gedaan) return;
-    if (Math.abs(dx) > Math.abs(dy)) invoer('veeg', Math.sign(dx), 0);
-    else invoer('veeg', 0, Math.sign(dy));
+    stuurVeeg(dx, dy);
     veeg.x = e.clientX;
     veeg.y = e.clientY;
     veeg.gedaan = true;
   });
-  bord.addEventListener('pointerup', () => {
-    if (veeg && !veeg.bewogen && spel && !SPELLEN[spel.welk].sleep) invoer('tik');
+  bord.addEventListener('pointerup', (e) => {
+    if (veeg && spel && !SPELLEN[spel.welk].sleep) {
+      if (!veeg.bewogen) invoer('tik');
+      /* Een korte, snelle flik viel tussen wal en schip: meer dan 10 pixels, dus
+         geen tik, maar minder dan 18, dus ook geen veeg. Je beweging verdween
+         dan gewoon. Bij Tetris merk je dat nauwelijks -- het blok schuift niet
+         en je veegt opnieuw -- maar bij Snake rijd je ondertussen de muur in, en
+         dat is precies wat er niet lekker aan voelde.
+
+         Dus telt een gebaar dat eindigt zonder dat er iets gebeurde alsnog als
+         één veeg, zolang hij maar ergens heen wees (8 pixels). Niet lager: dan
+         wordt elke onvaste tik een veeg. */
+      else if (!veeg.gedaan) {
+        const dx = e.clientX - veeg.x, dy = e.clientY - veeg.y;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) >= 8) stuurVeeg(dx, dy);
+      }
+    }
     veeg = null;
   });
   bord.addEventListener('pointercancel', () => { veeg = null; });
