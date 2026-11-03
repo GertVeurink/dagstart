@@ -428,6 +428,12 @@
   .tijdlijn a { color: var(--accent-ink); }
   .tijdlijn a.vers { font-weight: 600; }
   .tijdlijn .ouder { font-style: italic; }
+  /* De waarschuwing dat je naar een oude briefing kijkt. Warm en niet rood:
+     dit is geen storing maar een mededeling -- meestal staat de Mac gewoon
+     uit, en dat is zijn goed recht. */
+  .oud { margin: 0 0 14px; padding: 11px 13px; border-radius: var(--radius);
+         background: var(--warm-zacht); border-left: 3px solid var(--warm);
+         font-size: 14px; line-height: 1.45; color: var(--ink-2); }
   .slim { margin: 0 0 14px; padding: 11px 13px; border-radius: var(--radius);
           background: var(--panel); border-left: 3px solid var(--accent); }
   .slim p { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
@@ -3045,6 +3051,44 @@ function maakSpeler(bron) {
   return sp;
 }
 
+/* Hoe oud is deze briefing, en moet je dat weten?
+
+   Dit is de enige plek waar de app zijn eigen regel overtrad. Overal elders
+   zwijgt hij liever dan het verkeerde te tonen -- het weer laat zijn velden
+   leeg als vandaag niet in de vijfdaagse staat, een gevallen bron geeft een
+   leeg blok -- maar over zichzelf zei hij niets. Een briefing van eergisteren
+   zag er precies zo uit als een verse: dezelfde kop, dezelfde blokken, en
+   "opgehaald 05:55" onderaan waar je niet kijkt.
+
+   De datum stond er wél bovenaan, maar een datum lees je als een label en niet
+   als een waarschuwing. Vandaar dat het hier met zoveel woorden staat.
+
+   Twee gevallen, en de drempels volgen het ritme van de Mac: elk uur van 05:55
+   tot 23:00. Overnacht is zeven uur oud dus normaal, en overdag is drie uur
+   dat niet. Blader je zelf terug in het archief, dan weet je het al en zegt
+   hij niets. */
+function verouderd(toon) {
+  if (ui.briefingDag) return '';            /* je hebt zelf een dag gekozen */
+  const nu = new Date();
+  if (toon.datum !== vandaag()) {
+    /* 's Nachts is er nog niets van vandaag en dat hoort; pas als de ronde van
+       05:55 geweest had moeten zijn, is het iets om te melden. */
+    if (nu.getHours() < 7) return '';
+    return 'Dit is de briefing van ' + langeDatum(toon.datum) +
+      '. Vanochtend is er niets opgehaald — stond de Mac aan?';
+  }
+  const t = Date.parse(toon.opgehaald || '');
+  if (!t) return '';
+  const uren = (nu - t) / 36e5;
+  if (uren >= 3 && nu.getHours() >= 8 && nu.getHours() <= 23) {
+    return 'Laatst opgehaald om ' + String(new Date(t).getHours()).padStart(2, '0') +
+      ':' + String(new Date(t).getMinutes()).padStart(2, '0') +
+      ', ruim ' + Math.floor(uren) + ' uur geleden. Normaal is dat elk uur.';
+  }
+  return '';
+}
+
+
 /* ------------------------------------------------------------------ dossiers
 
    Zet je een ster bij een bericht, dan volgt de app dat verhaal vanaf dat
@@ -3292,6 +3336,12 @@ function tekenBriefing() {
 
   const kiezer = dagkiezer();
   if (kiezer) stuk.append(kiezer);
+
+  const oud = verouderd(toon);
+  if (oud) {
+    stuk.append(Object.assign(document.createElement('div'),
+      { className: 'oud', textContent: oud }));
+  }
 
   if (toon.audio) stuk.append(maakSpeler(dataAdres(toon.audio)));
 
