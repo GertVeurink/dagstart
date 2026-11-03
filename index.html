@@ -416,6 +416,22 @@
   .weerkaart .vooruit { color: var(--ink-3); font-size: 13.5px; }
   .weerkaart .groot { font-size: 25px; font-family: var(--serif); }
   .weerkaart p { margin: 8px 0 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.45; }
+  /* De regel die de briefing en Gerts eigen gegevens combineert. Bewust rustig:
+     hij staat bovenaan het drukste scherm van de app en moet informeren, niet
+     roepen. */
+  /* De tijdlijn van een dossier: klein en ingesprongen, want het is een
+     overzicht om in te scannen en niet om te lezen. */
+  .tijdlijn { padding: 0 14px 11px 25px; }
+  .tijdlijn a, .tijdlijn span {
+    display: block; font-size: 12.5px; line-height: 1.5; margin-top: 2px;
+    color: var(--ink-3); text-decoration: none; }
+  .tijdlijn a { color: var(--accent-ink); }
+  .tijdlijn a.vers { font-weight: 600; }
+  .tijdlijn .ouder { font-style: italic; }
+  .slim { margin: 0 0 14px; padding: 11px 13px; border-radius: var(--radius);
+          background: var(--panel); border-left: 3px solid var(--accent); }
+  .slim p { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
+  .slim p + p { margin-top: 6px; }
   .duiding { padding: 4px 14px 13px; }
   .duiding .draad { padding-top: 13px; }
   .duiding .draad + .draad { border-top: 1px solid var(--line); margin-top: 13px; }
@@ -1968,11 +1984,91 @@ function tellingTekst(aantal, doel, soort) {
    Tabblad Vandaag
    =================================================================== */
 
+/* Twee regels die de briefing en Gerts eigen gegevens naast elkaar leggen.
+   Dat gebeurde nergens: de app wist veel van de wereld en weinig van hem, en
+   alles stond al in dezelfde browser -- het werd alleen nooit gecombineerd.
+
+   Er gaat niets de deur uit. Dit is rekenwerk op `st.dagen` (zijn gegevens,
+   localStorage) en op het weerblok van de briefing die er toch al is. De
+   taken en metingen blijven waar ze horen.
+
+   Levert dit niets op, dan is er geen paneel. Een vak met een plichtmatige
+   zin erin is erger dan geen vak -- dezelfde regel als overal hier. */
+function slimmeRegels() {
+  const uit = [];
+
+  /* Vooruit: wat staat er vandaag op de rol, en wat doet het weer daarmee.
+     Alleen bij een loopdag, want voor kracht in de schuur maakt regen niets
+     uit en dan is het een weerbericht zonder reden. */
+  const voorstel = (typeof voorstelVandaag === 'function') ? voorstelVandaag() : null;
+  const weerblok = ((briefing && briefing.blokken) || []).find(b => b.id === 'weer');
+  const dal = weerblok && weerblok.weer && weerblok.weer.dalfsen;
+  if (voorstel && voorstel.id === 'lopen' && dal) {
+    const graden = (dal.min != null && dal.max != null)
+      ? dal.min + ' tot ' + dal.max + ' graden' : '';
+    let regel;
+    if (dal.regenkans != null && dal.regenkans >= 60) {
+      regel = 'Je loopt vandaag, maar er staat ' + dal.regenkans +
+        '% kans op neerslag — de crosstrainer telt als dezelfde dag.';
+    } else if (dal.regenkans != null && dal.regenkans < 10) {
+      regel = 'Je loopt vandaag, en het blijft droog' +
+        (graden ? ' — ' + graden : '') + '.';
+    } else {
+      regel = 'Je loopt vandaag' +
+        (dal.regenkans != null ? ' — ' + dal.regenkans + '% kans op neerslag' : '') +
+        (graden ? ', ' + graden : '') + '.';
+    }
+    uit.push(regel);
+  }
+
+  /* Terug: het laatste rondje, afgezet tegen de keer ervoor. Alleen van
+     vandaag of gisteren -- een loopje van vorige week is geen nieuws meer, en
+     de reeks staat toch al op het trainingsscherm. */
+  const r = (typeof rondjes === 'function') ? rondjes(2) : [];
+  if (r.length) {
+    const gisteren = sleutelVan(new Date(Date.now() - 864e5));
+    if (r[0] === vandaag() || r[0] === gisteren) {
+      const wanneer = r[0] === vandaag() ? 'van vandaag' : 'van gisteren';
+      const nu = st.dagen[r[0]].loop;
+      const tijd = tempoTekst(nu.min);
+      /* Het snelst tot nu toe gaat op tempo en niet op de kale tijd: het
+         rondje mag tien procent schelen, en dan wint een korter rondje
+         vanzelf. */
+      const mijnTempo = tempoVan(nu);
+      const eerdere = rondjes().slice(1).map(d => tempoVan(st.dagen[d].loop))
+        .filter(t => t != null);
+      if (eerdere.length && mijnTempo != null && mijnTempo < Math.min(...eerdere)) {
+        uit.push('Je rondje ' + wanneer + ' was ' + tijd + ' — je snelste tot nu toe.');
+      } else if (r.length > 1) {
+        const vorige = st.dagen[r[1]].loop;
+        const sec = Math.round((vorige.min - nu.min) * 60);
+        if (Math.abs(sec) >= 10) {
+          uit.push('Je rondje ' + wanneer + ' was ' + tijd + ', ' +
+            Math.abs(sec) + ' seconden ' + (sec > 0 ? 'sneller' : 'trager') +
+            ' dan de keer ervoor.');
+        } else {
+          uit.push('Je rondje ' + wanneer + ' was ' + tijd + ', vrijwel gelijk aan de vorige.');
+        }
+      } else {
+        uit.push('Je rondje ' + wanneer + ' was ' + tijd + ' — de eerste in de reeks.');
+      }
+    }
+  }
+  return uit;
+}
+
+
 function tekenVandaag() {
   const doel = document.getElementById('tab-vandaag');
   doel.textContent = '';
   const nu = vandaag();
   const d = dag(nu);
+
+  const slim = slimmeRegels();
+  if (slim.length) {
+    doel.appendChild(el('div', { class: 'slim' },
+      slim.map(t => el('p', { tekst: t }))));
+  }
 
   /* --- de vinkjes van vandaag --- */
   const tegels = el('div', { class: 'tegels' });
@@ -2654,7 +2750,14 @@ async function haalBriefing() {
       briefing = verse;
       try { localStorage.setItem(BRIEF_SLEUTEL, JSON.stringify(verse)); } catch (e) {}
       tekenAlles();
-      warmArchief(verse.archief || []);
+      warmArchief(verse.archief || []).then(() => {
+        /* Pas hierna het archief in het geheugen trekken, en alleen als er
+           iets te volgen is: zonder bewaarde berichten is er geen dossier en
+           hoeft er niets ingelezen te worden. De briefing wordt daarna
+           opnieuw getekend, want de tijdlijnen zijn er dan pas. */
+        if (!(st.bewaard || []).length) return;
+        laadArchief().then(() => tekenBriefing());
+      });
     }
   } catch (e) {
     /* Geen bereik of nog niet gepubliceerd. Dan blijft staan wat er stond;
@@ -2942,6 +3045,124 @@ function maakSpeler(bron) {
   return sp;
 }
 
+/* ------------------------------------------------------------------ dossiers
+
+   Zet je een ster bij een bericht, dan volgt de app dat verhaal vanaf dat
+   moment: elke dag in het archief wordt nagekeken of er iets bij hoort, en in
+   Bewaard staat niet één kop maar een draad met een tijdlijn.
+
+   Waarom dit hier gebeurt en niet in `ophalen.py`: wat jij bewaart staat in de
+   browser (`oprij.v1`) en niet in de briefing, die openbaar bij GitHub staat.
+   Jouw onderwerpen zeggen iets over waar je mee bezig bent, en dat hoort daar
+   niet terecht te komen. Dus doet de app het zelf, op gegevens die hij toch al
+   heeft -- de zeven archiefdagen die `warmArchief()` al binnenhaalt.
+
+   De vergelijking is bewust **dezelfde** als die van `ontdubbel_verhaal()` en
+   `markeer_vervolg()` in `ophalen.py`: woorden van vijf letters of meer zonder
+   vulwoorden, 60% overlap én minstens drie gedeelde woorden. Een kopie, want
+   de afspraak hier is dat de apps geen code delen -- maar wél dezelfde kopie.
+   Verandert die daar, verander hem hier mee. */
+
+const VULWOORDEN = new Set(['wordt', 'worden', 'heeft', 'hebben', 'moeten',
+  'moet', 'kunnen', 'zullen', 'nederland', 'nederlandse', 'volgens', 'tegen',
+  'grote', 'nieuwe', 'eerste', 'onder', 'nieuws']);
+
+/* Welke blokken meedoen. `vogels` en `hemel` staan er bewust niet in: daar
+   zijn de koppen sjablonen ("Kolgans springt eruit — 15.865, normaal 22") en
+   die wijzen elkaar aan zonder dat ze iets met elkaar te maken hebben.
+   `bron` doet wél mee, anders dan bij `ontdubbel_verhaal()`: twee
+   tweeminutendebatten over hetzelfde onderwerp zijn daar geen vergissing maar
+   precies wat een dossier wil laten zien. */
+const DOSSIERBLOKKEN = new Set(['internationaal', 'nationaal', 'lokaal', 'vak',
+                                'ai', 'bron']);
+
+function kernwoorden(titel) {
+  const uit = new Set();
+  for (const w of (titel || '').toLowerCase().match(/[a-zà-ü]{5,}/g) || []) {
+    if (!VULWOORDEN.has(w)) uit.add(w);
+  }
+  return uit;
+}
+
+function zelfdeVerhaal(a, b) {
+  if (!a.size || !b.size) return false;
+  let gedeeld = 0;
+  for (const w of a) if (b.has(w)) gedeeld++;
+  return gedeeld >= 3 && gedeeld / Math.min(a.size, b.size) >= 0.6;
+}
+
+/* Alle archiefdagen in het geheugen. `haalDag()` slaat over wat er al staat en
+   de servicewerker bewaart de rest, dus dit kost na de eerste keer niets. */
+async function laadArchief() {
+  for (const d of (briefing && briefing.archief) || []) {
+    if (d === vandaag()) continue;
+    await haalDag(d);
+  }
+}
+
+/* De berichten die bij een bewaard item horen, nieuwste eerst.
+
+   Het bewaarde bericht zelf zit er altijd bij, ook als het uit het archief is
+   gevallen -- anders zou een dossier van twee weken oud leeg lijken. */
+function dossierVan(bw) {
+  const zaad = kernwoorden(bw.titel);
+  /* Een korte kop ("Parkinson café Zwolle") heeft te weinig woorden om op te
+     vergelijken; dan blijft het een los bewaard bericht in plaats van een
+     dossier. Het bericht zelf gaat wél mee terug, anders valt het uit de
+     lijst.
+
+     De drempel is 3 gedeelde woorden en 60% overlap, dezelfde als in
+     `ophalen.py`. Gemeten op acht dagen archief (288 berichten) krijgt 4%
+     hiervan een vervolg -- weinig, en dat hoort: het vindt
+     "Begrotingsonderdeel Artikel 31 Politie" over zes dagen. Losser gezet
+     (2 woorden, 50%) komen er vooral sjabloontreffers bij, zoals twee
+     transcripties die allebei "over opsporing" heten. */
+  if (zaad.size < 3) {
+    return [{ datum: bw.op || '', titel: bw.titel, link: bw.link,
+              bron: bw.bron, tijd: bw.tijd, sorteer: bw.sorteer }];
+  }
+
+  const dagen = {};
+  if (briefing) dagen[briefing.datum] = briefing;
+  for (const d of Object.keys(archief)) {
+    if (archief[d] && archief[d] !== 'mislukt') dagen[d] = archief[d];
+  }
+
+  /* Groeperen op de kop zelf en niet per dag. Dat moest: de Kameragenda toont
+     de komende week, dus "Begrotingsonderdeel Artikel 31 Politie" stond zes
+     dagen achter elkaar in de briefing. Zonder deze stap zei het dossier
+     "12 berichten" over twee dingen die zes keer herhaald werden -- en een
+     dossier hoort ontwikkelingen te laten zien, geen herhaling. Staat een kop
+     meerdere dagen, dan wordt dat één regel met het aantal dagen erbij. */
+  const per = new Map();
+  for (const datum of Object.keys(dagen).sort().reverse()) {
+    for (const blok of dagen[datum].blokken || []) {
+      if (!DOSSIERBLOKKEN.has(blok.id)) continue;
+      for (const it of blok.items || []) {
+        if (!zelfdeVerhaal(zaad, kernwoorden(it.titel))) continue;
+        const sleutel = (it.titel || '').trim().toLowerCase();
+        const bestaand = per.get(sleutel);
+        if (bestaand) { bestaand.dagen.add(datum); continue; }
+        /* `sorteer` moet mee: `isNieuw()` leest dat veld en niets anders.
+           Zonder dit zou de nieuw-markering op een tijdlijn stilzwijgend
+           nooit aangaan -- geen foutmelding, alleen een stipje dat er nooit
+           staat. En omdat we van nieuw naar oud lopen, is de eerste die we
+           zien meteen de nieuwste. */
+        per.set(sleutel, { datum, titel: it.titel, link: it.link,
+                           bron: it.bron, tijd: it.tijd, sorteer: it.sorteer,
+                           dagen: new Set([datum]) });
+      }
+    }
+  }
+  const uit = [...per.values()];
+  if (!uit.some(x => (x.link && x.link === bw.link) || x.titel === bw.titel)) {
+    uit.push({ datum: bw.op || '', titel: bw.titel, link: bw.link,
+               bron: bw.bron, tijd: bw.tijd, sorteer: bw.sorteer,
+               dagen: new Set([bw.op || '']) });
+  }
+  return uit;
+}
+
 /* De duiding bij de briefing: een paar alinea's die berichten aan elkaar
    knopen, met onder elke alinea de berichten waarop hij rust.
 
@@ -3117,14 +3338,45 @@ function tekenBriefing() {
       const inhoud = document.createElement('div');
       inhoud.className = 'inhoud';
       for (const bw of st.bewaard) {
+        /* Hoort er inmiddels meer bij dit verhaal, dan is dit geen losse kop
+           meer maar een dossier. Het archief is zeven dagen diep, dus een
+           verhaal dat langer loopt zie je hier als tijdlijn terug. */
+        const draad = dossierVan(bw);
+        /* Alleen het bewaarde bericht zelf eruit, en op zijn identiteit --
+           niet op de datum. Dat stond er eerst wél, en dan verdween de hele
+           tijdlijn zodra er iets op dezelfde dag bij hoorde. */
+        const zelf = bw.link || bw.titel;
+        const meer = draad.filter(x => (x.link || x.titel) !== zelf);
+        const vers = meer.filter(x => isNieuw(x));
+
         const rij = document.createElement('div');
-        rij.className = 'berichtrij';
+        rij.className = 'berichtrij' + (vers.length ? ' nieuw' : '');
         const r = document.createElement(bw.link ? 'a' : 'div');
         r.className = 'bericht';
         if (bw.link) { r.href = bw.link; r.target = '_blank'; r.rel = 'noopener'; }
+        /* "Sinds" is de oudste dag waarop er iets van dit verhaal stond, en
+           dus de vroegste uit alle groepjes -- niet de oudste van de nieuwste
+           datums, want per kop houden we de nieuwste bij. */
+        const sinds = draad.length > 1
+          ? draad.flatMap(x => [...(x.dagen || [])]).filter(Boolean).sort()[0] : '';
+        /* Drie gevallen, en het middelste was er eerst niet: een verhaal dat
+           onder precies dezelfde kop terugkomt (de NOS herpubliceert) levert
+           geen tweede regel op, maar het is wél iets om te weten. Dat stond
+           nergens meer zodra het groeperen erbij kwam. */
+        const zelfGroep = draad.find(x => (x.link || x.titel) === zelf);
+        const dagenZelf = zelfGroep && zelfGroep.dagen ? zelfGroep.dagen.size : 1;
+        let watErIs;
+        if (draad.length > 1) {
+          watErIs = draad.length + ' berichten' +
+            (sinds ? ' sinds ' + korteDatum(sinds) : '');
+        } else if (dagenZelf > 1) {
+          watErIs = 'stond ' + dagenZelf + ' dagen in de briefing';
+        } else {
+          watErIs = [bw.bron, bw.tijd].filter(Boolean).join(' \u00b7 ');
+        }
         r.innerHTML = '<span class="titel">' + bw.titel + '</span>' +
           '<span class="meta">' +
-          [bw.bron, bw.tijd, bw.op ? 'bewaard ' + korteDatum(bw.op) : '']
+          [watErIs, bw.op ? 'bewaard ' + korteDatum(bw.op) : '']
             .filter(Boolean).join(' \u00b7 ') + '</span>';
         rij.append(r);
         const k = document.createElement('button');
@@ -3140,6 +3392,29 @@ function tekenBriefing() {
         });
         rij.append(k);
         inhoud.append(rij);
+
+        /* De tijdlijn. Hoogstens zes regels: dit is een overzicht en geen
+           tweede nieuwsblok, en wat er niet past staat in het archief. */
+        if (meer.length) {
+          const tl = document.createElement('div');
+          tl.className = 'tijdlijn';
+          for (const x of meer.slice(0, 6)) {
+            const a = document.createElement(x.link ? 'a' : 'span');
+            if (x.link) { a.href = x.link; a.target = '_blank'; a.rel = 'noopener'; }
+            if (isNieuw(x)) a.className = 'vers';
+            const vaker = x.dagen && x.dagen.size > 1
+              ? ' (' + x.dagen.size + ' dagen)' : '';
+            a.textContent = korteDatum(x.datum) + ' \u00b7 ' + x.titel + vaker;
+            tl.append(a);
+          }
+          if (meer.length > 6) {
+            const rest = document.createElement('span');
+            rest.className = 'ouder';
+            rest.textContent = '+ ' + (meer.length - 6) + ' ouder';
+            tl.append(rest);
+          }
+          inhoud.append(tl);
+        }
       }
       vak.append(inhoud);
     }
