@@ -421,6 +421,29 @@
      roepen. */
   /* De tijdlijn van een dossier: klein en ingesprongen, want het is een
      overzicht om in te scannen en niet om te lezen. */
+  /* De knop die van een bewaard bericht een dossier maakt, en het potloodje
+     bij een dossier. Zelfde maat en plek als de ster ernaast. */
+  .volgknop { flex: 0 0 auto; background: none; border: 0; cursor: pointer;
+              padding: 11px 4px 11px 10px; font-size: 17px; line-height: 1;
+              color: var(--ink-3); }
+  .volgknop:hover { color: var(--accent); }
+  .dossiervoet { padding: 4px 14px 13px; }
+  .dossierform { padding: 2px 14px 14px; display: flex; flex-direction: column;
+                 gap: 8px; }
+  .dossierform input[type="text"] { padding: 11px 12px; border-radius: 10px;
+    border: 1px solid var(--line-2); background: var(--panel-2); color: inherit;
+    font: inherit; }
+  .dossierform input[type="text"]:focus { outline: 2px solid var(--accent);
+    outline-offset: -1px; border-color: transparent; }
+  .dossierform .uitleg { margin: 0; font-size: 12.5px; line-height: 1.45;
+                         color: var(--ink-3); }
+  .formknoppen { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+  .knopje { padding: 9px 14px; border-radius: 999px; cursor: pointer;
+            border: 1px solid var(--line-2); background: var(--panel-2);
+            color: var(--ink-2); font: inherit; font-size: 14px; }
+  .knopje.aan { background: var(--accent); border-color: var(--accent);
+                color: var(--op-accent); font-weight: 600; }
+  .knopje.weg { color: var(--warm); margin-left: auto; }
   .tijdlijn { padding: 0 14px 11px 25px; }
   .tijdlijn a, .tijdlijn span {
     display: block; font-size: 12.5px; line-height: 1.5; margin-top: 2px;
@@ -1047,6 +1070,7 @@ const ui = {
   toonGedaan: false,
   toonLater: false,
   metingOpen: false,    // de invulvelden van de weekmeting opengeklapt
+  dossierBewerk: null,  // id van het dossier dat je bewerkt, of 'nieuw'
   weken: 8,             // hoeveel weken de terugblik toont
 };
 
@@ -1990,6 +2014,187 @@ function tellingTekst(aantal, doel, soort) {
    Tabblad Vandaag
    =================================================================== */
 
+/* Een korte naam uit een lange kop. Een dossier heet "Artikel 31" en niet
+   "Begrotingsonderdeel Artikel 31 Politie (i.v.m. wijziging aanvangs- en
+   eindtijdstip)"; de volledige kop staat toch in de tijdlijn. */
+function kortNaam(titel) {
+  const t = (titel || '').replace(/\s+/g, ' ').trim();
+  if (t.length <= 42) return t;
+  return t.slice(0, 42).replace(/\s+\S*$/, '') + '\u2026';
+}
+
+/* Het blok Dossiers: onderwerpen die je volgt.
+
+   Standaard dicht en met dezelfde knop als de nieuwsblokken -- Gert vroeg op
+   3 november 2026 of Duiding, Bewaard en Dossiers zich net zo willen gedragen
+   als de rest. Dat is ook de juiste keuze: die drie stonden open omdat ze
+   "van jou" zijn, maar dan is het eerste wat je ziet bij het openen van de
+   briefing niet het nieuws maar je eigen lijstjes.
+
+   Het blok staat er ook als je nog geen dossiers hebt, want anders is er geen
+   plek om er een te beginnen. */
+function tekenDossiers() {
+  const vak = el('section', { class: 'blok' });
+  const open = !!ui.blokOpen.dossiers;
+  vak.dataset.open = open ? '1' : '0';
+
+  const treffers = {};
+  let nieuw = 0;
+  for (const d of st.dossiers) {
+    treffers[d.id] = dossierTreffers(d);
+    if (treffers[d.id].some(isNieuw)) nieuw++;
+  }
+
+  const knop = el('button');
+  knop.dataset.sleutel = 'blok:dossiers';
+  knop.style.borderLeftColor = 'var(--teal)';
+  knop.innerHTML = '<span>\u{1F5C2}</span>' +
+    '<span class="naam">Dossiers</span>' +
+    '<span class="aantal">' + (st.dossiers.length || '') + '</span>' +
+    (nieuw ? '<span class="nieuwtje">' + nieuw + ' nieuw</span>' : '') +
+    '<span class="pijl">&#9656;</span>';
+  knop.addEventListener('click', () => {
+    ui.blokOpen.dossiers = !open;
+    herteken(tekenBriefing, 'blok:dossiers');
+  });
+  vak.append(knop);
+  if (!open) return vak;
+
+  const inhoud = el('div', { class: 'inhoud' });
+
+  for (const dos of st.dossiers) {
+    const draad = treffers[dos.id];
+    const vers = draad.filter(isNieuw);
+
+    const rij = el('div', { class: 'berichtrij' + (vers.length ? ' nieuw' : '') });
+    const sinds = draad.length
+      ? draad.flatMap(x => [...(x.dagen || [])]).filter(Boolean).sort()[0] : '';
+    const meta = [
+      draad.length ? draad.length + (draad.length === 1 ? ' bericht' : ' berichten') +
+        (sinds ? ' sinds ' + korteDatum(sinds) : '') : 'nog niets gevonden',
+      (dos.termen || []).length ? dos.termen.join(', ') : '',
+    ].filter(Boolean).join(' \u00b7 ');
+    rij.append(el('div', { class: 'bericht' }, [
+      el('span', { class: 'titel', tekst: dos.naam }),
+      el('span', { class: 'meta', tekst: meta }),
+    ]));
+    rij.append(el('button', {
+      type: 'button', class: 'volgknop', title: 'Dossier aanpassen',
+      'aria-label': 'Dossier aanpassen', tekst: '\u270e',
+      onclick: () => {
+        ui.dossierBewerk = ui.dossierBewerk === dos.id ? null : dos.id;
+        herteken(tekenBriefing, 'blok:dossiers');
+      },
+    }));
+    inhoud.append(rij);
+
+    if (ui.dossierBewerk === dos.id) inhoud.append(dossierFormulier(dos));
+
+    /* Hoogstens zes regels: dit is een overzicht en geen tweede nieuwsblok. */
+    if (draad.length) {
+      const tl = el('div', { class: 'tijdlijn' });
+      for (const x of draad.slice(0, 6)) {
+        const a = el(x.link ? 'a' : 'span', x.link
+          ? { href: x.link, target: '_blank', rel: 'noopener' } : null);
+        if (isNieuw(x)) a.className = 'vers';
+        a.textContent = korteDatum(x.datum) + ' \u00b7 ' + x.titel +
+          (x.dagen && x.dagen.size > 1 ? ' (' + x.dagen.size + ' dagen)' : '');
+        tl.append(a);
+      }
+      if (draad.length > 6) {
+        tl.append(el('span', { class: 'ouder',
+                               tekst: '+ ' + (draad.length - 6) + ' ouder' }));
+      }
+      inhoud.append(tl);
+    }
+  }
+
+  if (ui.dossierBewerk === 'nieuw') {
+    inhoud.append(dossierFormulier(null));
+  } else {
+    inhoud.append(el('div', { class: 'dossiervoet' }, [
+      el('button', {
+        type: 'button', class: 'knopje', tekst: '+ Nieuw dossier',
+        onclick: () => {
+          ui.dossierBewerk = 'nieuw';
+          herteken(tekenBriefing, 'blok:dossiers');
+        },
+      }),
+    ]));
+  }
+
+  vak.append(inhoud);
+  return vak;
+}
+
+/* Het invulformulier voor één dossier, of voor een nieuw als `dos` null is.
+
+   Termen gescheiden door komma's, want dat is wat je zonder uitleg doet. Ze
+   worden letterlijk gezocht in de kop en de omschrijving, met woordgrenzen --
+   dus "Jos" vindt niet "Josephine". */
+function dossierFormulier(dos) {
+  const naam = el('input', { type: 'text', placeholder: 'Naam van het dossier',
+                             value: dos ? dos.naam : '', enterkeyhint: 'done',
+                             autocapitalize: 'sentences' });
+  const termen = el('input', { type: 'text', value: dos ? (dos.termen || []).join(', ') : '',
+                               placeholder: 'Termen, met komma\'s ertussen',
+                               enterkeyhint: 'done' });
+
+  const opslaan = () => {
+    const n = naam.value.trim();
+    if (!n) { zeg('Geef het dossier een naam'); naam.focus(); return; }
+    if (dos) {
+      dos.naam = n;
+      dos.termen = termenUit(termen.value);
+    } else {
+      st.dossiers.unshift({ id: dossierId(), naam: n,
+                            termen: termenUit(termen.value), zaad: null,
+                            op: vandaag() });
+    }
+    bewaar();
+    ui.dossierBewerk = null;
+    zeg(dos ? 'Dossier bijgewerkt' : 'Dossier aangemaakt');
+    herteken(tekenBriefing, 'blok:dossiers');
+  };
+  naam.addEventListener('keydown', (e) => { if (e.key === 'Enter') opslaan(); });
+  termen.addEventListener('keydown', (e) => { if (e.key === 'Enter') opslaan(); });
+
+  const knoppen = [
+    el('button', { type: 'button', class: 'knopje aan', tekst: 'Bewaren',
+                   onclick: opslaan }),
+    el('button', { type: 'button', class: 'knopje', tekst: 'Annuleren',
+                   onclick: () => {
+                     ui.dossierBewerk = null;
+                     herteken(tekenBriefing, 'blok:dossiers');
+                   } }),
+  ];
+  if (dos) {
+    knoppen.push(el('button', {
+      type: 'button', class: 'knopje weg', tekst: 'Verwijderen',
+      onclick: () => {
+        st.dossiers = st.dossiers.filter(x => x.id !== dos.id);
+        bewaar();
+        ui.dossierBewerk = null;
+        zeg('Dossier verwijderd');
+        herteken(tekenBriefing, 'blok:dossiers');
+      },
+    }));
+  }
+
+  return el('div', { class: 'dossierform' }, [
+    naam, termen,
+    dos && dos.zaad
+      ? el('p', { class: 'uitleg',
+                  tekst: 'Ontstaan uit: ' + dos.zaad.titel })
+      : null,
+    el('p', { class: 'uitleg', tekst: 'Termen worden letterlijk gezocht in de '
+      + 'kop en de omschrijving. Laat ze leeg bij een dossier uit een bericht, '
+      + 'dan zoekt hij op gelijkenis met die kop.' }),
+    el('div', { class: 'formknoppen' }, knoppen),
+  ]);
+}
+
+
 /* Twee regels die de briefing en Gerts eigen gegevens naast elkaar leggen.
    Dat gebeurde nergens: de app wist veel van de wereld en weinig van hem, en
    alles stond al in dezelfde browser -- het werd alleen nooit gecombineerd.
@@ -2758,10 +2963,10 @@ async function haalBriefing() {
       tekenAlles();
       warmArchief(verse.archief || []).then(() => {
         /* Pas hierna het archief in het geheugen trekken, en alleen als er
-           iets te volgen is: zonder bewaarde berichten is er geen dossier en
-           hoeft er niets ingelezen te worden. De briefing wordt daarna
-           opnieuw getekend, want de tijdlijnen zijn er dan pas. */
-        if (!(st.bewaard || []).length) return;
+           iets te volgen is: zonder dossiers hoeft er niets ingelezen te
+           worden. De briefing wordt daarna opnieuw getekend, want de
+           tijdlijnen zijn er dan pas. */
+        if (!(st.dossiers || []).length) return;
         laadArchief().then(() => tekenBriefing());
       });
     }
@@ -3144,68 +3349,87 @@ async function laadArchief() {
   }
 }
 
-/* De berichten die bij een bewaard item horen, nieuwste eerst.
+/* Een dossier is een naam plus een stel termen, en eventueel het bericht
+   waaruit het ontstaan is.
 
-   Het bewaarde bericht zelf zit er altijd bij, ook als het uit het archief is
-   gevallen -- anders zou een dossier van twee weken oud leeg lijken. */
-function dossierVan(bw) {
-  const zaad = kernwoorden(bw.titel);
-  /* Een korte kop ("Parkinson café Zwolle") heeft te weinig woorden om op te
-     vergelijken; dan blijft het een los bewaard bericht in plaats van een
-     dossier. Het bericht zelf gaat wél mee terug, anders valt het uit de
-     lijst.
+   Die twee manieren van zoeken staan er allebei met reden:
 
-     De drempel is 3 gedeelde woorden en 60% overlap, dezelfde als in
-     `ophalen.py`. Gemeten op acht dagen archief (288 berichten) krijgt 4%
-     hiervan een vervolg -- weinig, en dat hoort: het vindt
-     "Begrotingsonderdeel Artikel 31 Politie" over zes dagen. Losser gezet
-     (2 woorden, 50%) komen er vooral sjabloontreffers bij, zoals twee
-     transcripties die allebei "over opsporing" heten. */
-  if (zaad.size < 3) {
-    return [{ datum: bw.op || '', titel: bw.titel, link: bw.link,
-              bron: bw.bron, tijd: bw.tijd, sorteer: bw.sorteer }];
+   - **Uit een bericht** (`zaad`): dan vergelijken we kop met kop, met dezelfde
+     gelijkenismaat als `ontdubbel_verhaal()` in `ophalen.py`. Die is gebouwd om
+     twee krantenkoppen naast elkaar te leggen.
+   - **Zelf getypt** (`termen`): dan zoeken we die termen letterlijk op. Dat
+     moest wel -- `kernwoorden()` houdt alleen woorden van vijf letters of meer
+     over, dus "Bolle Jos" levert daar níets op en zou nooit iets vinden. Jij
+     bepaalt waar hij op aanslaat, en bij een zelfgemaakt dossier is dat ook
+     precies wat je wilt.
+
+   Een dossier mag allebei hebben: begin uit een bericht, en vul de termen aan
+   als dezelfde zaak elders anders heet. */
+
+function dossierId() {
+  return 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function termenUit(tekst) {
+  return (tekst || '').split(',').map(t => t.trim()).filter(Boolean);
+}
+
+/* Een term met woordgrenzen eromheen, zelf geschreven en niet met `\b`: die
+   kent geen accenten. Dit is dezelfde zorgvuldigheid als `politie(?!k)` in
+   ophalen.py -- een term die overal half in past maakt een dossier waardeloos. */
+function termRaak(term, tekst) {
+  if (!term || !tekst) return false;
+  const veilig = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp('(^|[^a-zà-ÿ0-9])' + veilig + '($|[^a-zà-ÿ0-9])', 'i')
+    .test(tekst);
+}
+
+function dossierRaak(dos, it) {
+  const tekst = (it.titel || '') + ' ' + (it.context || it.toelichting || '');
+  for (const t of dos.termen || []) if (termRaak(t, tekst)) return true;
+  if (dos.zaad && dos.zaad.titel) {
+    return zelfdeVerhaal(kernwoorden(dos.zaad.titel), kernwoorden(it.titel));
   }
+  return false;
+}
 
+/* De berichten die bij een dossier horen, nieuwste eerst.
+
+   Gegroepeerd op de kop en niet per dag. Dat moest: de Kameragenda toont de
+   komende week, dus "Begrotingsonderdeel Artikel 31 Politie" stond zes dagen
+   achter elkaar in de briefing. Zonder deze stap zei een dossier "12 berichten"
+   over twee dingen die zes keer herhaald werden -- en een dossier hoort
+   ontwikkelingen te laten zien, geen herhaling. */
+function dossierTreffers(dos) {
   const dagen = {};
   if (briefing) dagen[briefing.datum] = briefing;
   for (const d of Object.keys(archief)) {
     if (archief[d] && archief[d] !== 'mislukt') dagen[d] = archief[d];
   }
 
-  /* Groeperen op de kop zelf en niet per dag. Dat moest: de Kameragenda toont
-     de komende week, dus "Begrotingsonderdeel Artikel 31 Politie" stond zes
-     dagen achter elkaar in de briefing. Zonder deze stap zei het dossier
-     "12 berichten" over twee dingen die zes keer herhaald werden -- en een
-     dossier hoort ontwikkelingen te laten zien, geen herhaling. Staat een kop
-     meerdere dagen, dan wordt dat één regel met het aantal dagen erbij. */
   const per = new Map();
   for (const datum of Object.keys(dagen).sort().reverse()) {
     for (const blok of dagen[datum].blokken || []) {
       if (!DOSSIERBLOKKEN.has(blok.id)) continue;
       for (const it of blok.items || []) {
-        if (!zelfdeVerhaal(zaad, kernwoorden(it.titel))) continue;
+        if (!dossierRaak(dos, it)) continue;
         const sleutel = (it.titel || '').trim().toLowerCase();
         const bestaand = per.get(sleutel);
         if (bestaand) { bestaand.dagen.add(datum); continue; }
-        /* `sorteer` moet mee: `isNieuw()` leest dat veld en niets anders.
-           Zonder dit zou de nieuw-markering op een tijdlijn stilzwijgend
-           nooit aangaan -- geen foutmelding, alleen een stipje dat er nooit
-           staat. En omdat we van nieuw naar oud lopen, is de eerste die we
-           zien meteen de nieuwste. */
+        /* `sorteer` moet mee: `isNieuw()` leest dat veld en niets anders, dus
+           zonder dit zou de nieuw-markering stilzwijgend nooit aangaan. En
+           omdat we van nieuw naar oud lopen is de eerste die we zien meteen de
+           nieuwste. */
         per.set(sleutel, { datum, titel: it.titel, link: it.link,
                            bron: it.bron, tijd: it.tijd, sorteer: it.sorteer,
                            dagen: new Set([datum]) });
       }
     }
   }
-  const uit = [...per.values()];
-  if (!uit.some(x => (x.link && x.link === bw.link) || x.titel === bw.titel)) {
-    uit.push({ datum: bw.op || '', titel: bw.titel, link: bw.link,
-               bron: bw.bron, tijd: bw.tijd, sorteer: bw.sorteer,
-               dagen: new Set([bw.op || '']) });
-  }
-  return uit;
+  return [...per.values()];
 }
+
+
 
 /* De duiding bij de briefing: een paar alinea's die berichten aan elkaar
    knopen, met onder elke alinea de berichten waarop hij rust.
@@ -3219,7 +3443,10 @@ function dossierVan(bw) {
 function tekenDuiding(draden) {
   const vak = document.createElement('section');
   vak.className = 'blok';
-  const open = ui.blokOpen.duiding !== false;
+  /* Standaard dicht en met dezelfde knop als de nieuwsblokken. Stond eerst
+     open; Gert vroeg op 3 november 2026 of Duiding, Bewaard en Dossiers zich
+     net zo willen gedragen als de rest. */
+  const open = !!ui.blokOpen.duiding;
   vak.dataset.open = open ? '1' : '0';
 
   const knop = document.createElement('button');
@@ -3362,13 +3589,17 @@ function tekenBriefing() {
   /* Bewaarde berichten, bovenaan en standaard dicht. Dit hangt niet aan de dag
      die je bekijkt: het is jouw lijstje en het staat in `oprij.v1`, dus het gaat
      mee in de reservekopie en overleeft een nieuwe versie van de app. */
+  /* Dossiers: onderwerpen die je volgt. Staat bóven Bewaard en is er iets
+     anders: Bewaard is "dit wil ik nog lezen" en eindigt zodra je het gelezen
+     hebt, een dossier is "dit volg ik" en loopt door. Die twee door elkaar
+     laten lopen betekende dat je je leeslijstje niet kon opruimen zonder je
+     dossiers kwijt te raken. */
+  stuk.append(tekenDossiers());
+
   if (st.bewaard.length) {
     const vak = document.createElement('section');
     vak.className = 'blok';
-    /* Dit blok staat standaard open, anders dan de nieuwsblokken: daar klap je
-       iets open omdat je het wilt lezen, hier heb je het zelf weggezet. Klap je
-       het dicht, dan blijft het dicht zolang de app open is. */
-    const open = ui.blokOpen.bewaard !== false;
+    const open = !!ui.blokOpen.bewaard;
     vak.dataset.open = open ? '1' : '0';
 
     const knop = document.createElement('button');
@@ -3388,47 +3619,45 @@ function tekenBriefing() {
       const inhoud = document.createElement('div');
       inhoud.className = 'inhoud';
       for (const bw of st.bewaard) {
-        /* Hoort er inmiddels meer bij dit verhaal, dan is dit geen losse kop
-           meer maar een dossier. Het archief is zeven dagen diep, dus een
-           verhaal dat langer loopt zie je hier als tijdlijn terug. */
-        const draad = dossierVan(bw);
-        /* Alleen het bewaarde bericht zelf eruit, en op zijn identiteit --
-           niet op de datum. Dat stond er eerst wél, en dan verdween de hele
-           tijdlijn zodra er iets op dezelfde dag bij hoorde. */
-        const zelf = bw.link || bw.titel;
-        const meer = draad.filter(x => (x.link || x.titel) !== zelf);
-        const vers = meer.filter(x => isNieuw(x));
-
         const rij = document.createElement('div');
-        rij.className = 'berichtrij' + (vers.length ? ' nieuw' : '');
+        rij.className = 'berichtrij';
         const r = document.createElement(bw.link ? 'a' : 'div');
         r.className = 'bericht';
         if (bw.link) { r.href = bw.link; r.target = '_blank'; r.rel = 'noopener'; }
-        /* "Sinds" is de oudste dag waarop er iets van dit verhaal stond, en
-           dus de vroegste uit alle groepjes -- niet de oudste van de nieuwste
-           datums, want per kop houden we de nieuwste bij. */
-        const sinds = draad.length > 1
-          ? draad.flatMap(x => [...(x.dagen || [])]).filter(Boolean).sort()[0] : '';
-        /* Drie gevallen, en het middelste was er eerst niet: een verhaal dat
-           onder precies dezelfde kop terugkomt (de NOS herpubliceert) levert
-           geen tweede regel op, maar het is wél iets om te weten. Dat stond
-           nergens meer zodra het groeperen erbij kwam. */
-        const zelfGroep = draad.find(x => (x.link || x.titel) === zelf);
-        const dagenZelf = zelfGroep && zelfGroep.dagen ? zelfGroep.dagen.size : 1;
-        let watErIs;
-        if (draad.length > 1) {
-          watErIs = draad.length + ' berichten' +
-            (sinds ? ' sinds ' + korteDatum(sinds) : '');
-        } else if (dagenZelf > 1) {
-          watErIs = 'stond ' + dagenZelf + ' dagen in de briefing';
-        } else {
-          watErIs = [bw.bron, bw.tijd].filter(Boolean).join(' \u00b7 ');
-        }
         r.innerHTML = '<span class="titel">' + bw.titel + '</span>' +
           '<span class="meta">' +
-          [watErIs, bw.op ? 'bewaard ' + korteDatum(bw.op) : '']
+          [bw.bron, bw.tijd, bw.op ? 'bewaard ' + korteDatum(bw.op) : '']
             .filter(Boolean).join(' \u00b7 ') + '</span>';
         rij.append(r);
+
+        /* Hier wordt een bewaard bericht een dossier. Dit is de ene plek waar
+           dat hoort: op de nieuwsrij zelf zou het een derde knopje worden bij
+           negentig berichten, en dit is het moment waarop je het wilt -- je
+           hebt het al weggelegd en merkt dat het doorloopt. */
+        if (!st.dossiers.some(d => d.zaad && d.zaad.sleutel === bw.sleutel)) {
+          const v = document.createElement('button');
+          v.type = 'button';
+          v.className = 'volgknop';
+          v.title = 'Dit verhaal volgen';
+          v.setAttribute('aria-label', v.title);
+          v.textContent = '\u21bb';
+          v.addEventListener('click', () => {
+            st.dossiers.unshift({
+              id: dossierId(),
+              naam: kortNaam(bw.titel),
+              termen: [],
+              zaad: { sleutel: bw.sleutel, titel: bw.titel, link: bw.link,
+                      bron: bw.bron },
+              op: vandaag(),
+            });
+            bewaar();
+            ui.blokOpen.dossiers = true;
+            zeg('Dossier aangemaakt');
+            herteken(tekenBriefing, 'blok:dossiers');
+          });
+          rij.append(v);
+        }
+
         const k = document.createElement('button');
         k.type = 'button';
         k.className = 'bewaarknop aan';
@@ -3442,29 +3671,6 @@ function tekenBriefing() {
         });
         rij.append(k);
         inhoud.append(rij);
-
-        /* De tijdlijn. Hoogstens zes regels: dit is een overzicht en geen
-           tweede nieuwsblok, en wat er niet past staat in het archief. */
-        if (meer.length) {
-          const tl = document.createElement('div');
-          tl.className = 'tijdlijn';
-          for (const x of meer.slice(0, 6)) {
-            const a = document.createElement(x.link ? 'a' : 'span');
-            if (x.link) { a.href = x.link; a.target = '_blank'; a.rel = 'noopener'; }
-            if (isNieuw(x)) a.className = 'vers';
-            const vaker = x.dagen && x.dagen.size > 1
-              ? ' (' + x.dagen.size + ' dagen)' : '';
-            a.textContent = korteDatum(x.datum) + ' \u00b7 ' + x.titel + vaker;
-            tl.append(a);
-          }
-          if (meer.length > 6) {
-            const rest = document.createElement('span');
-            rest.className = 'ouder';
-            rest.textContent = '+ ' + (meer.length - 6) + ' ouder';
-            tl.append(rest);
-          }
-          inhoud.append(tl);
-        }
       }
       vak.append(inhoud);
     }
