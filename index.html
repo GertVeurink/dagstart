@@ -3157,7 +3157,7 @@ function tekenStart() {
     '<div class="onder">' +
       (gespeeld >= SPEL_POGINGEN
         ? 'Vandaag gespeeld: ' + SPELLEN[welk].naam + ', beste ' + scoreTekst(welk, besteVan(sd.scores))
-        : 'Vandaag: ' + SPELLEN[welk].naam + ' — drie keer anderhalve minuut') + '</div>' +
+        : 'Vandaag: ' + SPELLEN[welk].naam + ' — drie keer ' + duurTekst(welk)) + '</div>' +
     '<div class="cijfers">' +
       (gespeeld >= SPEL_POGINGEN
         ? '<span class="pil groen">✓ vandaag</span>'
@@ -4150,7 +4150,19 @@ const SPELLEN = {};
 /* De beurtvolgorde: elke dag de volgende, en na vijf dagen weer de eerste. Een
    spel erbij zetten verschuift de hele rij, maar de scores houden hun spel vast:
    die staan bij `welk` en niet bij de plek in deze lijst. */
-const SPEL_VOLGORDE = ['snake', 'breakout', '2048', 'frogger', 'tetris'];
+const SPEL_VOLGORDE = ['snake', 'breakout', 'ruimte', '2048', 'lichtjes',
+                       'frogger', 'tetris'];
+
+/* "anderhalve minuut" stond twee keer hard in de tekst. Sinds Tetris langer
+   duurt dan de rest klopt dat niet meer, en een scherm dat 90 seconden belooft
+   terwijl de klok op 2:30 staat is erger dan geen belofte. */
+function duurTekst(welk) {
+  const sec = SPELLEN[welk].duur || SPEL_DUUR;
+  if (sec === 90) return 'anderhalve minuut';
+  if (sec === 150) return 'tweeënhalve minuut';
+  if (sec % 60 === 0) return (sec / 60) + ' minuten';
+  return sec + ' seconden';
+}
 
 function spelVan(datum) {
   const dagnr = Math.round(alsDatum(datum).getTime() / 864e5);
@@ -4290,6 +4302,7 @@ function eindPoging(reden) {
 
 const SPEL_EINDE = {
   tijd: 'Tijd!', bots: 'Botsing!', nat: 'Plons!', mis: 'Gemist!', vol: 'Vol!', vast: 'Vast!',
+  door: 'Doorgelaten!',
 };
 
 /* Een afgerond vakje; oudere Safari kent roundRect nog niet. */
@@ -4422,6 +4435,170 @@ SPELLEN.snake = {
       g.strokeStyle = kleur('--warm');
       g.lineWidth = vak * .12;
       g.strokeRect(x * vak + vak * .1, y * vak + vak * .1, vak * .8, vak * .8);
+    }
+  },
+};
+
+/* ---------- Ruimtewacht ----------
+   Je schip volgt je vinger en schiet vanzelf; jij hoeft alleen te zorgen dat
+   je onder de goede staat. Dat is met opzet: dit is het enige spel hier
+   zonder vegen, en vegen is op een telefoon nu eenmaal de wankelste invoer.
+   Slepen werkt bij Breakout al jaren goed, dus dat is het hier ook.
+
+   Zelf schieten zou een tik vragen terwijl je sleept, en dat is op een
+   telefoon een onmogelijke combinatie -- vandaar dat het vuren vanzelf gaat.
+   Wat je traint is kiezen welke je eerst neerhaalt, niet hoe snel je tikt.
+
+   Alles in fracties van het bord (0 tot 1), net als Breakout, zodat de
+   schermgrootte niets uitmaakt. En in stapjes van hooguit 8 ms, anders vliegt
+   een kogel bij een hapering dwars door een vijand heen. */
+
+const RU_KOLOMMEN = 7;
+const RU_SCHIP_Y = .9;
+const RU_SCHOT = 300;          /* milliseconden tussen twee kogels */
+const RU_RAAK = .055;          /* hoe dicht een kogel bij een vijand moet komen */
+
+function ruimteKolom(k) { return (k + .5) / RU_KOLOMMEN; }
+
+SPELLEN.ruimte = {
+  naam: 'Ruimtewacht', eenheid: ['raak', 'raak'],
+  uitleg: 'Je schip volgt je vinger en schiet vanzelf. Laat er geen één langs '
+        + 'de onderkant komen.',
+  hint: 'Raak het bord aan om te beginnen', mac: 'op de Mac: slepen, of de pijltjestoetsen',
+  begin(toeval) {
+    return { toeval, schip: .5, doel: .5, kogels: [], vijanden: [],
+             sindsSchot: 0, sindsSpawn: 400, score: 0 };
+  },
+  sleep(t, fx) { t.doel = fx; return null; },
+  veeg(t, dx) { t.doel = Math.max(0, Math.min(1, t.doel + dx * .08)); return null; },
+  verder(t, ms) {
+    t.schip = Math.max(.06, Math.min(.94, t.doel));
+
+    /* Hoe verder je komt, hoe sneller ze zakken en hoe korter ze op zich laten
+       wachten. Allebei met een plafond: zonder dat is het na een minuut niet
+       meer te doen en is de klok van 90 seconden zinloos. */
+    const snelheid = Math.min(.30, .10 + t.score * .0016);
+    const tussen = Math.max(330, 820 - t.score * 13);
+
+    t.sindsSchot += ms;
+    while (t.sindsSchot >= RU_SCHOT) {
+      t.sindsSchot -= RU_SCHOT;
+      t.kogels.push({ x: t.schip, y: RU_SCHIP_Y - .04 });
+    }
+
+    t.sindsSpawn += ms;
+    while (t.sindsSpawn >= tussen) {
+      t.sindsSpawn -= tussen;
+      t.vijanden.push({ x: ruimteKolom(Math.floor(t.toeval() * RU_KOLOMMEN)),
+                        y: -.05, soort: Math.floor(t.toeval() * 3) });
+    }
+
+    let rest = ms / 1000;
+    while (rest > 0) {
+      const dt = Math.min(rest, .008);
+      rest -= dt;
+      for (const k of t.kogels) k.y -= 1.15 * dt;
+      for (const v of t.vijanden) v.y += snelheid * dt;
+
+      for (let i = t.kogels.length - 1; i >= 0; i--) {
+        const k = t.kogels[i];
+        if (k.y < -.03) { t.kogels.splice(i, 1); continue; }
+        const j = t.vijanden.findIndex(
+          (v) => Math.abs(v.x - k.x) < RU_RAAK && Math.abs(v.y - k.y) < RU_RAAK);
+        if (j >= 0) { t.vijanden.splice(j, 1); t.kogels.splice(i, 1); t.score++; }
+      }
+      /* Langs je schip is het einde. De grens ligt op de schiplijn zelf en niet
+         onderaan het bord: anders zie je hem onder je door glippen en gebeurt
+         er pas een halve seconde later iets. */
+      if (t.vijanden.some((v) => v.y >= RU_SCHIP_Y)) return 'door';
+    }
+    return null;
+  },
+  teken(g, maat, kleur, t) {
+    const kleuren = ['--teal', '--olijf', '--leisteen'];
+    for (const v of t.vijanden) {
+      g.fillStyle = kleur(kleuren[v.soort % kleuren.length]);
+      rondVak(g, (v.x - .045) * maat, (v.y - .045) * maat, .09 * maat, .09 * maat, .025 * maat);
+      /* Twee lichte stipjes, zodat je ziet welke kant de voorkant is en het
+         geen los blokje blijft. */
+      g.fillStyle = kleur('--bg');
+      g.fillRect((v.x - .026) * maat, (v.y + .004) * maat, .016 * maat, .016 * maat);
+      g.fillRect((v.x + .010) * maat, (v.y + .004) * maat, .016 * maat, .016 * maat);
+    }
+    g.fillStyle = kleur('--warm');
+    for (const k of t.kogels)
+      rondVak(g, (k.x - .008) * maat, (k.y - .03) * maat, .016 * maat, .06 * maat, .008 * maat);
+
+    g.fillStyle = kleur('--accent-ink');
+    g.beginPath();
+    g.moveTo(t.schip * maat, (RU_SCHIP_Y - .055) * maat);
+    g.lineTo((t.schip + .05) * maat, (RU_SCHIP_Y + .035) * maat);
+    g.lineTo((t.schip - .05) * maat, (RU_SCHIP_Y + .035) * maat);
+    g.closePath();
+    g.fill();
+  },
+};
+
+/* ---------- Lichtjes ----------
+   Tik een lampje aan en hij gaat om, samen met zijn buren boven, onder, links
+   en rechts. Alles uit en je hebt hem. Dan komt de volgende, een tikje lastiger.
+
+   Twee dingen maken dit anders dan de rest, en daarom staat het erin: het is
+   het enige spel zonder reflexen -- je mag erover nadenken zolang de klok loopt
+   -- en het enige dat met tikken alleen te spelen is. Geen vegen, geen slepen.
+
+   De puzzels worden gemaakt door vanaf alles-uit een aantal willekeurige tikken
+   te geven. Daarmee is elke puzzel per definitie oplosbaar: dezelfde tikken in
+   omgekeerde volgorde brengen hem terug. Een bord verzinnen en hopen dat het
+   kan, werkt hier niet -- de helft van alle borden is onoplosbaar. */
+
+const LI_VAK = 5;
+const LI_START = 3;            /* aantal tikken waarmee de eerste puzzel is gemaakt */
+
+function lichtTik(bord, x, y) {
+  for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    const a = x + dx, b = y + dy;
+    if (a >= 0 && b >= 0 && a < LI_VAK && b < LI_VAK) bord[b * LI_VAK + a] = !bord[b * LI_VAK + a];
+  }
+}
+
+function lichtPuzzel(t) {
+  t.bord = new Array(LI_VAK * LI_VAK).fill(false);
+  const tikken = Math.min(12, LI_START + t.score);
+  /* Een puzzel die per ongeluk al uit staat is geen puzzel: dan opnieuw. */
+  for (let poging = 0; poging < 20; poging++) {
+    for (let i = 0; i < tikken; i++)
+      lichtTik(t.bord, Math.floor(t.toeval() * LI_VAK), Math.floor(t.toeval() * LI_VAK));
+    if (t.bord.some(Boolean)) return;
+  }
+  t.bord[0] = true;
+}
+
+SPELLEN.lichtjes = {
+  naam: 'Lichtjes', eenheid: ['puzzel', 'puzzels'],
+  uitleg: 'Tik een lampje aan: hij gaat om, en zijn vier buren ook. Krijg ze '
+        + 'allemaal uit, dan komt de volgende.',
+  hint: 'Tik een lampje aan om te beginnen', mac: 'op de Mac: klikken',
+  begin(toeval) {
+    const t = { toeval, bord: [], score: 0 };
+    lichtPuzzel(t);
+    return t;
+  },
+  verder() { return null; },
+  tik(t, fx, fy) {
+    const x = Math.floor(fx * LI_VAK), y = Math.floor(fy * LI_VAK);
+    if (x < 0 || y < 0 || x >= LI_VAK || y >= LI_VAK) return null;
+    lichtTik(t.bord, x, y);
+    if (!t.bord.some(Boolean)) { t.score++; lichtPuzzel(t); }
+    return null;
+  },
+  teken(g, maat, kleur, t) {
+    const vak = maat / LI_VAK;
+    for (let y = 0; y < LI_VAK; y++) {
+      for (let x = 0; x < LI_VAK; x++) {
+        g.fillStyle = t.bord[y * LI_VAK + x] ? kleur('--warm') : kleur('--line');
+        rondVak(g, x * vak + vak * .07, y * vak + vak * .07, vak * .86, vak * .86, vak * .22);
+      }
     }
   },
 };
@@ -4967,7 +5144,7 @@ function tekenSpel() {
   const kop = el('div', { class: 'briefkop' }, [
     el('h1', { tekst: info.naam }),
     el('div', { class: 'datum', tekst: op ? 'Klaar voor vandaag — morgen ' + SPELLEN[spelVan(plusDagen(datum, 1))].naam
-      : 'Drie pogingen van anderhalve minuut; de beste telt' }),
+      : 'Drie pogingen van ' + duurTekst(welk) + '; de beste telt' }),
   ]);
 
   const pogingNr = bezig ? spel.nr + 1 : Math.min(scores.length + (op ? 0 : 1), SPEL_POGINGEN);
@@ -4997,6 +5174,13 @@ function tekenSpel() {
     const r = bord.getBoundingClientRect();
     return (e.clientX - r.left) / r.width;
   };
+  /* Een tik geeft ook de hoogte door. Breakout en Ruimtewacht hebben genoeg
+     aan de x (hun batje of schip staat op een vaste regel), maar Lichtjes moet
+     weten wélk lampje je raakte. Spellen die er niets mee doen negeren het. */
+  const opBordY = (e) => {
+    const r = bord.getBoundingClientRect();
+    return (e.clientY - r.top) / r.height;
+  };
   bord.addEventListener('pointerdown', (e) => {
     veeg = { x: e.clientX, y: e.clientY, bewogen: false, gedaan: false };
     try { bord.setPointerCapture(e.pointerId); } catch (_) {}
@@ -5018,7 +5202,7 @@ function tekenSpel() {
   });
   bord.addEventListener('pointerup', (e) => {
     if (veeg && spel && !SPELLEN[spel.welk].sleep) {
-      if (!veeg.bewogen) invoer('tik');
+      if (!veeg.bewogen) invoer('tik', opBord(e), opBordY(e));
       /* Een korte, snelle flik viel tussen wal en schip: meer dan 10 pixels, dus
          geen tik, maar minder dan 18, dus ook geen veeg. Je beweging verdween
          dan gewoon. Bij Tetris merk je dat nauwelijks -- het blok schuift niet
