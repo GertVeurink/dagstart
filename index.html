@@ -422,11 +422,20 @@
   /* De tijdlijn van een dossier: klein en ingesprongen, want het is een
      overzicht om in te scannen en niet om te lezen. */
   /* De knop die van een bewaard bericht een dossier maakt, en het potloodje
-     bij een dossier. Zelfde maat en plek als de ster ernaast. */
-  .volgknop { flex: 0 0 auto; background: none; border: 0; cursor: pointer;
-              padding: 11px 4px 11px 10px; font-size: 17px; line-height: 1;
-              color: var(--ink-3); }
-  .volgknop:hover { color: var(--accent); }
+     bij een dossier.
+
+     Stond er eerst als een los rondpijltje. Dat was niet te raden: Gert vroeg
+     op 3 november 2026 wat dat teken betekende, en terecht -- de uitleg zat in
+     een title-tekst, en die ziet een telefoon nooit, want er is niets om op te
+     hoveren. Nu staat het woord er gewoon. Een knop die uitleg nodig heeft is
+     geen knop maar een raadsel. */
+  .duidingtijd { margin: 0 0 12px; }
+  .volgknop { flex: 0 0 auto; background: var(--panel-2); cursor: pointer;
+              margin: 0 10px 0 6px; padding: 6px 10px; line-height: 1;
+              font-family: inherit; font-size: 12.5px; white-space: nowrap;
+              border: 1px solid var(--line-2); border-radius: 20px;
+              color: var(--ink-2); }
+  .volgknop:hover { color: var(--accent); border-color: var(--accent); }
   .dossiervoet { padding: 4px 14px 13px; }
   .dossierform { padding: 2px 14px 14px; display: flex; flex-direction: column;
                  gap: 8px; }
@@ -3485,6 +3494,19 @@ function tekenDuiding(draden) {
 
   const inhoud = document.createElement('div');
   inhoud.className = 'inhoud duiding';
+
+  /* Wanneer dit geschreven is. De duiding wordt één keer om 06:05 gemaakt en
+     staat 's avonds nog steeds boven een nieuwslijst die sindsdien dertien
+     keer is ververst -- zonder dit regeltje leest het als de stand van nu.
+     Een archiefbriefing van vóór 3 november 2026 draagt het veld niet; dan
+     staat er niets, en dat is beter dan een verzonnen tijd. */
+  const geschreven = draden.find(d => d.geschreven);
+  if (geschreven) {
+    inhoud.append(el('p', { class: 'uitleg duidingtijd',
+                            tekst: 'Geschreven om ' + geschreven.geschreven
+                                   + ', uit het nieuws van dat moment.' }));
+  }
+
   for (const d of draden) {
     const el = document.createElement('div');
     el.className = 'draad';
@@ -3658,9 +3680,9 @@ function tekenBriefing() {
           const v = document.createElement('button');
           v.type = 'button';
           v.className = 'volgknop';
-          v.title = 'Dit verhaal volgen';
-          v.setAttribute('aria-label', v.title);
-          v.textContent = '\u21bb';
+          v.title = 'Maak hier een dossier van en volg het verder';
+          v.setAttribute('aria-label', 'Dossier maken van: ' + bw.titel);
+          v.textContent = '+ dossier';
           v.addEventListener('click', () => {
             st.dossiers.unshift({
               id: dossierId(),
