@@ -541,6 +541,11 @@
     color: var(--accent-ink); white-space: nowrap;
   }
   .oef.open .pijl { transform: rotate(90deg); }
+  /* Het looppaneel binnen het blok Lopen: zelfde binnenmarge als een geopende
+     oefening eronder, met een streep erboven zodat het niet aan de laatste
+     oefening vastplakt. */
+  .loopinhoud { padding: 13px 14px 15px; border-top: 1px solid var(--line); }
+  .loopinhoud > .bij { margin-bottom: 9px; }
   .oef-body { padding: 0 13px 13px 71px; }
   .oef-body p { margin: 0; font-size: 13.5px; line-height: 1.45; }
   .oef-body .cue { margin-top: 7px; font-size: 12.5px; color: var(--accent-ink); font-style: italic; }
@@ -770,7 +775,7 @@ const TRAINING = {
   lopen: {
     naam: 'Lopen', onder: 'lange dag of je rondje', duur: '22–42 min', soort: 'lopen',
     oefeningen: [
-      ['De lange dag', 'rustig, je moet kunnen praten', 'zie het paneel',
+      ['De lange dag', 'rustig, je moet kunnen praten', 'zie hieronder',
        'Dit is de dag die groeit. Je loopt op de klok en niet op afstand: tot de tijd om is, in een tempo waarbij je hele zinnen kunt uitspreken. Dat is rustiger dan je rondje van 3 km — waarschijnlijk zo\u2019n halve minuut per kilometer. Elke week komt er drie minuten bij, en elke vierde week niets.',
        'Dit tempo voelt te langzaam, en dat is precies waarom het werkt: de lange dag is langzaam zodat hij lang kan worden. Ga je hem op je rondjetempo lopen, dan kun je er geen minuten meer bij doen en loopt de opbouw vast. De snelheid komt van de andere dag, later.'],
       ['Je rondje van 3 km', 'dezelfde route, dezelfde meting', 'zoals je het doet',
@@ -1711,7 +1716,7 @@ function tekenSport(sp) {
  * verwachting komt uit zijn eigen rondjes; de ambitie staat eronder en zegt
  * wat het doel vraagt. Het verschil tussen die twee is het hele punt.
  */
-function tekenLoop() {
+function tekenLoop(binnenin) {
   if (vandaag() < LOOPOPBOUW.van) return null;
 
   const vandaagLoop = trainingVan(vandaag()) === 'lopen';
@@ -1859,6 +1864,15 @@ function tekenLoop() {
   vooruit.appendChild(doelblok);
   vak.appendChild(vooruit);
 
+  /* Binnen het blok Lopen hoort er geen tweede kop "Lopen" boven, en geen
+     eigen kaartrand om een kaart heen. Dan is het gewoon de inhoud van dat
+     blok, met de week erboven. */
+  if (binnenin) {
+    return el('div', { class: 'loopinhoud' }, [
+      el('div', { class: 'bij', tekst: 'week ' + (loopWeekNr() + 1) + ' van de opbouw' }),
+      vak,
+    ]);
+  }
   return paneel('Lopen', 'week ' + (loopWeekNr() + 1) + ' van de opbouw', [vak]);
 }
 
@@ -4079,13 +4093,20 @@ function tekenTraining() {
         }
         inhoud.append(o);
       });
+      /* Het looppaneel -- de opbouw van deze week, je laatste rondjes, de
+         verwachting -- stond hieronder als los blok op het scherm. Daardoor
+         was het trainingsscherm drie regels plus een lap tekst die er altijd
+         stond, ook op een krachtdag. Gert vroeg op 3 november 2026 om drie
+         nette regels met de uitleg pas achter een tik; dus hoort dit thuis
+         waar het over gaat, en dat is onder Lopen. */
+      if (id === 'lopen') {
+        const loop = tekenLoop(true);
+        if (loop) inhoud.append(loop);
+      }
       el.append(inhoud);
     }
     stuk.append(el);
   }
-
-  const looppaneel = tekenLoop();
-  if (looppaneel) stuk.append(looppaneel);
 
   /* Hier stond een blok algemene uitleg -- hoe zwaar een set moet voelen, dat
      de weegschaal de eerste weken stilstaat, spierpijn tegenover gewrichtspijn.
