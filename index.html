@@ -416,6 +416,25 @@
   .weerkaart .vooruit { color: var(--ink-3); font-size: 13.5px; }
   .weerkaart .groot { font-size: 25px; font-family: var(--serif); }
   .weerkaart p { margin: 8px 0 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.45; }
+  .duiding { padding: 4px 14px 13px; }
+  .duiding .draad { padding-top: 13px; }
+  .duiding .draad + .draad { border-top: 1px solid var(--line); margin-top: 13px; }
+  .duiding .draadkop { display: block; font-weight: 650; font-family: var(--serif);
+                       font-size: 16px; margin-bottom: 5px; }
+  .duiding p { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.5; }
+  /* De berichten waarop een alinea rust. Klein en ingesprongen: ze zijn er om
+     na te lopen, niet om te lezen — de kop staat al in zijn eigen blok. */
+  .duiding .waaruit { margin-top: 8px; padding-left: 11px;
+                      border-left: 2px solid var(--line); }
+  .duiding .waaruit a, .duiding .waaruit span {
+    display: block; font-size: 12.5px; line-height: 1.45; margin-top: 3px;
+    color: var(--accent-ink); text-decoration: none; }
+  .duiding .waaruit span { color: var(--ink-3); }
+  /* Dat hier een model heeft geschreven hoort erbij te staan. Niet als
+     disclaimer maar als leesaanwijzing: het verklaart waarom de bronnen
+     eronder staan en waarom je ze kunt willen nalopen. */
+  .duiding .herkomst { margin-top: 14px; font-size: 12px; color: var(--ink-3);
+                       line-height: 1.4; }
   .leeg { padding: 26px 16px; color: var(--ink-3); text-align: center; }
   #naar-start {
     background: none; border: 0; color: var(--ink-2); font-size: 20px;
@@ -2923,6 +2942,72 @@ function maakSpeler(bron) {
   return sp;
 }
 
+/* De duiding bij de briefing: een paar alinea's die berichten aan elkaar
+   knopen, met onder elke alinea de berichten waarop hij rust.
+
+   Die verwijzingen zijn het hele punt en geen versiering. `duiden.py` laat een
+   model alleen werken met wat er in de briefing staat en controleert daarna of
+   elk genoemd bericht echt bestaat; wat hier getekend wordt is het resultaat
+   van die controle. Zo is elke zin na te lopen naar een kop die je zelf kunt
+   openklappen — anders dan bij een beschouwing, die je op zijn blauwe ogen
+   moet geloven. Haal die linkjes er dus niet uit om het rustiger te maken. */
+function tekenDuiding(draden) {
+  const vak = document.createElement('section');
+  vak.className = 'blok';
+  const open = ui.blokOpen.duiding !== false;
+  vak.dataset.open = open ? '1' : '0';
+
+  const knop = document.createElement('button');
+  knop.dataset.sleutel = 'blok:duiding';
+  knop.style.borderLeftColor = 'var(--warm)';
+  knop.innerHTML = '<span>\u{1F9F5}</span>' +
+    '<span class="naam">Duiding</span>' +
+    '<span class="aantal">' + draden.length + '</span>' +
+    '<span class="pijl">&#9656;</span>';
+  knop.addEventListener('click', () => {
+    ui.blokOpen.duiding = !open;
+    herteken(tekenBriefing, 'blok:duiding');
+  });
+  vak.append(knop);
+  if (!open) return vak;
+
+  const inhoud = document.createElement('div');
+  inhoud.className = 'inhoud duiding';
+  for (const d of draden) {
+    const el = document.createElement('div');
+    el.className = 'draad';
+    el.innerHTML = '<span class="draadkop"></span><p></p>';
+    /* textContent en geen innerHTML: deze tekst komt van een model, en een
+       losse < of & hoort als teken op het scherm te komen en niet als opmaak. */
+    el.querySelector('.draadkop').textContent = d.titel || '';
+    el.querySelector('p').textContent = d.tekst || '';
+
+    if (d.verwijzingen && d.verwijzingen.length) {
+      const uit = document.createElement('div');
+      uit.className = 'waaruit';
+      for (const v of d.verwijzingen) {
+        const r = document.createElement(v.link ? 'a' : 'span');
+        if (v.link) { r.href = v.link; r.target = '_blank'; r.rel = 'noopener'; }
+        r.textContent = '\u2192 ' + (v.titel || '') +
+          (v.bron ? ' (' + v.bron + ')' : '');
+        uit.append(r);
+      }
+      el.append(uit);
+    }
+    inhoud.append(el);
+  }
+
+  const voet = document.createElement('p');
+  voet.className = 'herkomst';
+  voet.textContent = 'Geschreven door een model, alleen uit de berichten in ' +
+    'deze briefing \u2014 de bronnen staan eronder zodat je het kunt nalopen.';
+  inhoud.append(voet);
+
+  vak.append(inhoud);
+  return vak;
+}
+
+
 function tekenBriefing() {
   const doel = document.getElementById('tab-briefing');
   const toon = huidigeBriefing();
@@ -2981,6 +3066,13 @@ function tekenBriefing() {
   if (kiezer) stuk.append(kiezer);
 
   if (toon.audio) stuk.append(maakSpeler(dataAdres(toon.audio)));
+
+  /* Duiding, boven de blokken en standaard open. Hij gaat júist over die
+     blokken — hem ertussen zetten zou betekenen dat je hem pas leest nadat je
+     de berichten al gehad hebt, en dan heeft hij geen functie meer.
+     Ontbreekt hij, dan is er geen blok: dat is een stille dag of een ronde
+     zonder sleutel, en in beide gevallen is een leeg paneel erger dan niets. */
+  if (toon.duiding && toon.duiding.length) stuk.append(tekenDuiding(toon.duiding));
 
   const kleuren = { internationaal:'var(--teal)', nationaal:'var(--accent)',
                     lokaal:'var(--olijf)', ai:'var(--leisteen)', bron:'var(--accent)',
