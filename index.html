@@ -1311,19 +1311,67 @@ function tekenUitdaging() {
 /* Gert wilde er op 1 november 2026 bij: elke maandag wegen en de buikomvang
    meten, met een duwtje om het ook echt in te vullen.
 
-   Per week opgeslagen onder de maandag van die week, niet per dag. Zo is "deze
-   week gemeten" een vraag met één antwoord, en kun je twee metingen uit dezelfde
-   week niet door elkaar halen.
+   **Sinds 4 november 2026 weegt hij elke dag** -- die ochtend was zijn
+   weegschaal bezorgd. Het gewicht gaat dus per dag in de opslag en niet meer
+   per week; de buikomvang blijft wél een keer per week, want een meetlint elke
+   ochtend levert vooral ademhaling op.
+
+   Dat ging zonder verhuizing van gegevens: de sleutel was de maandag van de
+   week, en een maandag is ook gewoon een dag. Zijn weekmetingen van 1 en
+   2 november staan er dus nog, op die maandagen, en de lijn loopt er dwars
+   doorheen. Eén dict `st.metingen[datum] = { gewicht, buik, op }`, waarin
+   `buik` op de meeste dagen leeg is.
+
+   Wat er wél aan vastzat staat verderop: het gemiddelde van zeven dagen in
+   plaats van één ochtend (`weekvenster()`), een ruisgrens die mee omlaag kon
+   (`MEETRUIS`), en een trend die op dagen let en niet op het aantal metingen
+   (`MIN_REEKS_DAGEN`). Die laatste twee waren geen opsmuk maar nodig: met
+   zeven metingen per week waren drie metingen opeens drie dagen, en daar een
+   lijn naar 1 januari door trekken is geen verwachting.
 
    Buikomvang staat er bewust naast het gewicht. Bij krachttraining komt er spier
    bij terwijl er vet af gaat, en dan staat de weegschaal weken stil terwijl de
    centimeters wél bewegen. Eén getal zou dus het verkeerde verhaal vertellen. */
-function metingVanWeek(maandag) {
-  return (st.metingen && st.metingen[maandag]) || null;
+function metingVanDag(dag) {
+  return (st.metingen && st.metingen[dag]) || null;
 }
 
-function metingWeken(hoeveel) {
-  return Object.keys(st.metingen || {}).sort().reverse().slice(0, hoeveel);
+/* Alle metingen van één veld op een rij, als [datum, waarde] en op datum
+   gesorteerd -- precies wat `trendPunten()` verwacht. Dagen waarop dat veld
+   leeg bleef doen niet mee, en dat is de hele truc waarmee gewicht en
+   buikomvang in dezelfde opslag kunnen zitten met een verschillend ritme. */
+function reeksVan(veld) {
+  const uit = [];
+  for (const d of Object.keys(st.metingen || {}).sort()) {
+    const v = st.metingen[d] ? st.metingen[d][veld] : null;
+    if (v != null) uit.push([d, v]);
+  }
+  return uit;
+}
+
+/* Zeven dagen, eindigend op `tot`: het gemiddelde gewicht en de buikomvang die
+   in dat venster gemeten is.
+
+   Dit is waar dagelijks wegen voor is. Eén ochtend zegt weinig -- zout, een
+   avond laat eten en een slechte nacht doen er elk een halve kilo bij of af --
+   maar het gemiddelde van zeven ochtenden zegt wel iets, en twee van die
+   gemiddelden naast elkaar nog meer. Vandaar dat het paneel niet het getal van
+   vandaag vooropzet maar dit.
+
+   Een rollend venster en geen kalenderweek: op een donderdag wil je de zeven
+   dagen achter je hebben en niet drie. Van de buikomvang de laatste in het
+   venster en geen gemiddelde -- die wordt één keer gemeten, niet zeven keer. */
+function weekvenster(tot) {
+  const van = plusDagen(tot, -6);
+  let som = 0, aantal = 0, buik = null;
+  for (const d of Object.keys(st.metingen || {}).sort()) {
+    if (d < van || d > tot) continue;
+    const m = st.metingen[d];
+    if (m.gewicht != null) { som += m.gewicht; aantal++; }
+    if (m.buik != null) buik = m.buik;
+  }
+  return { van, tot, aantal, buik,
+           gewicht: aantal ? som / aantal : null };
 }
 
 function getal(v) {
@@ -1368,21 +1416,38 @@ function verschilTekst(nu, eerder, eenheid) {
      hele reden dat er twee getallen staan.
 
    Minder dan drie metingen levert geen lijn op: met twee punten is elke lijn
-   precies passend en dus nergens op gebaseerd. */
-const MEETRUIS = { gewicht: 0.6, buik: 1.0 };
+   precies passend en dus nergens op gebaseerd. En minder dan MIN_REEKS_DAGEN
+   aan reeks ook niet -- zie `trendVan()`. */
+/* Gewicht ging op 4 november 2026 van 0,6 naar 0,3 kg, toen Gert elke dag ging
+   wegen. Die 0,6 hoorde bij één meting per week: dan is een halve kilo over de
+   hele reeks net zo goed de ademhaling van drie maandagen als een richting.
+   Met zeven ochtenden per week vallen die uitschieters tegen elkaar weg en is
+   een derde kilo wél iets -- en dat is precies wat je van dagelijks wegen
+   terugkrijgt. De centimeters blijven op 1,0: die worden nog steeds één keer
+   per week gemeten, en daar is een meetlint ook ruiziger in. */
+const MEETRUIS = { gewicht: 0.3, buik: 1.0 };
 const MAX_PER_WEEK = { gewicht: 1.0, buik: 1.0 };
 const VELDNAAM = { gewicht: 'gewicht', buik: 'omvang' };
 const EENHEID = { gewicht: 'kg', buik: 'cm' };
 
 function dagenTussen(a, b) { return Math.round((alsDatum(b) - alsDatum(a)) / 86400000); }
 
+/* Hoe lang een reeks moet lopen voordat er een lijn door mag. Veertien dagen,
+   en dat getal verandert niets aan wat er tot 4 november 2026 gebeurde: drie
+   weekmetingen zijn maandag, maandag, maandag en dus precies veertien dagen.
+
+   Het moest er wél bij toen het wegen dagelijks werd. `trendPunten()` kijkt
+   naar het áántal punten (drie), en dat was een goede maat zolang drie punten
+   drie weken betekenden. Nu zijn drie punten drie dagen, en een
+   kleinste-kwadratenlijn door woensdag, donderdag en vrijdag rekent vrolijk
+   uit wat er op 1 januari staat. Dat is geen verwachting maar een grap met
+   twee cijfers achter de komma. */
+const MIN_REEKS_DAGEN = 14;
+
 function trendVan(veld) {
-  const weken = Object.keys(st.metingen || {}).sort();
-  const punten = [];
-  for (const w of weken) {
-    const v = st.metingen[w] ? st.metingen[w][veld] : null;
-    if (v != null) punten.push([w, v]);
-  }
+  const punten = reeksVan(veld);
+  if (punten.length && dagenTussen(punten[0][0], punten[punten.length - 1][0])
+      < MIN_REEKS_DAGEN) return null;
   return trendPunten(punten, MEETRUIS[veld], MAX_PER_WEEK[veld]);
 }
 
@@ -1416,7 +1481,11 @@ function trendPunten(punten, ruis, maxPerWeek) {
   const afgetopt = !stil && Math.abs(ruw) > grens;
   const perDag = stil ? 0 : (afgetopt ? Math.sign(ruw) * grens : ruw);
 
-  return { aantal: n, stil, afgetopt, perDag, basis, vanaf: laatste,
+  /* `dagen` is hoe lang de reeks loopt, en dat is sinds het dagelijks wegen
+     (4 november 2026) de maat die telt in plaats van `aantal`: zeven metingen
+     kunnen één week zijn of zeven weken, en voor een verwachting is dat het
+     verschil tussen iets en niets. */
+  return { aantal: n, dagen: span, stil, afgetopt, perDag, basis, vanaf: laatste,
            perWeek: perDag * 7,
            /* Waar deze lijn op een gegeven dag staat. */
            op: (datum) => basis + perDag * dagenTussen(laatste, datum) };
@@ -1461,10 +1530,16 @@ function tekenVerwachting() {
     ).join(' en ') + ' per week' }));
   }
 
-  /* Pas bij vijf metingen de tweede maand erbij. Drie weken reeks is genoeg
-     voor een richting en te weinig voor een kwartaal. */
-  const minst = Math.min.apply(null, velden.map(v => t[v].aantal));
-  for (const datum of verwachtingDatums(vandaag(), minst >= 5 ? 2 : 1)) {
+  /* Pas bij vier weken reeks de tweede maand erbij. Drie weken is genoeg voor
+     een richting en te weinig voor een kwartaal.
+
+     Dat stond tot 4 november 2026 op "vijf metingen", en dat was hetzelfde
+     bedoeld: vijf keer maandag is een maand. Sinds het dagelijks wegen is vijf
+     metingen vijf dagen, dus staat er nu waar het altijd om ging -- de lengte
+     van de reeks. De buikomvang houdt hem meestal tegen, en dat hoort: die
+     wordt één keer per week gemeten en is dus het traagste van de twee. */
+  const minst = Math.min.apply(null, velden.map(v => t[v].dagen));
+  for (const datum of verwachtingDatums(vandaag(), minst >= 28 ? 2 : 1)) {
     const delen = velden.map(v => nl(t[v].op(datum)) + ' ' + EENHEID[v]);
     vak.appendChild(el('div', {}, [
       el('span', { tekst: korteDatum(datum) + ' \u00b7 ' }),
@@ -1474,10 +1549,11 @@ function tekenVerwachting() {
 
   /* Wat de getallen hierboven niet kunnen zeggen, staat eronder. Een
      verwachting zonder die twee regels leest als een toezegging. */
-  if (minst < 5) {
+  if (minst < 28) {
     vak.appendChild(el('div', { class: 'kant',
-      tekst: 'Nog maar ' + minst + ' metingen: dat is een richting, geen '
-             + 'voorspelling. Na een maand of twee zegt deze lijn pas iets.' }));
+      tekst: 'Deze reeks loopt nog maar ' + minst + ' dagen: dat is een '
+             + 'richting, geen voorspelling. Na een maand of twee zegt deze '
+             + 'lijn pas iets.' }));
   }
   const doelen = velden.map(v => ambitieRegel(v, t[v])).filter(Boolean);
   if (doelen.length) {
@@ -1497,27 +1573,62 @@ function tekenVerwachting() {
 function tekenMeting() {
   const nu = vandaag();
   const maandag = maandagVan(nu);
-  const deze = metingVanWeek(maandag);
-  const eerder = metingWeken(8).filter(w => w < maandag);
-  const vorige = eerder.length ? st.metingen[eerder[0]] : null;
+  const vandaagGemeten = metingVanDag(nu);
+  const gewogen = !!(vandaagGemeten && vandaagGemeten.gewicht != null);
+  const reeks = reeksVan('gewicht');
+  const vorigeKeer = reeks.filter(p => p[0] < nu).slice(-1)[0] || null;
+  const deze = weekvenster(nu);
+  const ervoor = weekvenster(plusDagen(nu, -7));
+
+  /* Het meetlint hoeft er niet elke ochtend bij: één keer per week is genoeg en
+     vaker meet vooral je ademhaling. Het veld staat er dus zolang deze week --
+     vanaf maandag -- nog geen centimeters heeft. En ook nog als je ze vandaag
+     net hebt ingevuld, want anders kun je een typefout niet meer herstellen. */
+  let buikDeze = null;
+  for (const p of reeksVan('buik')) if (p[0] >= maandag) buikDeze = p;
+  const buikVeld = !buikDeze || buikDeze[0] === nu;
 
   /* Wanneer staat dit paneel er?
-     - Is deze week nog niet gemeten, dan altijd: dat is het duwtje.
-     - Is het wél gemeten, dan alleen als er iets terug te kijken valt. Je reeks
-       is de hele opbrengst van meten, en die zou je anders zes dagen per week
-       niet zien -- precies de dagen waarop je je afvraagt of het wat oplevert.
-     - Staat er één meting en is die van deze week, dan is er niets te tonen en
-       blijft het scherm kort. */
-  if (deze && !ui.metingOpen && metingWeken(2).length < 2) return null;
+     - Is er vandaag nog niet gewogen, dan altijd: dat is het duwtje. Hetzelfde
+       zolang het meetlint deze week nog moet komen.
+     - "Gedaan" kijkt naar of de centimeters er déze week staan, en niet naar
+       `buikVeld`. Dat veld blijft namelijk de hele maandag staan om een
+       typefout te kunnen herstellen -- en op dat verschil stond het paneel een
+       hele maandag in de invulstand, met de reeks eronder onzichtbaar.
+     - Is alles gedaan, dan alleen als er iets terug te kijken valt. Je reeks is
+       de hele opbrengst van meten, en zonder deze regel zag je hem juist niet
+       op de dagen dat je je afvraagt of het wat oplevert.
+     - Staat er alleen de meting van vandaag, dan is er niets te tonen en blijft
+       het scherm kort. */
+  const klaar = gewogen && !!buikDeze;
+  if (klaar && !ui.metingOpen && reeks.length < 2) return null;
 
   const vak = el('div');
 
-  if (deze && !ui.metingOpen) {
+  if (klaar && !ui.metingOpen) {
     vak.appendChild(el('div', { class: 'regel' }, [
-      el('span', { tekst: 'Deze week: ' }),
-      el('b', { tekst: deze.gewicht != null ? nl(deze.gewicht) + ' kg' : '—' }),
-      el('span', { tekst: deze.buik != null ? ' \u00b7 ' + nl(deze.buik) + ' cm' : '' }),
+      el('span', { tekst: 'Vandaag: ' }),
+      el('b', { tekst: nl(vandaagGemeten.gewicht) + ' kg' }),
+      el('span', { tekst: verschilTekst(vandaagGemeten.gewicht,
+                                        vorigeKeer && vorigeKeer[1], 'kg') }),
     ]));
+    /* Het getal waar het eigenlijk om gaat staat eronder en niet erboven, want
+       het is pas na een volle week iets. Onder drie weegmomenten in zeven dagen
+       is "gemiddelde" een duur woord voor één ochtend, en dan laat de app het
+       weg in plaats van het op te leuken. */
+    if (deze.aantal >= 3) {
+      vak.appendChild(el('div', { class: 'regel label' }, [
+        el('span', { tekst: 'Zeven dagen: ' }),
+        el('b', { tekst: nl(deze.gewicht) + ' kg' }),
+        el('span', { tekst: verschilTekst(deze.gewicht,
+                                          ervoor.aantal >= 3 ? ervoor.gewicht : null,
+                                          'kg') }),
+      ]));
+    }
+    if (buikDeze) {
+      vak.appendChild(el('div', { class: 'regel label',
+        tekst: 'Buikomvang deze week: ' + nl(buikDeze[1]) + ' cm' }));
+    }
     vak.appendChild(el('button', {
       class: 'schakel', tekst: 'Aanpassen',
       onclick: () => { ui.metingOpen = true; tekenVandaag(); },
@@ -1528,18 +1639,27 @@ function tekenMeting() {
                               placeholder: 'kg' });
     const bui = el('input', { type: 'number', step: '0.5', inputmode: 'decimal',
                               placeholder: 'cm' });
-    if (deze) {
-      if (deze.gewicht != null) gew.value = deze.gewicht;
-      if (deze.buik != null) bui.value = deze.buik;
+    if (vandaagGemeten) {
+      if (vandaagGemeten.gewicht != null) gew.value = vandaagGemeten.gewicht;
+      if (vandaagGemeten.buik != null) bui.value = vandaagGemeten.buik;
     }
     rij.appendChild(el('label', { tekst: 'Gewicht' }, [gew]));
-    rij.appendChild(el('label', { tekst: 'Buikomvang' }, [bui]));
+    if (buikVeld) rij.appendChild(el('label', { tekst: 'Buikomvang' }, [bui]));
     rij.appendChild(el('button', {
       class: 'schakel', tekst: 'Bewaren',
       onclick: () => {
-        const g = getal(gew.value), b = getal(bui.value);
+        const g = getal(gew.value), b = buikVeld ? getal(bui.value) : null;
         if (g == null && b == null) { zeg('Niets ingevuld'); return; }
-        st.metingen[maandag] = { gewicht: g, buik: b, op: nu };
+        /* Wat er al voor vandaag stond blijft staan als dat veld er nu niet is.
+           Zonder deze twee regels wiste het bewaren van je gewicht op maandag
+           de centimeters van diezelfde maandag -- en dat merk je pas weken
+           later, aan een gat in de lijn. */
+        const was = vandaagGemeten || {};
+        st.metingen[nu] = {
+          gewicht: g != null ? g : (was.gewicht != null ? was.gewicht : null),
+          buik: b != null ? b : (was.buik != null ? was.buik : null),
+          op: nu,
+        };
         ui.metingOpen = false;
         bewaar();
         tekenVandaag();
@@ -1548,7 +1668,10 @@ function tekenMeting() {
     }));
     vak.appendChild(rij);
 
-    /* Gert kreeg wisselende uitkomsten, en dat is bij buikomvang eerder regel
+    /* De uitleg hoort bij het meetlint en staat er dus alleen als dat veld
+       er is -- zes dagen per week hoef je hem niet te zien.
+
+       Gert kreeg wisselende uitkomsten, en dat is bij buikomvang eerder regel
        dan uitzondering: ademhaling, tijdstip en de hoek van het lint doen er
        elk een centimeter of twee bij. Daarom staat de werkwijze hier, en niet
        in een LEESMIJ -- je staat met het lint in je handen, niet achter je
@@ -1557,7 +1680,7 @@ function tekenMeting() {
        De navel als ijkpunt staat er bewust níet in: die verschuift mee als je
        afvalt, en dan meet je elke maand een andere plek. Het midden tussen je
        onderste rib en je heupbot blijft staan waar het staat. */
-    vak.appendChild(el('details', { class: 'uitlegvak' }, [
+    if (buikVeld) vak.appendChild(el('details', { class: 'uitlegvak' }, [
       el('summary', { tekst: 'Hoe meet ik dat goed?' }),
       el('div', { class: 'uitleg' }, [
         el('p', { tekst: 'Staand, op de huid, niet over je kleren. Liggend '
@@ -1588,39 +1711,71 @@ function tekenMeting() {
       ]),
     ]));
 
-    if (vorige) {
+    if (vorigeKeer) {
       vak.appendChild(el('div', { class: 'label', style: 'margin-top:8px',
-        tekst: 'Vorige keer: '
-               + (vorige.gewicht != null ? nl(vorige.gewicht) + ' kg' : '—')
-               + (vorige.buik != null ? ' \u00b7 ' + nl(vorige.buik) + ' cm' : '') }));
+        tekst: 'Vorige keer: ' + nl(vorigeKeer[1]) + ' kg \u00b7 '
+               + korteDatum(vorigeKeer[0]) }));
     }
   }
 
-  /* De laatste paar weken eronder: daar zit de hele opbrengst van meten. Eén
-     getal zegt niets, vier op een rij laten een richting zien. */
-  const weken = metingWeken(4);
-  if (weken.length > 1) {
-    const hist = el('div', { class: 'metinghistorie' });
-    for (let i = 0; i < weken.length; i++) {
-      const m = st.metingen[weken[i]];
-      const v = i + 1 < weken.length ? st.metingen[weken[i + 1]] : null;
-      hist.appendChild(el('div', {}, [
-        el('span', { tekst: korteDatum(weken[i]) + ' \u00b7 ' }),
-        el('b', { tekst: m.gewicht != null ? nl(m.gewicht) + ' kg' : '—' }),
-        el('span', { tekst: verschilTekst(m.gewicht, v && v.gewicht, 'kg') }),
-        el('span', { tekst: m.buik != null ? ' \u00b7 ' : '' }),
-        el('b', { tekst: m.buik != null ? nl(m.buik) + ' cm' : '' }),
-        el('span', { tekst: verschilTekst(m.buik, v && v.buik, 'cm') }),
-      ]));
-    }
-    vak.appendChild(hist);
+  /* De laatste weken eronder: daar zit de hele opbrengst van meten. Eén
+     getal zegt niets, vier op een rij laten een richting zien.
+
+     Elk van die vier is sinds 4 november 2026 het gemiddelde van zeven
+     dagen en niet één ochtend. Vier ochtenden op een rij laten vooral zien
+     dat een lichaam van dag tot dag een halve kilo schommelt, en dat is
+     precies wat je hier niet zoekt. Staan er in een week minder dan drie
+     weegmomenten, dan staat erbij hoeveel het waren -- in de weken van voor
+     de weegschaal is dat er één, en dan hoort de lezer te weten dat dat
+     getal geen gemiddelde is. */
+  const vensters = [];
+  const WEEKNAAM = ['deze week', 'vorige week', '2 weken terug', '3 weken terug'];
+  for (let i = 0; i < WEEKNAAM.length; i++) {
+    const w = weekvenster(plusDagen(nu, -7 * i));
+    w.naam = WEEKNAAM[i];
+    vensters.push(w);
+  }
+  /* Staat het gemiddelde van deze week hierboven al, dan hoeft diezelfde week
+     niet ook nog als eerste rij: hetzelfde getal twee regels verderop leest als
+     een fout. Dan begint de historie bij vorige week, en is één rij genoeg --
+     want het getal om mee te vergelijken staat bovenaan. */
+  const bovenaanAl = klaar && !ui.metingOpen && deze.aantal >= 3;
+  const rijen = [];
+  for (let i = 0; i < vensters.length; i++) {
+    const w = vensters[i];
+    if (i === 0 && bovenaanAl) continue;
+    if (!w.aantal && w.buik == null) continue;
+    /* Het verschil met het venster er direct voor, ook als dat leeg is --
+       dan staat er niets achter in plaats van een sprong over twee weken. */
+    const v = vensters[i + 1] || null;
+    rijen.push(el('div', {}, [
+      /* Het aantal weegmomenten hoort bij de week en niet achter het getal:
+         "93,9 kg (-0,7 kg) (2 metingen)" zijn twee haakjes op een rij en dan
+         leest niemand meer welk haakje waarover gaat. */
+      el('span', { tekst: w.naam + (w.aantal && w.aantal < 3
+        ? ' (' + w.aantal + (w.aantal === 1 ? ' meting' : ' metingen') + ')' : '')
+        + ' \u00b7 ' }),
+      el('b', { tekst: w.gewicht != null ? nl(w.gewicht) + ' kg' : '—' }),
+      el('span', { tekst: verschilTekst(w.gewicht, v && v.gewicht, 'kg') }),
+      el('span', { tekst: w.buik != null ? ' \u00b7 ' : '' }),
+      el('b', { tekst: w.buik != null ? nl(w.buik) + ' cm' : '' }),
+      el('span', { tekst: verschilTekst(w.buik, v && v.buik, 'cm') }),
+    ]));
+  }
+  if (rijen.length > (bovenaanAl ? 0 : 1)) {
+    vak.appendChild(el('div', { class: 'metinghistorie' }, rijen));
   }
 
   const vooruit = tekenVerwachting();
   if (vooruit) vak.appendChild(vooruit);
 
-  return paneel('Meten', deze ? 'deze week gedaan' : 'maandag: wegen en meten',
-                [vak]);
+  /* Wat er nog te doen is, in de kop van het paneel. "vandaag gedaan" is
+     sinds het dagelijks wegen ook echt vandaag en niet deze week. */
+  /* Ook hier `buikDeze` en niet `buikVeld`: wat er nog te doen is hangt aan de
+     week, en niet aan het veld dat op de dag zelf open blijft staan. */
+  const onder = !gewogen ? (buikDeze ? 'wegen' : 'wegen en meten')
+              : buikDeze ? 'vandaag gedaan' : 'meetlint nog';
+  return paneel('Meten', onder, [vak]);
 }
 
 /* Het sportblok: twee uitslagenlijstjes en twee tabellen, dus het tekent
