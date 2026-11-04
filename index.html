@@ -158,7 +158,24 @@
                  color: var(--ink-3); }
   .panel .regel { margin-top: 8px; font-size: 14px; }
   /* Sport. Een uitslag is drie kolommen, zodat de cijfers onder elkaar staan
-     en je de rij niet hoeft te lezen om de score te zien. */
+     en je de rij niet hoeft te lezen om de score te zien.
+
+     Sinds 4 november 2026 twee lagen: Voetbal en Formule 1 als groep, en
+     daaronder Uitslagen en Stand. Gert vroeg daarom -- het blok was één rij
+     kopjes ("Eredivisie", "Stand", "Formule 1", "WK-stand") en dan moet je uit
+     de inhoud opmaken bij welke sport een stand hoort. De sport waar iets over
+     gaat hoort erboven te staan, niet in de kop van de tabel. */
+  .sportgroep { padding: 13px 14px 1px; font-family: var(--serif);
+                font-weight: 650; font-size: 16px; }
+  /* De competitie of de race achter de sport, in de gewone letter: het is een
+     toevoeging bij "Voetbal" en geen kop op zichzelf. */
+  .sportgroep .wat { font-family: ui-sans-serif, -apple-system, sans-serif;
+                     font-weight: 400; font-size: 12.5px; color: var(--ink-3); }
+  /* Een streep boven de tweede groep en niet boven de eerste: die zit al tegen
+     de knop van het blok aan. */
+  .sportgroep + .sportkop { padding-top: 5px; }
+  .sportgroep.later { border-top: 1px solid var(--line); margin-top: 10px;
+                      padding-top: 14px; }
   .sportkop { padding: 10px 14px 4px; font-size: 12px; letter-spacing: .04em;
               text-transform: uppercase; color: var(--ink-3); }
   .uitslag { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px;
@@ -476,6 +493,9 @@
   .duiding .draadkop { display: block; font-weight: 650; font-family: var(--serif);
                        font-size: 16px; margin-bottom: 5px; }
   .duiding p { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.5; }
+  /* Een diepe draad heeft meer dan één alinea; zonder ruimte ertussen is het
+     één lap tekst. */
+  .duiding .draad p + p { margin-top: 9px; }
   /* De berichten waarop een alinea rust. Klein en ingesprongen: ze zijn er om
      na te lopen, niet om te lezen — de kop staat al in zijn eigen blok. */
   .duiding .waaruit { margin-top: 8px; padding-left: 11px;
@@ -1611,8 +1631,32 @@ function tekenMeting() {
    een Nederlandse coureur, bij het voetbal de club uit `EIGEN_CLUB` (die staat
    leeg tot Gert zegt waar hij voor is). In een uitslagenlijst zoek je eerst de
    onze, en dan hoef je niet te lezen maar te kijken. */
+/* Het sportblok in twee lagen: Voetbal en Formule 1, en daaronder Uitslagen en
+ * Stand. Gert vroeg daar op 4 november 2026 om. Het was één rij kopjes --
+ * "Eredivisie", "Stand", "Formule 1", "WK-stand" -- en dan staat de sport waar
+ * iets over gaat nergens boven de stand die erbij hoort.
+ *
+ * De competitie en de race blijven staan, maar als toevoeging achter de sport:
+ * "Voetbal  Eredivisie" en "Formule 1  Grand Prix van Brazilië". Dat is waar
+ * ze thuishoren -- het zijn twee dingen over hetzelfde, en een kopje
+ * "Uitslagen" zegt al wat eronder staat.
+ */
 function tekenSport(sp) {
   const vak = document.createElement('div');
+  /* De groepskop. `later` zet een streep erboven; die wil je tussen de twee
+     sporten en niet boven de eerste, want daar zit de knop van het blok al. */
+  const groep = (naam, wat) => {
+    const d = document.createElement('div');
+    d.className = 'sportgroep' + (vak.children.length ? ' later' : '');
+    d.append(document.createTextNode(naam));
+    if (wat) {
+      const w = document.createElement('span');
+      w.className = 'wat';
+      w.textContent = '\u00a0\u00a0' + wat;
+      d.append(w);
+    }
+    vak.append(d);
+  };
   const kopje = (t) => {
     const d = document.createElement('div');
     d.className = 'sportkop';
@@ -1627,8 +1671,13 @@ function tekenSport(sp) {
   };
 
   const v = sp.voetbal || {};
+  /* De groepskop alleen als er ook iets onder komt te staan. Een kale kop
+     "Voetbal" zonder uitslag en zonder stand is erger dan geen kop. */
+  if ((v.uitslagen || []).length || (v.stand || []).length) {
+    groep('Voetbal', 'Eredivisie');
+  }
   if ((v.uitslagen || []).length) {
-    kopje('Eredivisie');
+    kopje('Uitslagen');
     for (const u of v.uitslagen) {
       const rij = document.createElement('div');
       rij.className = 'uitslag' + (u.eigen ? ' eigen' : '');
@@ -1672,8 +1721,11 @@ function tekenSport(sp) {
   }
 
   const f = sp.f1 || {};
+  if ((f.uitslag || []).length || (f.stand || []).length) {
+    groep('Formule 1', f.race || '');
+  }
   if ((f.uitslag || []).length) {
-    kopje('Formule 1' + (f.race ? ' \u00b7 ' + f.race : ''));
+    kopje('Uitslagen');
     for (const r of f.uitslag) {
       const rij = document.createElement('div');
       rij.className = 'ritrij' + (r.eigen ? ' eigen' : '');
@@ -1685,7 +1737,7 @@ function tekenSport(sp) {
   }
 
   if ((f.stand || []).length) {
-    kopje('WK-stand');
+    kopje('Stand');
     for (const r of f.stand) {
       const rij = document.createElement('div');
       rij.className = 'ritrij' + (r.eigen ? ' eigen' : '');
@@ -3523,12 +3575,22 @@ function tekenDuiding(draden) {
 
   for (const d of draden) {
     const el = document.createElement('div');
-    el.className = 'draad';
-    el.innerHTML = '<span class="draadkop"></span><p></p>';
+    el.className = 'draad' + (d.diep ? ' diep' : '');
+    el.innerHTML = '<span class="draadkop"></span>';
     /* textContent en geen innerHTML: deze tekst komt van een model, en een
        losse < of & hoort als teken op het scherm te komen en niet als opmaak. */
     el.querySelector('.draadkop').textContent = d.titel || '';
-    el.querySelector('p').textContent = d.tekst || '';
+    /* Eén <p> per alinea. Een gewone draad is één alinea en dan verandert er
+       niets; een diepe draad (sinds 4 november 2026, voor de midterms) komt met
+       witregels uit `duiden.py` en bestaat uit vier stukken: wat er gebeurde,
+       hoe erop gereageerd wordt, en wat het op korte en lange termijn kan
+       betekenen. Die aan elkaar plakken maakt er een muur van. */
+    for (const alinea of String(d.tekst || '').split(/\n\s*\n/)) {
+      if (!alinea.trim()) continue;
+      const pp = document.createElement('p');
+      pp.textContent = alinea.trim();
+      el.append(pp);
+    }
 
     if (d.verwijzingen && d.verwijzingen.length) {
       const uit = document.createElement('div');
@@ -3554,8 +3616,17 @@ function tekenDuiding(draden) {
 
   const voet = document.createElement('p');
   voet.className = 'herkomst';
-  voet.textContent = 'Geschreven door een model, alleen uit de berichten in ' +
-    'deze briefing \u2014 de bronnen staan eronder zodat je het kunt nalopen.';
+  /* Staat er een diepe draad bij, dan is "alleen uit de berichten in deze
+     briefing" niet meer waar: in zo'n draad mogen de laatste twee alinea's
+     zeggen wat er uit de uitslag volgt, en dat is het model dat redeneert.
+     Dat hoort er dan ook te staan -- anders leest een gevolgtrekking als een
+     bericht, en dat is precies het verschil dat deze voetregel moet maken. */
+  voet.textContent = draden.some(d => d.diep)
+    ? 'Geschreven door een model. De feiten komen uit de berichten in deze ' +
+      'briefing en de bronnen staan eronder; wat een langer stuk over de ' +
+      'gevolgen zegt, is de gevolgtrekking van het model zelf.'
+    : 'Geschreven door een model, alleen uit de berichten in deze briefing ' +
+      '\u2014 de bronnen staan eronder zodat je het kunt nalopen.';
   inhoud.append(voet);
 
   vak.append(inhoud);
