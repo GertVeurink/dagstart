@@ -171,13 +171,12 @@
      toevoeging bij "Voetbal" en geen kop op zichzelf. */
   .sportgroep .wat { font-family: ui-sans-serif, -apple-system, sans-serif;
                      font-weight: 400; font-size: 12.5px; color: var(--ink-3); }
-  /* Een streep boven de tweede groep en niet boven de eerste: die zit al tegen
-     de knop van het blok aan. */
-  .sportgroep + .sportkop { padding-top: 5px; }
   .sportgroep.later { border-top: 1px solid var(--line); margin-top: 10px;
                       padding-top: 14px; }
-  .sportkop { padding: 10px 14px 4px; font-size: 12px; letter-spacing: .04em;
-              text-transform: uppercase; color: var(--ink-3); }
+  /* Uitslagen en Stand zijn knoppen (.subkop, dezelfde als de kopjes in een
+     nieuwsblok). De streep boven zo'n knop hoort er tussen twee kopjes wél en
+     direct onder de naam van de sport niet -- daar staat al een kop. */
+  .sportgroep + .subkop { border-top: 0; padding-top: 6px; }
   .uitslag { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px;
              align-items: baseline; padding: 9px 14px;
              border-bottom: 1px solid var(--line); }
@@ -1657,11 +1656,35 @@ function tekenSport(sp) {
     }
     vak.append(d);
   };
-  const kopje = (t) => {
-    const d = document.createElement('div');
-    d.className = 'sportkop';
-    d.textContent = t;
-    vak.append(d);
+  /* Uitslagen en Stand klappen uit, sinds 4 november 2026 op Gerts verzoek.
+     Dichtgeklapt is het blok een menuutje van vier regels in plaats van 47
+     rijen -- de stand van de Eredivisie alleen is er al achttien.
+
+     Dezelfde knop als de kopjes binnen een nieuwsblok (`.subkop`) en dezelfde
+     opslag (`ui.kopOpen`), zodat het zich gedraagt zoals je het van de rest
+     kent: dicht als je de briefing opent, en open zolang de app open blijft.
+     `herteken` zet je na de klik weer op dezelfde hoogte, want anders spring je
+     bij het openklappen van de stand terug naar de bovenkant van het scherm.
+
+     `vullen` wordt alleen aangeroepen als het kopje open staat: dichtgeklapt
+     hoeft die tabel niet gebouwd te worden. */
+  const kopje = (naam, id, aantal, vullen) => {
+    const sleutel = 'sport|' + id;
+    const open = !!ui.kopOpen[sleutel];
+    const knop = document.createElement('button');
+    knop.type = 'button';
+    knop.dataset.sleutel = 'kop:' + sleutel;
+    knop.className = 'subkop' + (open ? ' open' : '');
+    knop.innerHTML = '<span class="naam"></span><span class="aantal"></span>' +
+                     '<span class="pijl">&#9656;</span>';
+    knop.querySelector('.naam').textContent = naam;
+    knop.querySelector('.aantal').textContent = aantal;
+    knop.addEventListener('click', () => {
+      ui.kopOpen[sleutel] = !ui.kopOpen[sleutel];
+      herteken(tekenBriefing, 'kop:' + sleutel);
+    });
+    vak.append(knop);
+    if (open) vullen();
   };
   const voet = (t) => {
     const d = document.createElement('div');
@@ -1677,7 +1700,7 @@ function tekenSport(sp) {
     groep('Voetbal', 'Eredivisie');
   }
   if ((v.uitslagen || []).length) {
-    kopje('Uitslagen');
+    kopje('Uitslagen', 'voetbal-uitslagen', v.uitslagen.length, () => {
     for (const u of v.uitslagen) {
       const rij = document.createElement('div');
       rij.className = 'uitslag' + (u.eigen ? ' eigen' : '');
@@ -1696,10 +1719,11 @@ function tekenSport(sp) {
       }
       vak.append(rij);
     }
+    });
   }
 
   if ((v.stand || []).length) {
-    kopje('Stand');
+    kopje('Stand', 'voetbal-stand', v.stand.length, () => {
     const t = document.createElement('table');
     t.className = 'stand';
     t.innerHTML = '<tr><th></th><th class="club">club</th><th>gesp</th>'
@@ -1718,6 +1742,7 @@ function tekenSport(sp) {
       t.append(rij);
     }
     vak.append(t);
+    });
   }
 
   const f = sp.f1 || {};
@@ -1725,7 +1750,7 @@ function tekenSport(sp) {
     groep('Formule 1', f.race || '');
   }
   if ((f.uitslag || []).length) {
-    kopje('Uitslagen');
+    kopje('Uitslagen', 'f1-uitslagen', f.uitslag.length, () => {
     for (const r of f.uitslag) {
       const rij = document.createElement('div');
       rij.className = 'ritrij' + (r.eigen ? ' eigen' : '');
@@ -1734,10 +1759,11 @@ function tekenSport(sp) {
       rij.children[1].textContent = r.naam;
       vak.append(rij);
     }
+    });
   }
 
   if ((f.stand || []).length) {
-    kopje('Stand');
+    kopje('Stand', 'f1-stand', f.stand.length, () => {
     for (const r of f.stand) {
       const rij = document.createElement('div');
       rij.className = 'ritrij' + (r.eigen ? ' eigen' : '');
@@ -1748,6 +1774,7 @@ function tekenSport(sp) {
       rij.children[2].textContent = r.punten;
       vak.append(rij);
     }
+    });
   }
 
   if (f.volgende && f.volgende.wanneer) {
