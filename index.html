@@ -13,6 +13,13 @@
 <link rel="icon" type="image/png" href="icoon-192.png">
 <style>
   :root {
+    /* Zeg erbij dat deze pagina allebei de standen kent. Zonder deze regel
+       schildert de browser het venster vóór de eerste tekening met zijn eigen
+       standaard, en dat is in de donkere stand zwart -- een zwarte flits vlak
+       voor een app die juist donkergroen is. Met color-scheme pakt hij de
+       kleur die bij de stand hoort en valt die flits niet meer op.
+       Gert meldde dat op 6 november 2026. */
+    color-scheme: light dark;
     /* Gert's natuurstijl: bosgroen op perkament, dezelfde kleuren als zijn
        reis-PDF's. Crème in plaats van wit, omdat een wit scherm om half zeven
        's ochtends te hard is. */
