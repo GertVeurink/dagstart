@@ -20,7 +20,11 @@
  * briefing zonder bereik niet meer te lezen zou zijn. Juist in de trein.
  */
 const DATA_HOST = 'raw.githubusercontent.com';
-const VERSIE = 'oprij-cf928c52';
+/* Hoe lang het netwerk de tijd krijgt voordat de cache het overneemt. Twee
+   seconden: lang genoeg dat een gewone verbinding hem altijd wint, kort genoeg
+   dat je er bij een trage niet naar zit te kijken. */
+const NETWERK_GEDULD = 2000;
+const VERSIE = 'oprij-e5eb24d9';
 const BESTANDEN = [
   './',
   './index.html',
@@ -69,24 +73,50 @@ self.addEventListener('fetch', (e) => {
 
   e.respondWith((async () => {
     const cache = await caches.open(VERSIE);
-    try {
-      const res = await fetch(req);
-      /* Van ons eigen adres is het antwoord 'basic', van de gegevenshost
-         'cors'. Beide mogen in de cache; een 'opaque' antwoord (een mislukte
-         CORS-poging) niet, want dat is een leeg omhulsel. */
+    /* Van ons eigen adres is het antwoord 'basic', van de gegevenshost
+       'cors'. Beide mogen in de cache; een 'opaque' antwoord (een mislukte
+       CORS-poging) niet, want dat is een leeg omhulsel.
+
+       Deze belofte gaat nooit stuk -- een mislukte poging wordt `null`.
+       Zonder die `catch` zou een verzoek dat we hieronder laten lopen een
+       onafgehandelde afwijzing opleveren. */
+    const netwerk = fetch(req).then((res) => {
       if (res && res.ok && (res.type === 'basic' || res.type === 'cors')) {
         cache.put(req, res.clone());
       }
       return res;
-    } catch (err) {
-      const uitCache = await cache.match(req, { ignoreSearch: true });
-      if (uitCache) return uitCache;
-      if (req.mode === 'navigate') {
-        const index = await cache.match('./index.html');
-        if (index) return index;
-      }
-      throw err;
+    }).catch(() => null);
+    /* Het ophalen mag doorlopen nadat we al geantwoord hebben: zo staat de
+       verse versie in de cache voordat de app de volgende keer opengaat. */
+    e.waitUntil(netwerk);
+
+    const uitCache = await cache.match(req, { ignoreSearch: true });
+    if (uitCache) {
+      /* Netwerk-eerst blijft het uitgangspunt -- deze app verandert vaak en
+         je moet niet stilletjes een oude versie zien. Maar "eerst" is niet
+         "hoe lang het ook duurt": tot 6 november 2026 wachtte de telefoon bij
+         het opstarten op het hele bestand voordat er iets te zien was, en dat
+         bestand groeide in een week van 115 naar 261 kB. Gert zag daardoor
+         een zwart scherm bij het openen.
+
+         Nu krijgt het netwerk NETWERK_GEDULD de tijd; daarna komt wat er in
+         de cache staat op het scherm en wordt die op de achtergrond
+         bijgewerkt. Je loopt dus hoogstens één keer openen achter, en alleen
+         op een trage verbinding. */
+      const res = await Promise.race([
+        netwerk,
+        new Promise((klaar) => setTimeout(() => klaar(null), NETWERK_GEDULD)),
+      ]);
+      return res || uitCache;
     }
+
+    const res = await netwerk;
+    if (res) return res;
+    if (req.mode === 'navigate') {
+      const index = await cache.match('./index.html');
+      if (index) return index;
+    }
+    return Response.error();
   })());
 });
 
