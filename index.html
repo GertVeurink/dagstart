@@ -432,6 +432,12 @@
   .bericht .titel { display: block; line-height: 1.4; }
   .bericht .meta { display: block; margin-top: 3px; font-size: 12.5px; color: var(--ink-3); }
   a.bericht .titel { color: var(--accent-ink); }
+  /* De lijst met pushberichten. Een kopje per dag, want je zoekt op
+     'wat kwam er vannacht' en niet op een doorlopende rij. */
+  .meldingdag + .meldingdag { margin-top: 4px; }
+  .meldingdag .dagkop { padding: 9px 14px 2px; font-size: 12.5px;
+                        font-weight: 650; color: var(--ink-3);
+                        text-transform: lowercase; }
   .weerkaart { padding: 13px 14px; }
   /* De omslag is het enige in dit blok dat je echt moet zien: morgen is meestal
      als vandaag, een weersomslag niet. */
@@ -683,6 +689,7 @@
   <div id="tab-training" hidden></div>
   <div id="tab-spel" hidden></div>
   <div id="tab-vandaag" hidden></div>
+  <div id="tab-meldingen" hidden></div>
   <div id="tab-terugblik" hidden></div>
   <div id="tab-instellingen" hidden></div>
 </main>
@@ -949,7 +956,8 @@ let opslagWerkt = true;
 
 function leeg() {
   return { versie: 1, taken: [], dagen: {}, doelen: Object.assign({}, STANDAARD_DOELEN),
-           bewaard: [], gevierd: [], dossiers: [], metingen: {}, laatsteKopie: null };
+           bewaard: [], gevierd: [], dossiers: [], metingen: {}, laatsteKopie: null,
+           meldingGezien: null };
 }
 
 /* Elk veld hier moet ook in leeg() staan, en andersom.
@@ -975,6 +983,7 @@ function vormGoed() {
   if (!Array.isArray(st.gevierd)) st.gevierd = [];
   if (!Array.isArray(st.dossiers)) st.dossiers = [];
   if (!st.metingen || typeof st.metingen !== 'object') st.metingen = {};
+  if (typeof st.meldingGezien !== 'string') st.meldingGezien = null;
 }
 
 function laad() {
@@ -3286,6 +3295,161 @@ async function warmArchief(dagen) {
   }
 }
 
+/* ===================================================================
+   Meldingen — de pushberichten terugvinden
+   ===================================================================
+   Gert vroeg dit op 7 november 2026: de pushberichten komen goed aan en staan
+   kort op zijn scherm, maar waar vindt hij ze daarna terug? Het antwoord was
+   "nergens". Niet omdat er iets stuk was: alle meldingen van deze app dragen
+   één en dezelfde `tag` ('dagstart-breaking'), en van één tag houdt iOS maar
+   één bericht in het berichtencentrum. Een nieuwe verving dus de vorige, en
+   tikte je hem aan, dan opende de link en was ook die weg. Op de Mac stond
+   alles in breaking-historie.txt; op de telefoon niets.
+
+   Die tag blijft zoals hij is -- de telefoon hoeft geen stapel, dat was juist
+   de bedoeling. Dit scherm is het archief. `breaking.py` zet de laatste dertig
+   dagen als meldingen.json naast de briefing.
+
+   Waarom niet uit de briefing zelf: een pushbericht is iets anders dan een
+   bericht in de briefing. Het is wat je 's nachts of middags *tussendoor* is
+   toegestuurd, en soms staat het nergens anders -- een pestvogel om de hoek,
+   het afval dat morgen aan de weg moet. Dat hoort dus in een eigen lijst. */
+const MELD_SLEUTEL = 'dagstart.meldingen';
+let meldingen = [];
+
+/* Leesbare naam per soort. De sleutels zijn de `waarom`-waarden uit
+   breaking.py; staat er een onbekende in, dan komt die ruw in beeld in plaats
+   van te verdwijnen. */
+const MELDING_SOORT = {
+  afval: 'Afval',
+  zeldzaam: 'Zeldzame soort',
+  pestvogels: 'Pestvogels',
+  kraanvogels: 'Kraanvogels',
+  topbenoeming: 'Topbenoeming',
+  aftreden: 'Aftreden',
+  wereldleider: 'Wereldleider',
+  oorlog: 'Oorlog',
+  midterms: 'Midterms',
+  politiebegroting: 'Politiebegroting',
+};
+
+function meldingenUitOpslag() {
+  try {
+    const rauw = localStorage.getItem(MELD_SLEUTEL);
+    const d = rauw ? JSON.parse(rauw) : null;
+    return d && Array.isArray(d.items) ? d.items : [];
+  } catch (e) { return []; }
+}
+
+/* Net als de briefing: eerst wat er bewaard staat, dan verversen. Zo staat de
+   lijst er ook zonder bereik -- en dat is nu juist het geval waarin je hem
+   nodig hebt, want een melding die je in de trein wegtikte wil je later nog
+   kunnen opzoeken. */
+async function haalMeldingen() {
+  /* Opnieuw tekenen en niet alleen dit scherm: het telletje op het
+     startscherm hangt hier ook aan, en dát is wat je als eerste ziet. */
+  meldingen = meldingenUitOpslag();
+  if (meldingen.length) tekenAlles();
+  try {
+    const r = await fetch(dataAdres('meldingen.json') + '?t=' + Date.now(),
+                          { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    const verse = await r.json();
+    if (verse && Array.isArray(verse.items)) {
+      meldingen = verse.items;
+      try { localStorage.setItem(MELD_SLEUTEL, JSON.stringify(verse)); } catch (e) {}
+      tekenAlles();
+    }
+  } catch (e) {
+    /* Nog niet gepubliceerd of geen bereik. Dan blijft staan wat er stond. */
+  }
+}
+
+/* Hoeveel er zijn bijgekomen sinds je dit scherm voor het laatst opende. Dit is
+   waar het om gaat: je pakt de telefoon 's ochtends op en wil zien wat je
+   vannacht gemist hebt. */
+function nieuweMeldingen() {
+  if (!st.meldingGezien) return meldingen.length;
+  return meldingen.filter((m) => m.op > st.meldingGezien).length;
+}
+
+function tekenMeldingen() {
+  const doel = document.getElementById('tab-meldingen');
+  doel.textContent = '';
+
+  /* Eerst vastleggen wat je nog niet gezien had, dán bijwerken: anders is het
+     stipje weg op het moment dat je ernaar kijkt. */
+  const gezienVoor = st.meldingGezien;
+  if (meldingen.length) {
+    const nieuwste = meldingen[0].op;
+    if (nieuwste !== st.meldingGezien) { st.meldingGezien = nieuwste; bewaar(); }
+  }
+
+  if (!meldingen.length) {
+    doel.appendChild(paneel('Meldingen', null, [
+      el('div', { class: 'bericht' }, [
+        el('span', { class: 'titel', tekst: 'Nog niets binnengekomen' }),
+        el('span', { class: 'meta', tekst:
+          'Hier komen de berichten te staan die je als melding op je telefoon '
+          + 'krijgt — afval, een zeldzame soort vlakbij, de pestvogels, en het '
+          + 'nieuws waarvoor je niet wilt wachten tot de volgende briefing.' }),
+      ]),
+    ]));
+    return;
+  }
+
+  /* Per dag, nieuwste bovenaan. meldingen.json staat al in die volgorde. */
+  const perDag = [];
+  for (const m of meldingen) {
+    const dag = m.op.slice(0, 10);
+    if (!perDag.length || perDag[perDag.length - 1].dag !== dag) {
+      perDag.push({ dag: dag, items: [] });
+    }
+    perDag[perDag.length - 1].items.push(m);
+  }
+
+  const nieuw = gezienVoor
+    ? meldingen.filter((m) => m.op > gezienVoor).length : meldingen.length;
+  doel.appendChild(paneel(
+    'Meldingen',
+    nieuw ? (nieuw === 1 ? 'één nieuwe sinds je laatste bezoek'
+                         : nieuw + ' nieuwe sinds je laatste bezoek')
+          : 'de laatste dertig dagen',
+    perDag.map((groep) => el('div', { class: 'meldingdag' }, [
+      el('div', { class: 'dagkop', tekst: meldingDagTekst(groep.dag) }),
+    ].concat(groep.items.map((m) => {
+      const verser = gezienVoor ? m.op > gezienVoor : true;
+      const soort = MELDING_SOORT[m.waarom] || m.waarom;
+      const regel = [
+        el('span', { class: 'titel', tekst: m.titel }),
+        el('span', { class: 'meta',
+                     tekst: m.op.slice(11) + ' · ' + soort
+                            + (m.bron && m.bron !== soort ? ' · ' + m.bron : '') }),
+      ];
+      if (verser) regel[0].appendChild(el('span', { class: 'nieuwtje', tekst: 'nieuw' }));
+      /* Een link als er een is -- bij het afval wijst hij naar de app zelf en
+         dan heeft aanklikken geen zin. */
+      const extern = m.link && !m.link.startsWith(location.origin)
+                     && m.link !== 'https://gertveurink.github.io/dagstart/';
+      return extern
+        ? el('a', { class: 'bericht', href: m.link, target: '_blank',
+                    rel: 'noopener' }, regel)
+        : el('div', { class: 'bericht' }, regel);
+    })))))
+  );
+}
+
+/* 'vandaag', 'gisteren', en daarvoor de dag met datum. Dezelfde toon als
+   korteDag() hierboven, maar met het jaar eraf en de weekdag erbij -- je kijkt
+   hier terug en dan wil je weten of het een werkdag was. */
+function meldingDagTekst(datum) {
+  if (datum === vandaag()) return 'vandaag';
+  const d = new Date(datum + 'T12:00:00');
+  const g = new Date(vandaag() + 'T12:00:00');
+  if (Math.round((g - d) / 864e5) === 1) return 'gisteren';
+  return DAGNAMEN[d.getDay()] + ' ' + d.getDate() + ' ' + MAANDEN[d.getMonth()];
+}
+
 /* De briefing die nu getoond wordt: die van vandaag, of een dag uit het
    archief die nog aan het laden kan zijn. */
 function huidigeBriefing() {
@@ -3412,9 +3576,22 @@ function tekenStart() {
 
   const voet = document.createElement('div');
   voet.className = 'startvoet';
-  for (const [naam, tab] of [['Terugblik','terugblik'], ['Instellingen','instellingen']]) {
+  const nieuweM = nieuweMeldingen();
+  for (const [naam, tab] of [['Meldingen','meldingen'], ['Terugblik','terugblik'],
+                             ['Instellingen','instellingen']]) {
     const k = document.createElement('button');
     k.textContent = naam;
+    /* Het aantal erbij, maar alleen als er iets nieuws is. Een vast cijfer
+       achter 'Meldingen' zou je leren het te negeren. */
+    /* Met de hand en niet met el(): binnen deze functie is `el` een lokale
+       div (zie boven), en die overschaduwt de hulpfunctie. Dat kostte hier
+       een "el is not a function" die de hele startpagina leeg liet. */
+    if (tab === 'meldingen' && nieuweM) {
+      const stip = document.createElement('span');
+      stip.className = 'nieuwtje';
+      stip.textContent = String(nieuweM);
+      k.appendChild(stip);
+    }
     k.addEventListener('click', () => { ui.tab = tab; tekenAlles(); window.scrollTo(0,0); });
     voet.append(k);
   }
@@ -5573,6 +5750,7 @@ function tekenAlles() {
   if (ui.tab === 'training') tekenTraining();
   if (ui.tab === 'spel') tekenSpel();
   if (ui.tab === 'vandaag') tekenVandaag();
+  if (ui.tab === 'meldingen') tekenMeldingen();
   if (ui.tab === 'terugblik') tekenTerugblik();
   if (ui.tab === 'instellingen') tekenInstellingen();
   for (const knop of document.querySelectorAll('.tabs button')) {
@@ -5584,6 +5762,7 @@ function tekenAlles() {
   document.getElementById('tab-training').hidden = ui.tab !== 'training';
   document.getElementById('tab-spel').hidden = ui.tab !== 'spel';
   document.getElementById('tab-vandaag').hidden = ui.tab !== 'vandaag';
+  document.getElementById('tab-meldingen').hidden = ui.tab !== 'meldingen';
   document.getElementById('tab-terugblik').hidden = ui.tab !== 'terugblik';
   document.getElementById('tab-instellingen').hidden = ui.tab !== 'instellingen';
 }
@@ -5613,6 +5792,7 @@ function controleerDag() {
     rolDoor();
     tekenAlles();
     haalBriefing();   /* nieuwe dag: ook een nieuwe briefing proberen */
+    haalMeldingen();
   }
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) controleerDag(); });
@@ -5625,6 +5805,7 @@ getekendOp = vandaag();
 tekenAlles();
 
 haalBriefing();
+haalMeldingen();
 
 if (!opslagWerkt) zeg('Let op: deze browser bewaart niets');
 
