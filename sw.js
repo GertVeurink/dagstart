@@ -24,11 +24,12 @@ const DATA_HOST = 'raw.githubusercontent.com';
    seconden: lang genoeg dat een gewone verbinding hem altijd wint, kort genoeg
    dat je er bij een trage niet naar zit te kijken. */
 const NETWERK_GEDULD = 2000;
-const VERSIE = 'oprij-300582ac';
+const VERSIE = 'oprij-f9bf6dfa';
 const BESTANDEN = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './beeldmerk-masker.png',
   './icoon-180.png',
   './icoon-192.png',
   './icoon-512.png',
