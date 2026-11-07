@@ -84,10 +84,25 @@
   header.app { position: sticky; top: 0; z-index: 30; background: var(--panel); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top); }
   .bar { max-width: 720px; margin: 0 auto; padding: 9px 14px; display: flex; align-items: center; gap: 10px; }
   .brand { display: flex; align-items: baseline; gap: 8px; margin-right: auto; min-width: 0; }
+  /* Het beeldmerk: Gerts beekrombout, dezelfde libel als op het app-icoon.
+     Als masker en niet als gewone afbeelding -- de inkt is donkergroen
+     (#1f4a2e) en zou op de donkere achtergrond (#161a15) bijna onzichtbaar
+     zijn. Nu legt de balk er `--accent` onder en gaat hij vanzelf mee met de
+     lichte en de donkere stand.
+     `align-self` omdat .brand op `baseline` uitlijnt; een masker heeft geen
+     basislijn en zou daardoor aan de onderkant blijven hangen. */
+  .brand .merk { width: 19px; height: 21px; flex: none; align-self: center;
+                 background: var(--accent);
+                 -webkit-mask: url(beeldmerk-masker.png) center / contain no-repeat;
+                 mask: url(beeldmerk-masker.png) center / contain no-repeat; }
   .brand b { font-size: 19px; font-weight: 700; letter-spacing: -.02em; white-space: nowrap; }
   .brand span { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  /* op een smalle telefoon staat de datum toch al boven het eerste blok */
-  @media (max-width: 520px) { .brand span { display: none; } }
+  /* op een smalle telefoon staat de datum toch al boven het eerste blok.
+     Op #vandaag-tekst en niet op `.brand span`: dat laatste verborg op
+     7 november 2026 ook het beeldmerk, dat óók een span is. Een regel die
+     "alle spans hierbinnen" zegt gaat stuk op het moment dat je er eentje
+     bij zet. */
+  @media (max-width: 520px) { .brand #vandaag-tekst { display: none; } }
   .tabs { display: flex; gap: 2px; background: var(--panel-2); padding: 3px; border-radius: 9px; border: 1px solid var(--line); }
   .tabs button { border: 0; background: transparent; color: var(--ink-2); padding: 7px 11px; border-radius: 7px; cursor: pointer; font-weight: 550; font-size: 14px; white-space: nowrap; }
   .tabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
@@ -673,6 +688,7 @@
   <div class="bar">
     <div class="brand">
       <button id="naar-start" aria-label="Terug naar start">&#8592;</button>
+      <span class="merk" aria-hidden="true"></span>
       <b>Dagstart</b><span id="vandaag-tekst"></span>
     </div>
     <div class="tabs" role="tablist">
