@@ -359,10 +359,14 @@
   }
 
   /* ---------- Ochtendbriefing ---------- */
-  .briefkop { padding: 14px 16px 4px; }
+  /* Titel en datum op één regel en de titel kleiner dan een gewone h1: het
+     eerste scherm hoort aan het nieuws te gaan en niet aan de vorm. */
+  .briefkop { padding: 12px 16px 2px; display: flex; align-items: baseline;
+              flex-wrap: wrap; column-gap: 10px; }
+  .briefkop h1 { font-size: 25px; }
   .briefkop .datum { color: var(--ink-2); font-size: 14px; }
   .speler {
-    margin: 10px 16px 4px; padding: 12px 14px; background: var(--panel);
+    margin: 10px 16px 4px; padding: 8px 12px; background: var(--panel);
     border: 1px solid var(--line); border-left: 6px solid var(--accent);
     border-radius: var(--radius); box-shadow: var(--shadow);
   }
@@ -385,7 +389,12 @@
   .speler .duur {
     font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums;
   }
-  .speler .bediening { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  /* Eén regel: knoppen, balk en tijd naast elkaar. Er stond een kopregel
+     "Ingesproken" boven, en die nam samen met de ruimte eromheen een derde van
+     de hoogte van de speler zonder iets te zeggen wat je niet al ziet. */
+  .speler .bediening { display: flex; align-items: center; gap: 8px; }
+  .speler .tijd { min-width: 0; }
+  .speler .bediening .duur { flex: none; }
   .speler button.knop {
     flex: none; display: grid; place-items: center; cursor: pointer;
     background: none; border: 1px solid var(--line-2); color: var(--ink-2);
@@ -473,7 +482,6 @@
      een title-tekst, en die ziet een telefoon nooit, want er is niets om op te
      hoveren. Nu staat het woord er gewoon. Een knop die uitleg nodig heeft is
      geen knop maar een raadsel. */
-  .duidingtijd { margin: 0 0 12px; }
   .volgknop { flex: 0 0 auto; background: var(--panel-2); cursor: pointer;
               margin: 0 10px 0 6px; padding: 6px 10px; line-height: 1;
               font-family: inherit; font-size: 12.5px; white-space: nowrap;
@@ -514,28 +522,104 @@
           background: var(--panel); border-left: 3px solid var(--accent); }
   .slim p { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
   .slim p + p { margin-top: 6px; }
-  .duiding { padding: 4px 14px 13px; }
-  .duiding .draad { padding-top: 13px; }
-  .duiding .draad + .draad { border-top: 1px solid var(--line); margin-top: 13px; }
-  .duiding .draadkop { display: block; font-weight: 650; font-family: var(--serif);
-                       font-size: 16px; margin-bottom: 5px; }
-  .duiding p { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.5; }
-  /* Een diepe draad heeft meer dan één alinea; zonder ruimte ertussen is het
-     één lap tekst. */
-  .duiding .draad p + p { margin-top: 9px; }
-  /* De berichten waarop een alinea rust. Klein en ingesprongen: ze zijn er om
-     na te lopen, niet om te lezen — de kop staat al in zijn eigen blok. */
-  .duiding .waaruit { margin-top: 8px; padding-left: 11px;
-                      border-left: 2px solid var(--line); }
-  .duiding .waaruit a, .duiding .waaruit span {
-    display: block; font-size: 12.5px; line-height: 1.45; margin-top: 3px;
+  /* Eerst dit: de duiding, bovenaan en altijd zichtbaar (8 november 2026).
+     Per draad de titel en één zin; een tik klapt die draad open. Eerst stond
+     hier een los blok Duiding dat standaard dicht was, even zwaar als Sport --
+     terwijl het het enige deel is dat over de blokken heen kiest wat ertoe
+     doet. */
+  .eerstdit { margin: 10px 16px 4px; padding: 4px 14px 6px; background: var(--panel);
+              border: 1px solid var(--line); border-left: 6px solid var(--warm);
+              border-radius: var(--radius); box-shadow: var(--shadow); }
+  .eerstdit .kopje { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+                     color: var(--ink-3); padding: 9px 0 2px; }
+  .eerstdit .draad + .draad { border-top: 1px solid var(--line); }
+  .eerstdit .draad > button { display: block; width: 100%; text-align: left; cursor: pointer;
+                              background: none; border: 0; padding: 10px 0; font: inherit;
+                              color: inherit; scroll-margin-top: 72px; }
+  .eerstdit .draadtitel { display: block; font-family: var(--serif); font-weight: 650;
+                          font-size: 16px; line-height: 1.3; }
+  .eerstdit .draadtitel::after { content: ' \25B8'; color: var(--ink-3); font-size: 12px; }
+  .eerstdit .draad.open .draadtitel::after { content: ' \25BE'; }
+  .eerstdit .draadzin { display: -webkit-box; -webkit-line-clamp: 2;
+                        -webkit-box-orient: vertical; overflow: hidden;
+                        margin-top: 3px; font-size: 14px; line-height: 1.42;
+                        color: var(--ink-2); }
+  .draadtekst { padding: 0 0 12px; }
+  .draadtekst p { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.5; }
+  /* De vette aanloop van elke alinea: wie alleen die leest, heeft de kern. */
+  .draadtekst p b { color: var(--ink); font-weight: 650; }
+  .draadtekst p + p, .draadtekst ul + p { margin-top: 12px; }
+  .draadtekst ul { margin: 6px 0 0; padding-left: 18px; }
+  /* De punten in dezelfde kleur als de aanloop: grijs lazen ze als bijzaak,
+     en het is juist de inhoud. */
+  .draadtekst li { color: var(--ink); font-size: 14.5px; line-height: 1.45;
+                   margin-top: 5px; }
+  .dichtknop { display: block; margin-top: 10px; padding: 6px 0; background: none;
+               border: 0; font: inherit; font-size: 13px; color: var(--ink-3);
+               cursor: pointer; }
+  .draadtekst li::marker { color: var(--ink-3); }
+  /* De nummers van de berichten waarop een zin rust. Ze blijven staan -- ze
+     laten zien dát een zin ergens op rust -- maar klein en hoog, zodat ze de
+     zin niet onderbreken. Welke berichten het zijn staat eronder. */
+  .draadtekst sup.bronnr { font-size: 10px; color: var(--ink-3); margin-left: 1px;
+                           font-variant-numeric: tabular-nums; }
+  /* Een nummer dat bij een bericht hoort, als tikbaar labeltje met de naam
+     van de redactie. Groot genoeg om met een duim te raken, rustig genoeg om
+     de zin niet te overschreeuwen. */
+  .draadtekst a.bronlabel { display: inline-block; padding: 0 6px; border-radius: 8px;
+                            font-size: 11.5px; line-height: 1.6; font-weight: 600;
+                            vertical-align: 1px; white-space: nowrap;
+                            background: var(--accent-zacht); color: var(--accent-ink);
+                            text-decoration: none; }
+  /* De berichten waarop de draad rust. Klein en ingesprongen: ze zijn er om
+     na te lopen, niet om te lezen. De bron vooraan en vet. */
+  .draadtekst .waaruit { margin-top: 10px; padding-left: 11px;
+                         border-left: 2px solid var(--line); }
+  .draadtekst .waaruit a, .draadtekst .waaruit span {
+    display: block; font-size: 12.5px; line-height: 1.45; margin-top: 4px;
     color: var(--accent-ink); text-decoration: none; }
-  .duiding .waaruit span { color: var(--ink-3); }
+  .draadtekst .waaruit span { color: var(--ink-3); }
+  .draadtekst .waaruit b { font-weight: 650; }
+  .meerbronnen { display: block; margin-top: 5px; padding: 2px 0; background: none;
+                 border: 0; font: inherit; font-size: 12.5px; color: var(--ink-3);
+                 cursor: pointer; }
   /* Dat hier een model heeft geschreven hoort erbij te staan. Niet als
      disclaimer maar als leesaanwijzing: het verklaart waarom de bronnen
      eronder staan en waarom je ze kunt willen nalopen. */
-  .duiding .herkomst { margin-top: 14px; font-size: 12px; color: var(--ink-3);
-                       line-height: 1.4; }
+  .draadtekst .herkomst { margin-top: 10px; font-size: 12px; color: var(--ink-3);
+                          line-height: 1.4; }
+  /* Het weer van vandaag, op de regel onder de titel. */
+  .briefkop .weerregel { flex: 0 0 100%; margin-top: 2px; font-size: 14px;
+                         color: var(--ink-2); }
+  /* De dagkiezer schuift opzij; de schuifbalk eronder zegt dat al. */
+  .dagkiezer { scrollbar-width: none; }
+  .dagkiezer::-webkit-scrollbar { display: none; }
+
+  /* Wat er in een dichtgeklapt blok staat, zonder dat je het open hoeft te
+     tikken: de eerste twee koppen, of bij het weer het weer zelf. Zo is de
+     lijst met blokken zelf al het overzicht. Eén regel per kop en afgekapt --
+     het is een voorproefje, lezen doe je in het blok. */
+  .blok > button { flex-wrap: wrap; row-gap: 0; }
+  /* min-width: 0, anders rekt een flexkind op tot de breedte van zijn langste
+     regel en kapt de ellips nooit af -- dan loopt de kop rechts het scherm uit. */
+  .blok .voorproef { display: block; flex: 0 0 100%; min-width: 0; max-width: 100%;
+                     overflow: hidden; padding-left: 30px; margin-top: 5px;
+                     box-sizing: border-box; }
+  .blok .voorproef span { display: block; white-space: nowrap; overflow: hidden;
+                          text-overflow: ellipsis; font-size: 13.5px;
+                          line-height: 1.5; color: var(--ink-2); }
+  .blok .voorproef span + span { color: var(--ink-3); }
+
+  /* Eén zin uitleg onder een kop, uit het veld `context` dat er al in stond
+     (de omschrijving uit de feed) maar alleen voor de opname werd gebruikt. */
+  .bericht .uitlegregel { display: -webkit-box; -webkit-line-clamp: 2;
+                          -webkit-box-orient: vertical; overflow: hidden;
+                          margin-top: 3px; font-size: 13.5px; line-height: 1.42;
+                          color: var(--ink-2); }
+  /* De knop onder de eerste zes berichten van een blok. */
+  .meerknop { width: 100%; padding: 11px 14px; font: inherit; font-size: 13.5px;
+              text-align: left; cursor: pointer; color: var(--accent-ink);
+              background: var(--panel); border: 0; border-top: 1px solid var(--line); }
   .leeg { padding: 26px 16px; color: var(--ink-3); text-align: center; }
   #naar-start {
     background: none; border: 0; color: var(--ink-2); font-size: 20px;
@@ -1148,6 +1232,9 @@ const ui = {
   oefOpen: {},          // welke oefeningen hun uitleg tonen
   smoothieOpen: {},     // welke smoothie zijn ingrediënten toont
   kopOpen: {},          // welke tussenkopjes binnen een blok open staan
+  meerOpen: {},         // bij welke blokken ook de berichten na de eerste zes staan
+  draadOpen: {},        // welke draden onder Eerst dit opengeklapt staan
+  bronnenOpen: {},      // bij welke draden alle bronnen zichtbaar zijn
   briefingDag: null,    // null = vandaag, anders een datum uit het archief
   label: null,          // voorgekozen etiket bij het invoerveld
   filter: null,         // filter op de lijst van vandaag
@@ -3659,10 +3746,8 @@ function klokje(seconden) {
 }
 
 function maakSpeler(bron) {
-  const sp = el('div', { class: 'speler' });
+  const sp = el('div', { class: 'speler', role: 'group', 'aria-label': 'Ingesproken briefing' });
   sp.innerHTML =
-    '<div class="kop"><div class="label">Ingesproken</div>' +
-      '<span class="duur">–:––</span></div>' +
     '<div class="bediening">' +
       '<button class="knop terug" type="button" title="15 seconden terug" ' +
         'aria-label="Vijftien seconden terug">' +
@@ -3674,6 +3759,7 @@ function maakSpeler(bron) {
       '<input class="voortgang" type="range" min="0" max="1000" value="0" step="1" ' +
         'aria-label="Positie in de opname">' +
       '<span class="tijd">0:00</span>' +
+      '<span class="duur">/ –:––</span>' +
       '<button class="knop snelheid" type="button" aria-label="Afspeelsnelheid">1×</button>' +
     '</div>';
 
@@ -3713,7 +3799,7 @@ function maakSpeler(bron) {
   geluid.onplay = () => { knop.innerHTML = STREPEN; knop.setAttribute('aria-label', 'Pauzeren'); };
   geluid.onpause = () => { knop.innerHTML = DRIEHOEK; knop.setAttribute('aria-label', 'Afspelen'); };
   geluid.onended = () => { knop.innerHTML = DRIEHOEK; balk.value = 0; };
-  geluid.onloadedmetadata = () => { duur.textContent = klokje(geluid.duration); };
+  geluid.onloadedmetadata = () => { duur.textContent = '/ ' + klokje(geluid.duration); };
   geluid.ontimeupdate = () => {
     tijd.textContent = klokje(geluid.currentTime);
     if (!slepen && geluid.duration) {
@@ -3908,113 +3994,286 @@ function dossierTreffers(dos) {
 
 
 
-/* De duiding bij de briefing: een paar alinea's die berichten aan elkaar
-   knopen, met onder elke alinea de berichten waarop hij rust.
+/* ---------- hulpjes voor het leesscherm (8 november 2026) ---------- */
 
-   Die verwijzingen zijn het hele punt en geen versiering. `duiden.py` laat een
-   model alleen werken met wat er in de briefing staat en controleert daarna of
-   elk genoemd bericht echt bestaat; wat hier getekend wordt is het resultaat
-   van die controle. Zo is elke zin na te lopen naar een kop die je zelf kunt
-   openklappen — anders dan bij een beschouwing, die je op zijn blauwe ogen
-   moet geloven. Haal die linkjes er dus niet uit om het rustiger te maken. */
-function tekenDuiding(draden) {
-  const vak = document.createElement('section');
-  vak.className = 'blok';
-  /* Standaard dicht en met dezelfde knop als de nieuwsblokken. Stond eerst
-     open; Gert vroeg op 3 november 2026 of Duiding, Bewaard en Dossiers zich
-     net zo willen gedragen als de rest. */
-  const open = !!ui.blokOpen.duiding;
-  vak.dataset.open = open ? '1' : '0';
-
-  const knop = document.createElement('button');
-  knop.dataset.sleutel = 'blok:duiding';
-  knop.style.borderLeftColor = 'var(--warm)';
-  knop.innerHTML = '<span>\u{1F9F5}</span>' +
-    '<span class="naam">Duiding</span>' +
-    '<span class="aantal">' + draden.length + '</span>' +
-    '<span class="pijl">&#9656;</span>';
-  knop.addEventListener('click', () => {
-    ui.blokOpen.duiding = !open;
-    herteken(tekenBriefing, 'blok:duiding');
-  });
-  vak.append(knop);
-  if (!open) return vak;
-
-  const inhoud = document.createElement('div');
-  inhoud.className = 'inhoud duiding';
-
-  /* Wanneer dit geschreven is. De duiding wordt één keer om 06:05 gemaakt en
-     staat 's avonds nog steeds boven een nieuwslijst die sindsdien dertien
-     keer is ververst -- zonder dit regeltje leest het als de stand van nu.
-     Een archiefbriefing van vóór 3 november 2026 draagt het veld niet; dan
-     staat er niets, en dat is beter dan een verzonnen tijd. */
-  const geschreven = draden.find(d => d.geschreven);
-  if (geschreven) {
-    inhoud.append(el('p', { class: 'uitleg duidingtijd',
-                            tekst: 'Geschreven om ' + geschreven.geschreven
-                                   + ', uit het nieuws van dat moment.' }));
-  }
-
-  for (const d of draden) {
-    const el = document.createElement('div');
-    el.className = 'draad' + (d.diep ? ' diep' : '');
-    el.innerHTML = '<span class="draadkop"></span>';
-    /* textContent en geen innerHTML: deze tekst komt van een model, en een
-       losse < of & hoort als teken op het scherm te komen en niet als opmaak. */
-    el.querySelector('.draadkop').textContent = d.titel || '';
-    /* Eén <p> per alinea. Een gewone draad is één alinea en dan verandert er
-       niets; een diepe draad (sinds 4 november 2026, voor de midterms) komt met
-       witregels uit `duiden.py` en bestaat uit vier stukken: wat er gebeurde,
-       hoe erop gereageerd wordt, en wat het op korte en lange termijn kan
-       betekenen. Die aan elkaar plakken maakt er een muur van. */
-    for (const alinea of String(d.tekst || '').split(/\n\s*\n/)) {
-      if (!alinea.trim()) continue;
-      const pp = document.createElement('p');
-      pp.textContent = alinea.trim();
-      el.append(pp);
-    }
-
-    if (d.verwijzingen && d.verwijzingen.length) {
-      const uit = document.createElement('div');
-      uit.className = 'waaruit';
-      for (const v of d.verwijzingen) {
-        const r = document.createElement(v.link ? 'a' : 'span');
-        if (v.link) { r.href = v.link; r.target = '_blank'; r.rel = 'noopener'; }
-        /* Afgekapt, want de transcriptietitels van de Tweede Kamer zijn lang
-           ("Mevrouw Coenradie (JA21) over korpsleiding (Begrotingsonderdeel
-           Artikel 31 Politie)") en met vijf bronnen onder één alinea nemen ze
-           meer ruimte dan de duiding zelf. Je moet eruit kunnen opmaken welk
-           bericht het is; lezen doe je het in zijn eigen blok. */
-        const naam = (v.titel || '').length > 64
-          ? (v.titel || '').slice(0, 64).replace(/\s+\S*$/, '') + '\u2026'
-          : (v.titel || '');
-        r.textContent = '\u2192 ' + naam + (v.bron ? ' (' + v.bron + ')' : '');
-        uit.append(r);
-      }
-      el.append(uit);
-    }
-    inhoud.append(el);
-  }
-
-  const voet = document.createElement('p');
-  voet.className = 'herkomst';
-  /* Staat er een diepe draad bij, dan is "alleen uit de berichten in deze
-     briefing" niet meer waar: in zo'n draad mogen de laatste twee alinea's
-     zeggen wat er uit de uitslag volgt, en dat is het model dat redeneert.
-     Dat hoort er dan ook te staan -- anders leest een gevolgtrekking als een
-     bericht, en dat is precies het verschil dat deze voetregel moet maken. */
-  voet.textContent = draden.some(d => d.diep)
-    ? 'Geschreven door een model. De feiten komen uit de berichten in deze ' +
-      'briefing en de bronnen staan eronder; wat een langer stuk over de ' +
-      'gevolgen zegt, is de gevolgtrekking van het model zelf.'
-    : 'Geschreven door een model, alleen uit de berichten in deze briefing ' +
-      '\u2014 de bronnen staan eronder zodat je het kunt nalopen.';
-  inhoud.append(voet);
-
-  vak.append(inhoud);
-  return vak;
+/* De zinnen van een stuk tekst. Splitst na een punt, vraag- of uitroepteken
+   gevolgd door een hoofdletter, cijfer of aanhalingsteken -- "o.a. de" breekt
+   dus niet, "11 graden. Morgen" wel. */
+function zinnenVan(tekst) {
+  return String(tekst || '').split(/(?<=[.!?…])\s+(?=["'‘“(]?[A-Z0-9À-Ý])/)
+    .map(z => z.trim()).filter(Boolean);
 }
 
+/* Woorden van vijf letters of meer, kleingeschreven: genoeg om te zien of
+   twee zinnen over hetzelfde gaan, zonder dat "de" en "het" meetellen. */
+function langeWoorden(tekst) {
+  return new Set((String(tekst || '').toLowerCase().match(/[\p{L}\d]{5,}/gu) || []));
+}
+
+/* Eén zin uitleg onder een kop, uit `context` (de omschrijving uit de feed).
+   De eerste zin daarvan herhaalt meestal de kop; dan nemen we de volgende.
+   Een bericht met een `toelichting` heeft al uitleg en krijgt er geen bij. */
+function uitlegVan(it) {
+  if (!it || it.toelichting || !it.context) return '';
+  const zin = nieuweZin(zinnenVan(it.context).slice(0, 3), it.toon || it.titel, true);
+  return zin.length > 200 ? zin.slice(0, 200).replace(/\s+\S*$/, '') + '…' : zin;
+}
+
+/* De eerste zin die iets toevoegt aan een titel. Een zin waarin de helft of
+   meer van de titelwoorden terugkomt, zegt de titel alleen nog eens: "Volgens
+   de lijst gaat het Huis naar de Democraten" onder "Democraten nemen het Huis
+   over". Woorden van vier letters en meer, want "Huis" telt hier mee. Met
+   `streng` valt er dan niets terug; anders de eerste zin. */
+function nieuweZin(zinnen, titel, streng) {
+  const woorden = t => new Set((String(t || '').toLowerCase().match(/[\p{L}\d]{4,}/gu) || []));
+  const kop = woorden(titel);
+  for (const zin of zinnen) {
+    const w = woorden(zin);
+    if (w.size < 3) continue;
+    let gedeeld = 0;
+    for (const x of kop) if (w.has(x)) gedeeld++;
+    if (!kop.size || gedeeld / kop.size < 0.5) return zin;
+  }
+  return streng ? '' : (zinnen[0] || '');
+}
+
+/* De regel die een dichtgeklapt blok over een bericht laat zien. Meestal de
+   kop, maar niet als die niets zegt: bij Nature Today is de kop een datum
+   ("Natuurjournaal 8 november 2026") en zit de inhoud in de toelichting, en bij
+   de zeldzaamheden is het een kale soortnaam -- dan hoort de provincie erbij. */
+function voorproefVan(it) {
+  const kop = it.toon || it.titel || '';
+  if (it.toelichting && /^(vandaag in de natuur|natuurjournaal)\b/i.test(kop)) {
+    return zinnenVan(it.toelichting)[0] || kop;
+  }
+  if (kop.split(/\s+/).length <= 3 && it.bron) return kop + ' · ' + it.bron;
+  return kop;
+}
+
+/* Twee uitslagen voor op de knop van het sportblok: de eigen club eerst. */
+function sportKort(sp) {
+  const uit = (sp && sp.voetbal && sp.voetbal.uitslagen) || [];
+  const rij = [...uit.filter(u => u.eigen), ...uit.filter(u => !u.eigen)].slice(0, 2);
+  return rij.filter(u => u.score)
+            .map(u => u.thuis + ' – ' + u.uit + '  ' + u.score.replace(/\s*-\s*/, '-'));
+}
+
+/* De nummers (16) of (16, 18) uit een duidingtekst. */
+const BRONNUMMER = /\s?\((\d{1,3}(?:\s*,\s*\d{1,3})*)\)/g;
+
+function zonderNummers(tekst) {
+  return String(tekst || '').replace(BRONNUMMER, '');
+}
+
+/* Zet tekst in een element, met de bronnummers erachter. Alles via
+   textContent: deze tekst komt van een model.
+
+   Sinds 8 november 2026 wordt een nummer een tikbaar labeltje met de naam van
+   de redactie ("NYT"), dat het bericht opent waarop die zin rust. `duiden.py`
+   zet daarvoor bij elke verwijzing de `nummers` die erbij horen. Een losse
+   (16) zei de lezer niets -- de criticus noemde het "alleen ruis". Een oude
+   archiefbriefing heeft dat veld niet; dan blijft het een klein cijfer, zoals
+   het was. Twee nummers die naar hetzelfde bericht wijzen worden één label. */
+function metNummers(ouder, tekst, perNummer) {
+  let vanaf = 0;
+  for (const m of String(tekst).matchAll(BRONNUMMER)) {
+    ouder.append(document.createTextNode(tekst.slice(vanaf, m.index)));
+    const gehad = new Set();
+    for (const n of m[1].split(/\s*,\s*/)) {
+      const doel = perNummer && perNummer.get(Number(n));
+      if (doel && gehad.has(doel)) continue;
+      if (doel) gehad.add(doel);
+      const s = document.createElement(doel && doel.link ? 'a' : 'sup');
+      if (doel && doel.link) {
+        s.className = 'bronlabel';
+        s.href = doel.link; s.target = '_blank'; s.rel = 'noopener';
+        s.textContent = korteBron(doel.bron) || n;
+        s.setAttribute('aria-label', 'Bron: ' + (doel.bron || '') + ', ' + (doel.titel || ''));
+        ouder.append(document.createTextNode('\u00a0'));
+      } else {
+        s.className = 'bronnr';
+        s.textContent = n;
+      }
+      ouder.append(s);
+    }
+    vanaf = m.index + m[0].length;
+  }
+  ouder.append(document.createTextNode(tekst.slice(vanaf)));
+}
+
+/* De naam van een redactie, kort genoeg voor een labeltje midden in een zin.
+   "NPO2 · 22:00" wordt "NPO2", en de lange namen krijgen hun gangbare
+   afkorting. Onbekend en lang: de eerste twee woorden. */
+const BRONKORT = { 'new york times': 'NYT', 'the new york times': 'NYT',
+                   'the guardian': 'Guardian', 'de volkskrant': 'Volkskrant',
+                   'washington post': 'WaPo', 'politico europe': 'Politico',
+                   'bbc world': 'BBC', 'tweede kamer': 'Kamer' };
+function korteBron(bron) {
+  const b = String(bron || '').split(' \u00b7 ')[0].trim();
+  const k = BRONKORT[b.toLowerCase()];
+  if (k) return k;
+  return b.length > 14 ? b.split(/\s+/).slice(0, 2).join(' ') : b;
+}
+
+/* Het weer in één regel, voor op de knop van het weerblok. Uit de verwachting
+   voor Dalfsen zelf, en anders uit de landelijke cijfers van vandaag. Liever
+   niets dan een half getal. */
+function weerKort(w) {
+  if (!w) return '';
+  const d = w.dalfsen || {};
+  const oms = d.omschrijving || w.omschrijving;
+  const min = d.min != null ? d.min : w.min;
+  const max = d.max != null ? d.max : w.max;
+  const regen = d.regenkans != null ? d.regenkans : w.regenkans;
+  const stukken = [];
+  if (oms) stukken.push(oms.charAt(0).toUpperCase() + oms.slice(1));
+  if (min != null && max != null) stukken.push(min + ' tot ' + max + '°');
+  if (regen != null) stukken.push(regen < 10 ? 'droog' : regen + '% kans op regen');
+  if (!stukken.length && w.nu != null) stukken.push('nu ' + w.nu + '°');
+  return stukken.join(' · ');
+}
+
+/* Eerst dit: de duiding, bovenaan en altijd zichtbaar (8 november 2026).
+
+   Dit was een los blok "Duiding" dat standaard dicht stond, even zwaar als
+   Sport. Maar de duiding is het enige deel van de briefing dat over de blokken
+   heen kiest wat ertoe doet -- dit is dus de rangorde, zonder dat de app er
+   zelf een hoeft te verzinnen. Daarom staat hij nu bovenaan: per draad de
+   titel en één zin, en een tik klapt die ene draad open. Eerst stonden "Eerst
+   dit" en het blok Duiding allebei op het scherm, met twee keer dezelfde
+   titels onder elkaar; dat is één paneel geworden.
+
+   De verwijzingen onder een draad zijn het hele punt en geen versiering.
+   `duiden.py` laat een model alleen werken met wat er in de briefing staat en
+   controleert daarna of elk genoemd bericht echt bestaat; wat hier getekend
+   wordt is het resultaat van die controle. Zo is elke zin na te lopen naar een
+   kop die je zelf kunt openklappen -- anders dan bij een beschouwing, die je op
+   zijn blauwe ogen moet geloven. Haal die linkjes er dus niet uit om het
+   rustiger te maken: er staan er twee en de rest zit achter één tik. */
+function tekenEerstDit(draden, dag) {
+  const vak = el('section', { class: 'eerstdit', 'aria-label': 'Eerst dit' });
+
+  /* Wanneer dit geschreven is. De duiding wordt om 06:05 en 19:00 gemaakt en
+     staat daarna boven een nieuwslijst die elk uur ververst -- zonder dit
+     regeltje leest het als de stand van nu. Een archiefbriefing van vóór
+     3 november 2026 draagt het veld niet; dan staat er niets, en dat is beter
+     dan een verzonnen tijd. */
+  const geschreven = draden.find(d => d.geschreven);
+  vak.append(el('div', { class: 'kopje',
+    tekst: 'Eerst dit' + (geschreven ? ' · geschreven om ' + geschreven.geschreven : '') }));
+
+  draden.forEach((d, nr) => {
+    /* Onthouden per dag en per draad: draad 3 van vandaag is een ander verhaal
+       dan draad 3 van vrijdag. */
+    const sl = (dag || '') + '|' + nr;
+    const open = !!ui.draadOpen[sl];
+    const draad = el('div', { class: 'draad' + (open ? ' open' : '') });
+    const alineas = String(d.tekst || '').split(/\n\s*\n/).map(a => a.trim()).filter(Boolean);
+
+    const k = el('button', { type: 'button', 'aria-expanded': open ? 'true' : 'false' });
+    k.dataset.sleutel = 'draad:' + sl;
+    k.append(el('span', { class: 'draadtitel', tekst: d.titel || '' }));
+    /* Dichtgeklapt één zin. Niet per se de eerste: die herhaalt vaak de titel
+       ("Democraten nemen het Huis over" -- "Volgens de lijst gaat het Huis
+       naar de Democraten"), en dan zegt de tweede zin wat je nog niet wist. */
+    if (!open) {
+      const zin = nieuweZin(zinnenVan(zonderNummers(alineas[0] || '')), d.titel);
+      if (zin) k.append(el('span', { class: 'draadzin', tekst: zin }));
+    }
+    k.addEventListener('click', () => {
+      ui.draadOpen[sl] = !open;
+      herteken(tekenBriefing, 'draad:' + sl);
+    });
+    draad.append(k);
+
+    if (open) {
+      const tekst = el('div', { class: 'draadtekst' });
+      /* Welk nummer in de tekst bij welke verwijzing hoort. Leeg bij een
+         briefing van vóór 8 november 2026: dan blijven het cijfers. */
+      const perNummer = new Map();
+      for (const v of (d.verwijzingen || [])) {
+        for (const n of (v.nummers || [])) perNummer.set(Number(n), v);
+      }
+      /* Per alinea een vette aanloop en daaronder de rest als korte punten.
+         Het model schrijft lopende tekst; zin voor zin onder elkaar is wat je
+         's ochtends op een telefoon kunt scannen. Een alinea van één of twee
+         zinnen blijft gewoon een alinea. */
+      for (const alinea of alineas) {
+        const zinnen = zinnenVan(alinea);
+        const p = document.createElement('p');
+        const vet = document.createElement('b');
+        metNummers(vet, zinnen[0] || alinea, perNummer);
+        p.append(vet);
+        if (zinnen.length === 2) {
+          p.append(document.createTextNode(' '));
+          metNummers(p, zinnen[1], perNummer);
+        }
+        tekst.append(p);
+        if (zinnen.length > 2) {
+          const ul = document.createElement('ul');
+          for (const z of zinnen.slice(1)) {
+            const li = document.createElement('li');
+            metNummers(li, z, perNummer);
+            ul.append(li);
+          }
+          tekst.append(ul);
+        }
+      }
+
+      const verw = d.verwijzingen || [];
+      if (verw.length) {
+        const uit = el('div', { class: 'waaruit' });
+        const alle = !!ui.bronnenOpen[sl];
+        for (const v of (alle ? verw : verw.slice(0, 2))) {
+          const r = document.createElement(v.link ? 'a' : 'span');
+          if (v.link) { r.href = v.link; r.target = '_blank'; r.rel = 'noopener'; }
+          /* De bron vooraan: daaraan zie je of het de NOS, de krant of een
+             Amerikaanse redactie is, en dat is wat je wilt weten voordat je
+             tikt. De titel afgekapt, want transcriptietitels van de Kamer
+             zijn lang en lezen doe je het in zijn eigen blok. */
+          const naam = (v.titel || '').length > 64
+            ? (v.titel || '').slice(0, 64).replace(/\s+\S*$/, '') + '…'
+            : (v.titel || '');
+          if (v.bron) r.append(el('b', { tekst: v.bron }), document.createTextNode(' · '));
+          r.append(document.createTextNode(naam));
+          uit.append(r);
+        }
+        if (verw.length > 2 && !alle) {
+          const meer = el('button', { type: 'button', class: 'meerbronnen',
+            tekst: '+ nog ' + (verw.length - 2) + (verw.length === 3 ? ' bron' : ' bronnen') });
+          meer.addEventListener('click', () => {
+            ui.bronnenOpen[sl] = true;
+            tekenBriefing();
+          });
+          uit.append(meer);
+        }
+        tekst.append(uit);
+      }
+
+      /* Dat hier een model heeft geschreven hoort erbij te staan. Staat het
+         een diepe draad, dan is "alleen uit de berichten" niet meer waar: de
+         laatste alinea's zeggen wat er uit de uitslag volgt, en dat is het
+         model dat redeneert. */
+      tekst.append(el('p', { class: 'herkomst', tekst: d.diep
+        ? 'Geschreven door een model. De feiten komen uit de berichten hieronder; ' +
+          'wat over de gevolgen gaat, is de gevolgtrekking van het model zelf.'
+        : 'Geschreven door een model, alleen uit de berichten in deze briefing.' }));
+      /* Onderaan een lange draad ook dicht kunnen, anders moet je terug naar
+         de titel scrollen om hem weer klein te krijgen. */
+      const dicht = el('button', { type: 'button', class: 'dichtknop', tekst: 'Dichtklappen \u25B4' });
+      dicht.addEventListener('click', () => {
+        ui.draadOpen[sl] = false;
+        tekenBriefing();
+        const titel = document.querySelector('[data-sleutel="draad:' + CSS.escape(sl) + '"]');
+        if (titel) titel.scrollIntoView({ block: 'start' });
+      });
+      tekst.append(dicht);
+      draad.append(tekst);
+    }
+    vak.append(draad);
+  });
+  return vak;
+}
 
 function tekenBriefing() {
   const doel = document.getElementById('tab-briefing');
@@ -4068,6 +4327,17 @@ function tekenBriefing() {
   kop.className = 'briefkop';
   kop.innerHTML = '<h1>' + briefingNaam(toon) + '</h1>' +
     '<div class="datum">' + langeDatum(toon.datum) + '</div>';
+  /* Het weer van vandaag meteen onder de titel (8 november 2026). Het
+     weerblok stond onderaan, precies waar je 's ochtends niet meer kijkt. */
+  /* 's Avonds het weer van morgen: dan beslis je wat je morgenochtend
+     aantrekt of of je gaat lopen, en hoe vandaag was weet je al. */
+  const weerblok = (toon.blokken || []).find(b => b.id === 'weer');
+  const w = weerblok && weerblok.weer;
+  const avond = /^avond/i.test(briefingNaam(toon));
+  const weerregel = !w ? ''
+    : (avond && w.morgen) ? 'Morgen: ' + weerKort(w.morgen).replace(/^./, c => c.toLowerCase())
+    : weerKort(w);
+  if (weerregel) kop.append(el('div', { class: 'weerregel', tekst: weerregel }));
   stuk.append(kop);
 
   const kiezer = dagkiezer();
@@ -4086,7 +4356,7 @@ function tekenBriefing() {
      de berichten al gehad hebt, en dan heeft hij geen functie meer.
      Ontbreekt hij, dan is er geen blok: dat is een stille dag of een ronde
      zonder sleutel, en in beide gevallen is een leeg paneel erger dan niets. */
-  if (toon.duiding && toon.duiding.length) stuk.append(tekenDuiding(toon.duiding));
+  if (toon.duiding && toon.duiding.length) stuk.append(tekenEerstDit(toon.duiding, toon.datum));
 
   const kleuren = { internationaal:'var(--teal)', nationaal:'var(--accent)',
                     lokaal:'var(--olijf)', ai:'var(--leisteen)', bron:'var(--accent)',
@@ -4199,15 +4469,33 @@ function tekenBriefing() {
        dichtgeklapt blok is dat de informatie die je nodig hebt om te besluiten
        of je het opent. */
     const nieuwInBlok = b.items.filter(isNieuw).length;
+    /* Een blok mag zelf zeggen wat er op de knop staat. Het sportblok heeft
+       geen berichten maar wel negen uitslagen, en dichtgeklapt is dat getal
+       het enige wat je ervan ziet. */
     knop.innerHTML = '<span>' + b.emoji + '</span>' +
       '<span class="naam">' + b.titel + '</span>' +
-      /* Een blok mag zelf zeggen wat er op de knop staat. Het sportblok heeft
-         geen berichten maar wel negen uitslagen, en dichtgeklapt is dat getal
-         het enige wat je ervan ziet. */
       '<span class="aantal">' + (b.aantal != null ? b.aantal
                                  : (b.items.length || '')) + '</span>' +
       (nieuwInBlok ? '<span class="nieuwtje">' + nieuwInBlok + ' nieuw</span>' : '') +
       '<span class="pijl">&#9656;</span>';
+    /* Dichtgeklapt: wat er in staat, zonder te tikken. Bij het weer het weer
+       zelf, bij Sport twee uitslagen, bij de rest de eerste twee koppen. */
+    if (!ui.blokOpen[b.id]) {
+      const regels = b.id === 'weer'
+        ? [weerKort(b.weer) === weerregel ? '' : 'Vandaag: ' + weerKort(b.weer)]
+        : b.id === 'sport' ? sportKort(b.sport)
+        : b.items.slice(0, 2).map(voorproefVan);
+      if (regels.some(Boolean)) {
+        const vp = document.createElement('span');
+        vp.className = 'voorproef';
+        for (const r of regels.filter(Boolean)) {
+          const s = document.createElement('span');
+          s.textContent = r;
+          vp.append(s);
+        }
+        knop.append(vp);
+      }
+    }
     knop.addEventListener('click', () => {
       ui.blokOpen[b.id] = !ui.blokOpen[b.id];
       herteken(tekenBriefing, 'blok:' + b.id);
@@ -4288,6 +4576,15 @@ function tekenBriefing() {
                       (isNieuw(it) ? '<span class="nieuwtje">nieuw</span>' : '') +
                       '</span>' +
                       extra + '<span class="meta">' + meta + '</span>';
+        /* Eén zin uitleg tussen kop en bron (8 november 2026). Via
+           textContent, want het komt uit een feed. */
+        const uitleg = uitlegVan(it);
+        if (uitleg) {
+          const u = document.createElement('span');
+          u.className = 'uitlegregel';
+          u.textContent = uitleg;
+          r.querySelector('.titel').after(u);
+        }
         rij.append(r);
 
         /* De bewaarknop staat náást de link en niet erin: een knop binnen een
@@ -4317,9 +4614,37 @@ function tekenBriefing() {
         else groepen.push({ kop: it.kop || null, items: [it] });
       }
 
+      /* Eerst zes, de rest achter een knop (8 november 2026). Internationaal
+         had er 25 en Vogels 22, en een blok openen was dan een muur. Alleen
+         de berichten zonder kopje: een kopje klapt al zelf uit. */
+      const EERST = 6;
+      let getoond = 0;
       for (const g of groepen) {
         if (!g.kop) {
-          for (const it of g.items) inhoud.append(maakBericht(it));
+          const verborgen = [];
+          for (const it of g.items) {
+            if (getoond < EERST || ui.meerOpen[b.id] || it.sein) {
+              inhoud.append(maakBericht(it));
+              getoond++;
+            } else {
+              verborgen.push(it);
+            }
+          }
+          if (verborgen.length) {
+            const nieuw = verborgen.filter(isNieuw).length;
+            const meer = document.createElement('button');
+            meer.type = 'button';
+            meer.className = 'meerknop';
+            meer.dataset.sleutel = 'meer:' + b.id;
+            meer.textContent = 'Nog ' + verborgen.length +
+              (verborgen.length === 1 ? ' bericht' : ' berichten') +
+              (nieuw ? ', waarvan ' + nieuw + ' nieuw' : '');
+            meer.addEventListener('click', () => {
+              ui.meerOpen[b.id] = true;
+              herteken(tekenBriefing, 'meer:' + b.id);
+            });
+            inhoud.append(meer);
+          }
           continue;
         }
         const sleutel = b.id + '|' + g.kop;
