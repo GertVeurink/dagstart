@@ -24,7 +24,7 @@ const DATA_HOST = 'raw.githubusercontent.com';
    seconden: lang genoeg dat een gewone verbinding hem altijd wint, kort genoeg
    dat je er bij een trage niet naar zit te kijken. */
 const NETWERK_GEDULD = 2000;
-const VERSIE = 'oprij-ad53831d';
+const VERSIE = 'oprij-0c2658cc';
 const BESTANDEN = [
   './',
   './index.html',
@@ -92,7 +92,25 @@ self.addEventListener('fetch', (e) => {
     e.waitUntil(netwerk);
 
     const uitCache = await cache.match(req, { ignoreSearch: true });
-    if (uitCache) {
+
+    /* **De geduldgrens geldt alleen voor de app zelf, niet voor de gegevens.**
+       Dat onderscheid ontbrak tot 11 november 2026 en kostte een ochtend: Gert
+       meldde dat de briefing niet ververst was terwijl de Mac hem om 05:55
+       keurig had opgehaald en gepubliceerd. De servicewerker gaf na twee
+       seconden de cache terug -- en dat was die van gisteren.
+
+       `cache.match(..., { ignoreSearch: true })` negeert de `?t=`, dus een
+       briefing van een willekeurige eerdere dag telt als treffer. Voor de app
+       zelf is dat precies de bedoeling (het is hetzelfde bestand), voor de
+       briefing is het de verkeerde dag.
+
+       Het kost ook niets om hier wél te wachten: de app tekent eerst de
+       briefing uit localStorage (`briefingUitOpslag()`) en verwisselt hem
+       zodra de verse binnen is. Je kijkt dus nooit naar een leeg scherm, en
+       daarmee verviel de enige reden voor die grens.
+
+       Voor de app zelf blijft hij staan -- zie het zwarte scherm hieronder. */
+    if (eigen && uitCache) {
       /* Netwerk-eerst blijft het uitgangspunt -- deze app verandert vaak en
          je moet niet stilletjes een oude versie zien. Maar "eerst" is niet
          "hoe lang het ook duurt": tot 6 november 2026 wachtte de telefoon bij
@@ -113,6 +131,10 @@ self.addEventListener('fetch', (e) => {
 
     const res = await netwerk;
     if (res) return res;
+    /* Hier komt de gegevenshost terecht als het netwerk écht niet lukt -- in
+       de trein zonder bereik. Dan is de briefing van gisteren precies wat je
+       wilt; trager zijn dan het netwerk is iets anders dan het missen. */
+    if (uitCache) return uitCache;
     if (req.mode === 'navigate') {
       const index = await cache.match('./index.html');
       if (index) return index;
