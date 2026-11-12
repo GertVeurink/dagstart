@@ -3452,6 +3452,7 @@ async function haalMeldingen() {
   /* Opnieuw tekenen en niet alleen dit scherm: het telletje op het
      startscherm hangt hier ook aan, en dát is wat je als eerste ziet. */
   meldingen = meldingenUitOpslag();
+  zetBadge();
   if (meldingen.length) tekenAlles();
   try {
     const r = await fetch(dataAdres('meldingen.json') + '?t=' + Date.now(),
@@ -3461,6 +3462,7 @@ async function haalMeldingen() {
     if (verse && Array.isArray(verse.items)) {
       meldingen = verse.items;
       try { localStorage.setItem(MELD_SLEUTEL, JSON.stringify(verse)); } catch (e) {}
+      zetBadge();
       tekenAlles();
     }
   } catch (e) {
@@ -3476,6 +3478,27 @@ function nieuweMeldingen() {
   return meldingen.filter((m) => m.op > st.meldingGezien).length;
 }
 
+/* Het stipje op het app-icoon. De servicewerker zet er bij elke push een
+   vlaggetje neer; hier wordt het het echte aantal, en weg zodra je ze gezien
+   hebt.
+
+   Dit is op iOS het enige wat blijft staan tot je er iets mee doet. Een banner
+   die blijft hangen kan de app niet afdwingen: `requireInteraction` wordt op
+   iOS genegeerd (WebKit-bug 258922). Dat is een instelling van de telefoon —
+   Berichtgeving → Dagstart → Bannerstijl: Aanhoudend.
+
+   Alles in een try: op een telefoon zonder deze mogelijkheid, of als de
+   toestemming voor meldingen is ingetrokken, hoort de app gewoon door te
+   gaan. */
+function zetBadge() {
+  try {
+    if (!('setAppBadge' in navigator)) return;
+    const n = nieuweMeldingen();
+    if (n > 0) navigator.setAppBadge(n);
+    else navigator.clearAppBadge();
+  } catch (e) {}
+}
+
 function tekenMeldingen() {
   const doel = document.getElementById('tab-meldingen');
   doel.textContent = '';
@@ -3487,6 +3510,9 @@ function tekenMeldingen() {
     const nieuwste = meldingen[0].op;
     if (nieuwste !== st.meldingGezien) { st.meldingGezien = nieuwste; bewaar(); }
   }
+  /* Je kijkt er nu naar, dus het stipje mag weg. Ná het bijwerken hierboven,
+     anders rekent hij het oude aantal nog een keer uit. */
+  zetBadge();
 
   if (!meldingen.length) {
     doel.appendChild(paneel('Meldingen', null, [
