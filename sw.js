@@ -24,7 +24,7 @@ const DATA_HOST = 'raw.githubusercontent.com';
    seconden: lang genoeg dat een gewone verbinding hem altijd wint, kort genoeg
    dat je er bij een trage niet naar zit te kijken. */
 const NETWERK_GEDULD = 2000;
-const VERSIE = 'oprij-0c2658cc';
+const VERSIE = 'oprij-98e50b19';
 const BESTANDEN = [
   './',
   './index.html',
@@ -214,16 +214,40 @@ self.addEventListener('push', (e) => {
       icon: './icoon-192.png',
       badge: './icoon-192.png',
       data: { link: link },
-      /* Eén tag: een tweede melding vervangt de eerste in plaats van ernaast te
-         komen. Gert wil er weinig, niet een stapel.
-         Maar vervángen doet iOS stilletjes — geen geluid, geen banner. Op
-         22 oktober 2026 verdween een proefmelding zo achter een melding van de
-         dag ervóór die nog in het berichtencentrum stond, en leek de push stuk
-         terwijl Apple hem keurig had aangenomen. renotify zet het geluid en de
-         banner er weer bij, zonder dat het er twee worden. */
-      tag: 'dagstart-breaking',
-      renotify: true,
+      /* **Elk bericht zijn eigen tag, sinds 12 november 2026.** Hiervóór stond
+         hier één vaste tag, zodat een tweede melding de eerste verving in
+         plaats van ernaast te komen — Gert wilde er weinig, geen stapel. Op
+         22 oktober 2026 bleek dat vervangen bovendien stil te gaan, en daar
+         kwam `renotify: true` voor.
+
+         Hij meldde op 12 november dat hij meldingen "regelmatig mist", en dan
+         is vervangen precies de verkeerde kant op: kwam er een tweede voordat
+         hij de eerste gezien had, dan was de eerste wég. Nu blijven ze naast
+         elkaar in het berichtencentrum staan tot hij ze aantikt.
+
+         De tag komt uit de link en niet uit de klok: komt dezelfde melding
+         door een herhaalde push twee keer binnen, dan blijft het er één. */
+      tag: 'dagstart-' + (link || titel),
     });
+
+    /* Een stipje op het app-icoon, dat blijft staan tot hij de app opent.
+       Dit is het enige wat op iOS écht "blijft staan tot je het aanklikt":
+       `requireInteraction` wordt daar genegeerd (WebKit-bug 258922), dus een
+       banner die blijft hangen kan de app niet afdwingen -- dat is een
+       instelling van de telefoon zelf (Bannerstijl: Aanhoudend).
+
+       Zonder argument is het een vlaggetje zonder getal. Dat is genoeg: hoevéél
+       er zijn staat in het scherm Meldingen, en een teller hier bijhouden zou
+       een eigen geheugen in de servicewerker vragen. De app zet hem bij het
+       openen op het echte aantal en wist hem als je ze gezien hebt. */
+    try {
+      if (self.navigator && 'setAppBadge' in self.navigator) {
+        await self.navigator.setAppBadge();
+      }
+    } catch (e) {
+      /* Oudere telefoon, of de toestemming is ingetrokken. De melding zelf is
+         dan al getoond en dat is wat telt. */
+    }
   })());
 });
 
