@@ -523,7 +523,7 @@
   .slim p { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
   .slim p + p { margin-top: 6px; }
   /* Eerst dit: de duiding, bovenaan en altijd zichtbaar (8 november 2026).
-     Per draad de titel en één zin; een tik klapt die draad open. Eerst stond
+     Per draad een genummerde titel; een tik klapt die draad open. Eerst stond
      hier een los blok Duiding dat standaard dicht was, even zwaar als Sport --
      terwijl het het enige deel is dat over de blokken heen kiest wat ertoe
      doet. */
@@ -533,44 +533,103 @@
   .eerstdit .kopje { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
                      color: var(--ink-3); padding: 9px 0 2px; }
   .eerstdit .draad + .draad { border-top: 1px solid var(--line); }
-  .eerstdit .draad > button { display: block; width: 100%; text-align: left; cursor: pointer;
-                              background: none; border: 0; padding: 10px 0; font: inherit;
-                              color: inherit; scroll-margin-top: 72px; }
+  /* Genummerd (12 november 2026). Naast Semafors lijst van tien genummerde
+     koppen las ons paneel als drie losse lappen tekst; een nummer zegt in één
+     oogopslag hoeveel er is en waar je bent. Het nummer in een eigen smalle
+     kolom, zodat titel en zin er strak naast staan. min-width: 0 op de
+     tekstkolom, anders duwt een lang woord het paneel het scherm uit. */
+  .eerstdit .draad > button {
+    display: flex; gap: 8px; align-items: baseline; width: 100%; text-align: left;
+    cursor: pointer; background: none; border: 0; font: inherit; color: inherit; }
+  .eerstdit .draad > button { padding: 10px 0; scroll-margin-top: 72px; }
+  .eerstdit .nr { flex: 0 0 19px; font-family: var(--serif); font-weight: 650;
+                  font-size: 16px; line-height: 1.3; color: var(--warm);
+                  font-variant-numeric: tabular-nums; }
+  .eerstdit .draadkop { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
   .eerstdit .draadtitel { display: block; font-family: var(--serif); font-weight: 650;
                           font-size: 16px; line-height: 1.3; }
-  .eerstdit .draadtitel::after { content: ' \25B8'; color: var(--ink-3); font-size: 12px; }
-  .eerstdit .draad.open .draadtitel::after { content: ' \25BE'; }
-  .eerstdit .draadzin { display: -webkit-box; -webkit-line-clamp: 2;
-                        -webkit-box-orient: vertical; overflow: hidden;
-                        margin-top: 3px; font-size: 14px; line-height: 1.42;
-                        color: var(--ink-2); }
+  .eerstdit .draadtitel::after { content: '\00a0\25B8'; color: var(--ink-3); font-size: 12px; }
+  .eerstdit .draad.open .draadtitel::after { content: '\00a0\25BE'; }
+  /* Verder in deze briefing: de rest van de lijst. De draden zijn er twee tot
+     vier; wat de briefing verder dekt zat achter rubrieken met alleen een
+     aantal. Hier staat de rest, doorgenummerd na de draden, zodat de hele
+     dekking zonder scrollen te zien is.
+
+     Elke regel is precies één regel (13 november 2026). Eerst stonden hier
+     de koppen van de redacties zelf, twee tot drie regels lang, en dan is het
+     geen overzicht meer maar een leeslijst.
+
+     Uit welke rubriek een regel komt staat rechts, als het tekentje van
+     dat blok: hetzelfde als op de kaart eronder, dus je herkent het. De naam
+     voluit paste alleen naast de kortste koppen en viel bij de rest weg, en
+     dan weet je het juist niet bij de regels waar je het wilt weten. Het
+     tekentje heeft een vaste breedte en past altijd. De ellips op de kop is
+     een vangnet; de koppen horen kort genoeg te zijn. */
+  .eerstdit .verder { border-top: 1px solid var(--line); padding: 4px 0 6px; }
+  .eerstdit .verder .kopje { padding: 8px 0 3px; }
+  .eerstdit .verder .regel { display: flex; gap: 8px; align-items: baseline;
+                             width: 100%; box-sizing: border-box; padding: 6px 0;
+                             text-align: left; cursor: pointer; background: none;
+                             border: 0; font: inherit; color: inherit;
+                             text-decoration: none; }
+  .eerstdit .verder .nr { font-size: 13.5px; line-height: 20px; color: var(--ink-3); }
+  .eerstdit .verderkop { flex: 1 1 0; min-width: 0; font-size: 13.5px;
+                         line-height: 20px; color: var(--ink);
+                         white-space: nowrap; overflow: hidden;
+                         text-overflow: ellipsis; }
+  .eerstdit .rubriek { flex: 0 0 18px; text-align: right; font-size: 12.5px;
+                       line-height: 20px; white-space: nowrap; }
+  .blok > button { scroll-margin-top: 72px; }
   .draadtekst { padding: 0 0 12px; }
-  .draadtekst p { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.5; }
+  /* Opengeklapt een lopende alinea: de eerste zin vet, de rest erachteraan.
+     Eerst stond de rest hier als losse bolletjes. Dat scande makkelijk, maar
+     de zinnen horen bij elkaar -- wat er gebeurde, waardoor, wat er op het
+     spel staat -- en in bolletjes moest de lezer ze zelf weer aan elkaar
+     knopen. Daarom ook iets groter en in de gewone inktkleur: dit is het
+     stuk dat je leest, geen bijschrift. */
+  .draadtekst p { margin: 0; color: var(--ink); font-family: var(--serif);
+                  font-size: 17px; line-height: 1.5; overflow-wrap: anywhere; }
   /* De vette aanloop van elke alinea: wie alleen die leest, heeft de kern. */
-  .draadtekst p b { color: var(--ink); font-weight: 650; }
-  .draadtekst p + p, .draadtekst ul + p { margin-top: 12px; }
-  .draadtekst ul { margin: 6px 0 0; padding-left: 18px; }
-  /* De punten in dezelfde kleur als de aanloop: grijs lazen ze als bijzaak,
-     en het is juist de inhoud. */
-  .draadtekst li { color: var(--ink); font-size: 14.5px; line-height: 1.45;
-                   margin-top: 5px; }
+  .draadtekst p b { font-weight: 650; }
+  .draadtekst p + p { margin-top: 10px; }
   .dichtknop { display: block; margin-top: 10px; padding: 6px 0; background: none;
                border: 0; font: inherit; font-size: 13px; color: var(--ink-3);
                cursor: pointer; }
-  .draadtekst li::marker { color: var(--ink-3); }
   /* De nummers van de berichten waarop een zin rust. Ze blijven staan -- ze
      laten zien dát een zin ergens op rust -- maar klein en hoog, zodat ze de
      zin niet onderbreken. Welke berichten het zijn staat eronder. */
-  .draadtekst sup.bronnr { font-size: 10px; color: var(--ink-3); margin-left: 1px;
+  .draadtekst sup.bronnr { font-family: var(--sans, system-ui, sans-serif);
+                           font-size: 10px; font-weight: 400; color: var(--ink-3);
+                           margin-left: 1px; line-height: 0;
                            font-variant-numeric: tabular-nums; }
-  /* Een nummer dat bij een bericht hoort, als tikbaar labeltje met de naam
-     van de redactie. Groot genoeg om met een duim te raken, rustig genoeg om
-     de zin niet te overschreeuwen. */
-  .draadtekst a.bronlabel { display: inline-block; padding: 0 6px; border-radius: 8px;
-                            font-size: 11.5px; line-height: 1.6; font-weight: 600;
-                            vertical-align: 1px; white-space: nowrap;
-                            background: var(--accent-zacht); color: var(--accent-ink);
-                            text-decoration: none; }
+  /* Een nummer dat bij een bericht hoort: de naam van de redactie, tikbaar.
+
+     Dit waren groene pilletjes vóór de punt (tot 13 november 2026). Daardoor
+     las een alinea als bewering, stempel, bewering, stempel, en de punt
+     bungelde los achter het stempel. Nu staat de punt bij zijn zin en komt de
+     bron erna, klein, grijs en zonder vulling: een voetnoot die toevallig een
+     naam heeft. De onderstreping zegt dat je erop kunt tikken.
+
+     Het raakvlak is groter dan het woord: de opvulling boven en onder wordt
+     met een negatieve marge teruggenomen, zodat de regelafstand gelijk blijft
+     en een duim het label toch raakt. */
+  .draadtekst a.bronlabel { font-family: var(--sans, system-ui, sans-serif);
+                            font-size: 11px; font-weight: 500; letter-spacing: .01em;
+                            line-height: 1; white-space: nowrap;
+                            padding: 9px 2px; margin: -9px -2px;
+                            color: var(--ink-3); text-decoration: underline;
+                            text-decoration-color: var(--line);
+                            text-decoration-thickness: 1px;
+                            text-underline-offset: 3px; }
+  /* Niets rond een bron zit aan elkaar vast: de zin breekt af waar de regel
+     vol is, en een bron staat achter de punt als hij daar past en anders
+     vooraan de volgende regel. Tot 13 november 2026 zat het laatste woord
+     van de zin aan zijn bronnen vast, zodat een bronnaam nooit los vooraan
+     een regel stond. Maar pasten ze samen niet meer, dan zakte het woord
+     mee: "...aan een zijden" en dan "draad." op de volgende regel, met een
+     halve regel wit erboven. Een zin die te vroeg afbreekt zie je; een
+     bronnaam vooraan een regel lees je gewoon. Alleen een los cijfer (een
+     archiefbriefing) hangt zonder spatie aan de punt en gaat dus mee. */
   /* De berichten waarop de draad rust. Klein en ingesprongen: ze zijn er om
      na te lopen, niet om te lezen. De bron vooraan en vet. */
   .draadtekst .waaruit { margin-top: 10px; padding-left: 11px;
@@ -586,7 +645,7 @@
   /* Dat hier een model heeft geschreven hoort erbij te staan. Niet als
      disclaimer maar als leesaanwijzing: het verklaart waarom de bronnen
      eronder staan en waarom je ze kunt willen nalopen. */
-  .draadtekst .herkomst { margin-top: 10px; font-size: 12px; color: var(--ink-3);
+  .draadtekst .herkomst { margin-top: 10px; font-family: inherit; font-size: 12px; color: var(--ink-3);
                           line-height: 1.4; }
   /* Het weer van vandaag, op de regel onder de titel. */
   .briefkop .weerregel { flex: 0 0 100%; margin-top: 2px; font-size: 14px;
@@ -4099,30 +4158,50 @@ function zonderNummers(tekst) {
    zet daarvoor bij elke verwijzing de `nummers` die erbij horen. Een losse
    (16) zei de lezer niets -- de criticus noemde het "alleen ruis". Een oude
    archiefbriefing heeft dat veld niet; dan blijft het een klein cijfer, zoals
-   het was. Twee nummers die naar hetzelfde bericht wijzen worden één label. */
+   het was. Twee nummers die naar hetzelfde bericht wijzen worden één label.
+
+   Het model schrijft "…aangenomen (14)." en zo stond het er ook: label, dan
+   de punt. Sinds 13 november 2026 draaien we dat om. Het leesteken dat op de
+   nummers volgt gaat terug naar zijn zin en de bron komt erachter, zodat de
+   alinea doorloopt en de bron een voetnoot is in plaats van een onderbreking.
+   Het woord, het leesteken en de bronnen zijn gewone lopende tekst en breken
+   af waar de regel vol is; een bronnaam zelf breekt niet. Een los cijfer
+   (archief) hangt zonder spatie aan de punt. */
+const NA_BRON = /^[.,;:!?…]+["'”’)]?/;
 function metNummers(ouder, tekst, perNummer) {
+  tekst = String(tekst);
   let vanaf = 0;
-  for (const m of String(tekst).matchAll(BRONNUMMER)) {
-    ouder.append(document.createTextNode(tekst.slice(vanaf, m.index)));
+  for (const m of tekst.matchAll(BRONNUMMER)) {
+    if (m.index < vanaf) continue;
+    const voor = tekst.slice(vanaf, m.index);
+    ouder.append(document.createTextNode(voor));
+    vanaf = m.index + m[0].length;
+    const teken = (tekst.slice(vanaf).match(NA_BRON) || [''])[0];
+    vanaf += teken.length;
+    if (teken) ouder.append(document.createTextNode(teken));
+
     const gehad = new Set();
+    let eerste = true;
     for (const n of m[1].split(/\s*,\s*/)) {
       const doel = perNummer && perNummer.get(Number(n));
       if (doel && gehad.has(doel)) continue;
       if (doel) gehad.add(doel);
+      const link = !!(doel && doel.link);
       const s = document.createElement(doel && doel.link ? 'a' : 'sup');
-      if (doel && doel.link) {
+      const naam = link ? (korteBron(doel.bron) || n) : n;
+      if (link) {
         s.className = 'bronlabel';
         s.href = doel.link; s.target = '_blank'; s.rel = 'noopener';
-        s.textContent = korteBron(doel.bron) || n;
         s.setAttribute('aria-label', 'Bron: ' + (doel.bron || '') + ', ' + (doel.titel || ''));
-        ouder.append(document.createTextNode('\u00a0'));
+        ouder.append(document.createTextNode(' '));
       } else {
         s.className = 'bronnr';
-        s.textContent = n;
+        if (!eerste) ouder.append(document.createTextNode('\u2009'));
       }
+      s.textContent = naam;
       ouder.append(s);
+      eerste = false;
     }
-    vanaf = m.index + m[0].length;
   }
   ouder.append(document.createTextNode(tekst.slice(vanaf)));
 }
@@ -4164,8 +4243,8 @@ function weerKort(w) {
    Dit was een los blok "Duiding" dat standaard dicht stond, even zwaar als
    Sport. Maar de duiding is het enige deel van de briefing dat over de blokken
    heen kiest wat ertoe doet -- dit is dus de rangorde, zonder dat de app er
-   zelf een hoeft te verzinnen. Daarom staat hij nu bovenaan: per draad de
-   titel en één zin, en een tik klapt die ene draad open. Eerst stonden "Eerst
+   zelf een hoeft te verzinnen. Daarom staat hij nu bovenaan: per draad een
+   genummerde titel, en een tik klapt die ene draad open. Eerst stonden "Eerst
    dit" en het blok Duiding allebei op het scherm, met twee keer dezelfde
    titels onder elkaar; dat is één paneel geworden.
 
@@ -4176,7 +4255,7 @@ function weerKort(w) {
    kop die je zelf kunt openklappen -- anders dan bij een beschouwing, die je op
    zijn blauwe ogen moet geloven. Haal die linkjes er dus niet uit om het
    rustiger te maken: er staan er twee en de rest zit achter één tik. */
-function tekenEerstDit(draden, dag) {
+function tekenEerstDit(draden, dag, blokken, verder) {
   const vak = el('section', { class: 'eerstdit', 'aria-label': 'Eerst dit' });
 
   /* Wanneer dit geschreven is. De duiding wordt om 06:05 en 19:00 gemaakt en
@@ -4198,14 +4277,16 @@ function tekenEerstDit(draden, dag) {
 
     const k = el('button', { type: 'button', 'aria-expanded': open ? 'true' : 'false' });
     k.dataset.sleutel = 'draad:' + sl;
-    k.append(el('span', { class: 'draadtitel', tekst: d.titel || '' }));
-    /* Dichtgeklapt één zin. Niet per se de eerste: die herhaalt vaak de titel
-       ("Democraten nemen het Huis over" -- "Volgens de lijst gaat het Huis
-       naar de Democraten"), en dan zegt de tweede zin wat je nog niet wist. */
-    if (!open) {
-      const zin = nieuweZin(zinnenVan(zonderNummers(alineas[0] || '')), d.titel);
-      if (zin) k.append(el('span', { class: 'draadzin', tekst: zin }));
-    }
+    k.append(el('span', { class: 'nr', tekst: String(nr + 1), 'aria-hidden': 'true' }));
+    const draadkop = el('span', { class: 'draadkop' });
+    k.append(draadkop);
+    draadkop.append(el('span', { class: 'draadtitel', tekst: d.titel || '' }));
+    /* Dichtgeklapt alleen de genummerde titel (13 november 2026). Hier stond
+       er één zin onder. Eerst afgekapt op twee regels, daarna heel -- maar om
+       de titel niet te herhalen was het vaak de tweede zin van de alinea, en
+       die begint met "Daarin" of "Daarom" en slaat dan nergens op. De eerste
+       zin staat een tik verder, vet bovenaan de draad; hier telt dat je de
+       hele lijst in één blik overziet. */
     k.addEventListener('click', () => {
       ui.draadOpen[sl] = !open;
       herteken(tekenBriefing, 'draad:' + sl);
@@ -4220,30 +4301,22 @@ function tekenEerstDit(draden, dag) {
       for (const v of (d.verwijzingen || [])) {
         for (const n of (v.nummers || [])) perNummer.set(Number(n), v);
       }
-      /* Per alinea een vette aanloop en daaronder de rest als korte punten.
-         Het model schrijft lopende tekst; zin voor zin onder elkaar is wat je
-         's ochtends op een telefoon kunt scannen. Een alinea van één of twee
-         zinnen blijft gewoon een alinea. */
+      /* Per alinea een vette aanloop en de rest er als lopende tekst
+         achteraan (12 november 2026). Eerst stond de rest zin voor zin als
+         bolletjes onder elkaar; het model schrijft sindsdien zinnen die op
+         elkaar voortbouwen ("daardoor", "dat betekent"), en zo'n zin los in
+         een lijstje verliest waar hij op slaat. */
       for (const alinea of alineas) {
         const zinnen = zinnenVan(alinea);
         const p = document.createElement('p');
         const vet = document.createElement('b');
         metNummers(vet, zinnen[0] || alinea, perNummer);
         p.append(vet);
-        if (zinnen.length === 2) {
+        for (const z of zinnen.slice(1)) {
           p.append(document.createTextNode(' '));
-          metNummers(p, zinnen[1], perNummer);
+          metNummers(p, z, perNummer);
         }
         tekst.append(p);
-        if (zinnen.length > 2) {
-          const ul = document.createElement('ul');
-          for (const z of zinnen.slice(1)) {
-            const li = document.createElement('li');
-            metNummers(li, z, perNummer);
-            ul.append(li);
-          }
-          tekst.append(ul);
-        }
       }
 
       const verw = d.verwijzingen || [];
@@ -4298,7 +4371,131 @@ function tekenEerstDit(draden, dag) {
     }
     vak.append(draad);
   });
+
+  const rest = verderVandaag(draden, blokken, verder);
+  if (rest.length) {
+    const lijst = el('div', { class: 'verder' });
+    lijst.append(el('div', { class: 'kopje', tekst: 'Verder in deze briefing' }));
+    rest.forEach((r, i) => {
+      /* Een tik opent het bericht zelf. De kop is hier van een model of
+         ingekort; wat de redactie schreef is dus precies wat je wilt zien, en
+         via het blok was dat twee tikken en zoeken tussen twintig koppen.
+         Zonder link (een uitslag bij Sport) gaat het blok open. */
+      const rubriek = r.blok ? korteRubriek(r.blok.titel) : '';
+      const k = r.link
+        ? el('a', { class: 'regel', href: r.link, target: '_blank', rel: 'noopener' })
+        : el('button', { class: 'regel', type: 'button' });
+      k.setAttribute('aria-label', [rubriek, r.kop,
+        r.link ? [r.bron, r.titel].filter(Boolean).join(', ') : 'Opent dat blok']
+        .filter(Boolean).join('. '));
+      k.append(el('span', { class: 'nr', tekst: String(draden.length + i + 1),
+                            'aria-hidden': 'true' }));
+      k.append(el('span', { class: 'verderkop', tekst: r.kop }));
+      /* Altijd een vakje rechts, ook als het blok geen tekentje heeft: anders
+         verspringt de rechterrand van de koppen per regel. */
+      k.append(el('span', { class: 'rubriek', title: rubriek || null,
+                            'aria-hidden': 'true',
+                            tekst: (r.blok && r.blok.emoji) || '' }));
+      if (!r.link) k.addEventListener('click', () => {
+        ui.blokOpen[r.blok.id] = true;
+        tekenBriefing();
+        const doel = document.querySelector(
+          '[data-sleutel="blok:' + CSS.escape(r.blok.id) + '"]');
+        if (doel) doel.scrollIntoView({ block: 'start' });
+      });
+      lijst.append(k);
+    });
+    vak.append(lijst);
+  }
   return vak;
+}
+
+/* Draden en regels samen: tien, net als de lijst waar we naast gelegd zijn.
+   Meer past niet op één scherm, en dan is het geen overzicht meer. */
+const EERSTDIT_REGELS = 10;
+/* Wat er aan letters op één regel past tussen het nummer en het tekentje van
+   de rubriek, op een telefoon van 390 breed. */
+const VERDERKOP_MAX = 38;
+
+/* De naam van een blok in één woord of twee, voor wie de regel laat
+   voorlezen of er met een muis boven hangt: "Dalfsen en Oost-Nederland" wordt
+   "Dalfsen", "Politie en justitie" wordt "Politie". */
+function korteRubriek(titel) {
+  return String(titel || '').split(/\s+en\s+/)[0].trim();
+}
+
+/* Wat de briefing verder dekt, één regel per onderwerp.
+
+   Sinds 13 november 2026 schrijft het model daar zelf koppen voor, hooguit
+   vijf woorden, in het veld `verder` van de briefing: al gekozen, al op
+   volgorde, en met de link van het bericht erbij. Die tonen we zoals ze
+   komen. Wijst een regel naar een blok dat er niet is, dan blijft het
+   tekentje van de rubriek weg; zonder kop of zonder iets om naartoe te gaan valt de
+   regel af.
+
+   Een briefing van daarvoor -- het hele archief -- heeft dat veld niet. Dan
+   per blok de eerste kop die niet al onder een draad hangt, ingekort tot één
+   regel (`eenRegel`). Lukt dat niet met wat overblijft, dan slaan we het blok
+   over: drie regels per kop maakt van het overzicht een leeslijst. Het weer
+   staat al onder de titel. */
+
+/* Een kop van een redactie op één regel. Past hij heel, dan heel. Anders het
+   deel voor de dubbele punt of het streepje, want daarachter staat meestal
+   het citaat ("Bioloog kritisch op wolvenplan: 'Besteed geld aan...'"). En
+   anders afgebroken op een woordgrens, zonder een los lidwoord of voorzetsel
+   aan het eind, met een beletselteken zodat je ziet dat er meer stond. Blijft
+   er minder dan drie woorden over, dan zegt de regel niets en komt er niets
+   terug. */
+const LOSEINDE = /\s+(de|het|een|en|of|van|voor|door|in|op|om|te|met|bij|aan|uit|tot|na|over|als|die|dat|naar|the|and|to|for)$/i;
+function eenRegel(kop) {
+  const heel = String(kop || '').replace(/\s+/g, ' ').replace(/…$/, '').trim();
+  const genoeg = k => k.split(' ').length >= 3;
+  if (heel.length <= VERDERKOP_MAX) return heel;
+  const voor = heel.split(/:\s|\s[-–—]\s/)[0].trim();
+  if (voor.length <= VERDERKOP_MAX && genoeg(voor)) return voor;
+  let kort = heel.slice(0, VERDERKOP_MAX).replace(/\s+\S*$/, '');
+  for (let i = 0; i < 3; i++) {
+    kort = kort.replace(/[\s,;:'"(‘“-]+$/, '').replace(LOSEINDE, '');
+  }
+  return genoeg(kort) ? kort + '…' : '';
+}
+
+function verderVandaag(draden, blokken, verder) {
+  const ruimte = Math.max(0, EERSTDIT_REGELS - (draden || []).length);
+  const perId = new Map();
+  for (const b of (blokken || [])) if (b && b.id) perId.set(b.id, b);
+
+  if (Array.isArray(verder) && verder.length) {
+    const uit = [];
+    for (const v of verder) {
+      const kop = v && typeof v.kop === 'string' ? v.kop.trim() : '';
+      const link = v && /^https?:\/\//.test(v.link || '') ? v.link : '';
+      const blok = (v && perId.get(v.blok)) || null;
+      if (!kop || (!link && !blok)) continue;
+      uit.push({ kop, link, blok, bron: v.bron || '', titel: v.titel || '' });
+    }
+    return uit.slice(0, ruimte);
+  }
+
+  const gehad = new Set();
+  for (const d of (draden || [])) {
+    for (const v of (d.verwijzingen || [])) if (v && v.link) gehad.add(v.link);
+  }
+  const uit = [];
+  for (const b of (blokken || [])) {
+    if (!b || !b.id || b.id === 'weer') continue;
+    if (b.id === 'sport') {
+      const uitslag = sportKort(b.sport)[0] || '';
+      if (uitslag) uit.push({ kop: uitslag, link: '', blok: b });
+      continue;
+    }
+    const it = (b.items || []).find(x => x && !(x.link && gehad.has(x.link)));
+    const kop = it ? eenRegel(voorproefVan(it)) : '';
+    if (!kop) continue;
+    uit.push({ kop, link: /^https?:\/\//.test(it.link || '') ? it.link : '', blok: b,
+               bron: it.bron || '', titel: it.toon || it.titel || '' });
+  }
+  return uit.slice(0, ruimte);
 }
 
 function tekenBriefing() {
@@ -4382,7 +4579,7 @@ function tekenBriefing() {
      de berichten al gehad hebt, en dan heeft hij geen functie meer.
      Ontbreekt hij, dan is er geen blok: dat is een stille dag of een ronde
      zonder sleutel, en in beide gevallen is een leeg paneel erger dan niets. */
-  if (toon.duiding && toon.duiding.length) stuk.append(tekenEerstDit(toon.duiding, toon.datum));
+  if (toon.duiding && toon.duiding.length) stuk.append(tekenEerstDit(toon.duiding, toon.datum, toon.blokken, toon.verder));
 
   const kleuren = { internationaal:'var(--teal)', nationaal:'var(--accent)',
                     lokaal:'var(--olijf)', ai:'var(--leisteen)', bron:'var(--accent)',
