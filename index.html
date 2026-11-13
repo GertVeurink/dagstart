@@ -741,6 +741,118 @@
   .oef-body .cue { margin-top: 7px; font-size: 12.5px; color: var(--accent-ink); font-style: italic; }
   .oef-num small { display: block; font-size: 10.5px; font-weight: 400; color: var(--ink-3); }
   .picto { flex: 0 0 42px; height: 42px; }
+
+  /* ---- De setregels: het schema wordt een lijst om af te tikken ----
+
+     Tijdens het trainen ligt de telefoon op de bank en sta jij ernaast. Dus
+     alles hier is gemaakt om op armlengte te lezen en met een natte duim te
+     raken: cijfers van 19 punten, en een vinkvlak van 60 bij 50 -- ruim boven
+     de 44 die Apple als ondergrens noemt. Wat je de vorige keer deed staat er
+     grijs naast: dat is informatie, geen knop. */
+  .sets { padding: 0 8px 10px; }
+  .setkop, .setrij {
+    display: grid; align-items: center; column-gap: 6px;
+    grid-template-columns: 28px minmax(0, 1fr) 52px 52px 60px;
+  }
+  /* Een oefening zonder gewicht (heupbrug, plank, de lussen) heeft geen
+     kilokolom. De kolommen rechts blijven op hun plek staan, zodat het vinkje
+     bij elke oefening op dezelfde plaats onder je duim zit. */
+  .sets.zonderkg .setkop, .sets.zonderkg .setrij { grid-template-columns: 28px minmax(0, 1fr) 52px 60px; }
+  .setkop { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase;
+            color: var(--ink-3); padding: 2px 1px 4px; }
+  .setkop span { text-align: center; white-space: nowrap; }
+  .setkop span:nth-child(2) { text-align: left; }
+  .setrij { min-height: 52px; border-radius: 9px; margin-top: 3px;
+            background: var(--panel); border: 1px solid var(--line); }
+  .setrij.af { background: var(--accent-zacht); border-color: transparent; }
+  /* De set die aan de beurt is krijgt een rand in de accentkleur: in één blik
+     zien waar je bent, ook als je net van de halter komt en even kwijt bent
+     welke van de drie het was. */
+  .setrij.beurt { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .setnr { text-align: center; font-size: 16px; font-weight: 700; color: var(--ink-2); }
+  .setvorige { font-size: 14px; color: var(--ink-3); white-space: nowrap;
+               overflow: hidden; text-overflow: ellipsis;
+               font-variant-numeric: tabular-nums; }
+  .setwaarde {
+    align-self: stretch; background: none; border: 0; padding: 0; margin: 0;
+    font: inherit; font-size: 19px; font-weight: 700; color: var(--ink);
+    font-variant-numeric: tabular-nums; cursor: pointer; text-align: center;
+  }
+  .setwaarde small { font-size: 11px; font-weight: 500; color: var(--ink-3); margin-left: 2px; }
+  /* Wijkt het af van wat het schema voorschrijft, dan mag dat opvallen --
+     anders tik je over drie weken nog steeds 25 af terwijl er 27,5 op ligt. */
+  .setwaarde.anders { color: var(--warm); }
+  .setvink {
+    align-self: stretch; margin: 3px; border-radius: 7px; cursor: pointer;
+    background: var(--panel-2); border: 1.5px solid var(--line-2);
+    color: var(--ink-3); font-size: 24px; line-height: 1; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .setrij.af .setvink { background: var(--accent); border-color: var(--accent); color: var(--op-accent); }
+  /* Aanpassen: geen toetsenbord maar min en plus. Een toetsenbord dekt het
+     halve scherm af en vraagt een droge vingertop; twee grote knoppen niet.
+     Het getal ertussen is wél een invulveld, voor de keer dat het veel scheelt. */
+  .setpas { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 6px;
+            padding: 8px; border-radius: 9px; background: var(--panel);
+            border: 1px solid var(--line); }
+  .stapper { flex: 1 1 150px; display: flex; align-items: stretch; gap: 4px; }
+  .stapper button {
+    flex: 0 0 48px; height: 48px; border-radius: 8px; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--line-2);
+    color: var(--ink); font-size: 24px; line-height: 1;
+  }
+  .stapper label { flex: 1; min-width: 0; display: flex; flex-direction: column;
+                   align-items: center; justify-content: center;
+                   font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase;
+                   color: var(--ink-3); }
+  .stapper input { width: 100%; border: 0; background: none; color: var(--ink);
+                   font: inherit; font-size: 20px; font-weight: 700; text-align: center;
+                   font-variant-numeric: tabular-nums; padding: 0;
+                   -moz-appearance: textfield; appearance: textfield; }
+  .stapper input::-webkit-outer-spin-button,
+  .stapper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .oef-top { scroll-margin-top: 62px; }
+  .oef.klaar .oef-num { color: var(--ink-3); }
+
+  /* ---- De rustbalk: wat er gebeurt nadat je een set afvinkt ----
+
+     Vast onder in beeld, zodat je er niet voor hoeft te scrollen: hoe lang je
+     al rust, waar je bent in de training, en wat de volgende set is -- met een
+     knop om die meteen af te vinken. De klok telt óp. Het schema schrijft geen
+     rusttijden voor, dus een aftelklok zou een getal zijn dat de app verzint. */
+  .rustbalk {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    background: var(--panel); border-top: 1px solid var(--line-2);
+    box-shadow: 0 -4px 18px rgba(30,28,24,.13);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .rustvoortgang { height: 5px; background: var(--line); }
+  .rustvoortgang i { display: block; height: 100%; background: var(--accent);
+                     transition: width .25s; }
+  .rustbinnen { max-width: 720px; margin: 0 auto; padding: 9px 12px 11px 16px;
+                display: flex; align-items: center; gap: 12px; }
+  .rustklok { flex: 0 0 auto; min-width: 78px; }
+  .rustklok small, .rustnu small { display: block; font-size: 10.5px; letter-spacing: .06em;
+                    text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+  .rustklok b { display: block; font-size: 34px; line-height: 1.05; font-weight: 700;
+                font-variant-numeric: tabular-nums; color: var(--accent-ink); }
+  .rustnu { flex: 1; min-width: 0; }
+  .rustnu b { display: block; font-size: 15.5px; line-height: 1.2; font-weight: 650;
+              white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rustnu > span { display: block; font-size: 14px; color: var(--ink-2);
+                 font-variant-numeric: tabular-nums; white-space: nowrap;
+                 overflow: hidden; text-overflow: ellipsis; }
+  .rustknop {
+    flex: 0 0 auto; min-width: 68px; height: 62px; padding: 0 14px; border-radius: 12px;
+    background: var(--accent); border: 0; color: var(--op-accent); cursor: pointer;
+    font: inherit; font-size: 30px; font-weight: 700; line-height: 1;
+  }
+  .rustknop.tekst { font-size: 15px; }
+  /* Ruimte onder de lijst, anders ligt de laatste oefening achter de balk. En
+     het meldinkje ("Kracht A afgevinkt") moet erboven uitkomen, niet erachter. */
+  #tab-training.metbalk { padding-bottom: 96px; }
+  body[data-scherm="training"]:has(.rustbalk) .melding { bottom: calc(112px + env(safe-area-inset-bottom)); }
+
   .dagkiezer {
     display: flex; gap: 7px; overflow-x: auto; padding: 8px 16px 2px;
     -webkit-overflow-scrolling: touch;
@@ -1289,6 +1401,7 @@ const ui = {
   tab: 'start',
   blokOpen: {},         // welke briefing-blokken uitgeklapt staan
   oefOpen: {},          // welke oefeningen hun uitleg tonen
+  setPas: null,         // de set waarvan je gewicht of aantal aan het bijstellen bent
   smoothieOpen: {},     // welke smoothie zijn ingrediënten toont
   kopOpen: {},          // welke tussenkopjes binnen een blok open staan
   meerOpen: {},         // bij welke blokken ook de berichten na de eerste zes staan
@@ -5001,12 +5114,356 @@ function zetTraining(id) {
   }
 }
 
+/* ---------- de sets: wat je per set deed ----------
+
+   Tot 13 november 2026 was dit scherm een schema om te lezen met één vinkje
+   per dag. Tijdens het trainen heb je daar weinig aan: je wilt weten welke set
+   je net deed, wat er de vorige keer op de halter lag en hoe lang je al staat
+   uit te hijgen. Dus krijgt elke oefening een regel per set.
+
+   Het schema zelf blijft de baas en staat alleen in `TRAINING`. Hier wordt het
+   alleen *gelezen*: '3 × 8 per been' is drie regels met een 8 erin, en
+   'halter 25 kg' is het gewicht dat er klaarstaat. Zo kan er nooit een tweede
+   waarheid naast het schema ontstaan -- verandert daar een tekst, dan
+   veranderen de regels mee.
+
+   Opgeslagen als `dagen[datum].sets[training][oefening]` = een lijstje met per
+   set `{ kg, n, op }`. `op` is het tijdstip van afvinken; zonder `op` is het
+   een set die je wel hebt bijgesteld maar nog niet gedaan. Het hangt aan de
+   náám van de oefening en niet aan zijn plek in de lijst: schuift er ooit een
+   oefening tussen, dan blijft wat je bij de RDL deed bij de RDL staan.
+   `dagen[datum].training` -- het dagvinkje -- weet hier niets van en werkt
+   zoals het werkte. */
+
+function getal(s) { return parseFloat(String(s).replace(',', '.')); }
+
+/* Geeft null voor een regel die geen sets heeft ('zie hieronder' bij het
+   lopen): dan komen er ook geen setregels. */
+function setSchema(oef) {
+  const m = /^(\d+)\s*×\s*(\d+(?:,\d+)?)(?:\s+(sec|min))?(?:\s+per .+)?$/.exec(oef[2]);
+  if (!m) return null;
+  const g = /(\d+(?:,\d+)?)\s*kg/.exec(oef[1]);
+  return { aantal: Number(m[1]), n: getal(m[2]), eenheid: m[3] || '',
+           kg: g ? getal(g[1]) : null };
+}
+
+function setsVan(datum, id, naam, maak) {
+  const d = dag(datum, maak);
+  if (maak) {
+    if (!d.sets || typeof d.sets !== 'object') d.sets = {};
+    if (!d.sets[id] || typeof d.sets[id] !== 'object') d.sets[id] = {};
+    if (!Array.isArray(d.sets[id][naam])) d.sets[id][naam] = [];
+  }
+  const lijst = d.sets && d.sets[id] && d.sets[id][naam];
+  return Array.isArray(lijst) ? lijst : [];
+}
+
+/* De dagen vóór vandaag waarop sets zijn bijgehouden, nieuwste eerst. Eén keer
+   per tekenbeurt uitgerekend en dan aan elke oefening meegegeven. */
+function dagenMetSets() {
+  const nu = vandaag();
+  return Object.keys(st.dagen).filter(d => d < nu && st.dagen[d] && st.dagen[d].sets)
+    .sort().reverse();
+}
+
+/* De laatste keer dat je déze oefening op déze dagsoort deed. Niet "de vorige
+   Kracht A": sloeg je toen de boksbal over, dan wil je bij de boksbal de keer
+   daarvoor zien en geen lege kolom. */
+function vorigeSets(id, naam, eerder) {
+  for (const datum of eerder) {
+    const lijst = setsVan(datum, id, naam);
+    if (lijst.some(s => s && s.op)) return { datum, lijst };
+  }
+  return null;
+}
+
+/* Wat er in een setregel staat voordat je iets hebt aangeraakt.
+
+   Het aantal komt altijd uit het schema: dat is wat je moet doen, en wat je de
+   vorige keer haalde staat er grijs naast. Het gewicht volgt jou: eerst wat je
+   vandaag bij een eerdere set van deze oefening pakte, anders wat er de vorige
+   keer lag, en pas dan het schema. Leg je er schijven bij, dan hoef je dat dus
+   één keer te zeggen en niet bij elke set opnieuw. */
+function setWaarde(id, naam, schema, i, vorige) {
+  const lijst = setsVan(vandaag(), id, naam);
+  const eigen = lijst[i] || null;
+  let kg = schema.kg;
+  if (schema.kg !== null) {
+    let bron = null;
+    for (let j = i; j >= 0 && !bron; j--) {
+      if (lijst[j] && Number.isFinite(lijst[j].kg)) bron = lijst[j];
+    }
+    if (!bron && vorige) {
+      const gedaan = vorige.lijst.filter(s => s && s.op && Number.isFinite(s.kg));
+      const zelfde = vorige.lijst[i];
+      bron = (zelfde && zelfde.op && Number.isFinite(zelfde.kg)) ? zelfde
+           : gedaan[gedaan.length - 1] || null;
+    }
+    if (bron) kg = bron.kg;
+  }
+  const n = eigen && Number.isFinite(eigen.n) ? eigen.n : schema.n;
+  return { kg, n, op: (eigen && eigen.op) || null };
+}
+
+function setTekst(s, schema) {
+  const kg = Number.isFinite(s.kg) ? nl(s.kg) + ' kg × ' : '';
+  const staart = schema.eenheid ? ' ' + schema.eenheid : (kg ? '' : '×');
+  return kg + nl(s.n) + staart;
+}
+
+/* Waar je bent in één krachtdag: hoeveel sets er af zijn, wanneer de eerste en
+   de laatste, en welke set nu aan de beurt is. */
+function setStand(id) {
+  let totaal = 0, gedaan = 0, eerste = null, laatste = null, plek = null, oefeningen = 0;
+  const open = [];
+  TRAINING[id].oefeningen.forEach((oef, nr) => {
+    const schema = setSchema(oef);
+    if (!schema) return;
+    oefeningen++;
+    const lijst = setsVan(vandaag(), id, oef[0]);
+    for (let i = 0; i < schema.aantal; i++) {
+      totaal++;
+      const op = lijst[i] && lijst[i].op;
+      if (!op) { open.push([nr, i]); continue; }
+      gedaan++;
+      if (eerste === null || op < eerste) eerste = op;
+      if (laatste === null || op > laatste) { laatste = op; plek = [nr, i]; }
+    }
+  });
+  /* Aan de beurt: eerst de rest van de oefening waar je mee bezig bent, dan de
+     oefeningen erna, en pas daarna wat je eerder oversloeg. Zo loopt de balk
+     met je mee als je de volgorde omgooit omdat de bank nog bezet is met de
+     was. */
+  const volgende = open.length
+    ? ((plek && (open.find(p => p[0] === plek[0]) || open.find(p => p[0] > plek[0]))) || open[0])
+    : null;
+  return { id, totaal, gedaan, eerste, laatste, volgende, oefeningen };
+}
+
+/* De krachtdag waar je vandaag mee bezig bent, of null. Heb je van allebei
+   iets afgevinkt, dan telt die van de laatste tik. */
+function sessieVandaag() {
+  if (!dag(vandaag()).sets) return null;
+  let beste = null;
+  for (const id of TRAINING_VOLGORDE) {
+    if (TRAINING[id].soort !== 'kracht') continue;
+    const s = setStand(id);
+    if (s.gedaan && (!beste || s.laatste > beste.laatste)) beste = s;
+  }
+  return beste;
+}
+
+/* JSON kent geen gaten in een lijst: vink je set 3 af vóór set 1, dan moeten
+   de plekken ervoor expliciet leeg zijn. */
+function vulGaten(lijst) {
+  for (let j = 0; j < lijst.length; j++) if (lijst[j] === undefined) lijst[j] = null;
+}
+
+function tikSet(id, nr, i) {
+  const oef = TRAINING[id].oefeningen[nr];
+  const schema = setSchema(oef);
+  if (!schema) return;
+  const w = setWaarde(id, oef[0], schema, i, vorigeSets(id, oef[0], dagenMetSets()));
+  const lijst = setsVan(vandaag(), id, oef[0], true);
+  const afgevinkt = !w.op;
+  if (afgevinkt) {
+    lijst[i] = { n: w.n, op: Date.now() };
+    if (w.kg !== null) lijst[i].kg = w.kg;
+  } else {
+    /* Nog eens tikken = terugnemen, net als bij het dagvinkje. Wat je had
+       ingevuld blijft staan; alleen het tijdstip gaat eraf. */
+    delete lijst[i].op;
+  }
+  vulGaten(lijst);
+  ui.setPas = null;
+  bewaar();
+
+  /* Was dit de laatste set van de oefening, dan schuift de volgende oefening
+     naar boven: je hoeft met een halter in je handen niet te scrollen. In elk
+     ander geval blijft het scherm staan waar het stond. */
+  const stand = setStand(id);
+  if (afgevinkt && stand.volgende && stand.volgende[0] !== nr) {
+    tekenTraining();
+    const kop = document.querySelector('[data-sleutel="oef:' + id + '-' + stand.volgende[0] + '"]');
+    const rustig = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (kop) kop.scrollIntoView({ block: 'start', behavior: rustig ? 'auto' : 'smooth' });
+  } else {
+    herteken(tekenTraining, 'oef:' + id + '-' + nr);
+  }
+}
+
+function pasSet(id, nr, i, veld, waarde) {
+  if (!Number.isFinite(waarde) || waarde < 0) return;
+  const oef = TRAINING[id].oefeningen[nr];
+  const schema = setSchema(oef);
+  const w = setWaarde(id, oef[0], schema, i, vorigeSets(id, oef[0], dagenMetSets()));
+  const lijst = setsVan(vandaag(), id, oef[0], true);
+  const s = { n: w.n };
+  if (w.kg !== null) s.kg = w.kg;
+  if (w.op) s.op = w.op;
+  s[veld] = Math.round(waarde * 100) / 100;
+  lijst[i] = s;
+  vulGaten(lijst);
+  bewaar();
+  herteken(tekenTraining, 'oef:' + id + '-' + nr);
+}
+
+function stapper(naam, waarde, stap, zet) {
+  const veld = el('input', { type: 'number', inputmode: 'decimal', step: 'any', min: '0',
+                             value: String(waarde), 'aria-label': naam });
+  veld.addEventListener('change', () => zet(getal(veld.value)));
+  return el('div', { class: 'stapper' }, [
+    el('button', { type: 'button', tekst: '−', 'aria-label': naam + ' omlaag',
+                   onclick: () => zet(Math.max(0, waarde - stap)) }),
+    el('label', {}, [veld, document.createTextNode(naam)]),
+    el('button', { type: 'button', tekst: '+', 'aria-label': naam + ' omhoog',
+                   onclick: () => zet(waarde + stap) }),
+  ]);
+}
+
+function tekenSets(id, nr, schema, stand, eerder) {
+  const naam = TRAINING[id].oefeningen[nr][0];
+  const vorige = vorigeSets(id, naam, eerder);
+  const metKg = schema.kg !== null;
+  const doos = el('div', { class: 'sets' + (metKg ? '' : ' zonderkg') });
+  doos.append(el('div', { class: 'setkop' }, [
+    el('span', { tekst: 'Set' }),
+    el('span', { tekst: vorige ? 'Vorige · ' + korteDatum(vorige.datum) : 'Vorige keer' }),
+    metKg ? el('span', { tekst: 'kg' }) : null,
+    el('span', { tekst: schema.eenheid || 'herh' }),
+    el('span', { tekst: 'af' }),
+  ]));
+
+  for (let i = 0; i < schema.aantal; i++) {
+    const w = setWaarde(id, naam, schema, i, vorige);
+    const sleutel = id + '-' + nr + '-' + i;
+    const beurt = stand.volgende && stand.volgende[0] === nr && stand.volgende[1] === i;
+    const toen = vorige && vorige.lijst[i] && vorige.lijst[i].op ? vorige.lijst[i] : null;
+    const open = () => {
+      ui.setPas = ui.setPas === sleutel ? null : sleutel;
+      herteken(tekenTraining, 'oef:' + id + '-' + nr);
+    };
+    const rij = el('div', { class: 'setrij' + (w.op ? ' af' : '') + (beurt ? ' beurt' : '') }, [
+      el('span', { class: 'setnr', tekst: String(i + 1) }),
+      el('span', { class: 'setvorige', tekst: toen ? setTekst(toen, schema) : '—' }),
+      metKg ? el('button', { type: 'button', tekst: nl(w.kg), onclick: open,
+                             class: 'setwaarde' + (w.kg !== schema.kg ? ' anders' : ''),
+                             'aria-label': 'Gewicht set ' + (i + 1) + ': ' + nl(w.kg) + ' kilo, aanpassen' }) : null,
+      el('button', { type: 'button', tekst: nl(w.n), onclick: open,
+                     class: 'setwaarde' + (w.n !== schema.n ? ' anders' : ''),
+                     'aria-label': 'Aantal set ' + (i + 1) + ': ' + nl(w.n) + ', aanpassen' }),
+      el('button', { type: 'button', class: 'setvink', tekst: '✓',
+                     'aria-pressed': w.op ? 'true' : 'false',
+                     'aria-label': naam + ' set ' + (i + 1) + (w.op ? ' terugnemen' : ' afvinken'),
+                     onclick: () => tikSet(id, nr, i) }),
+    ]);
+    doos.append(rij);
+
+    if (ui.setPas === sleutel) {
+      /* De halter gaat per 2,5 (een schijfje aan elke kant), de dumbbells en
+         alles daaronder per halve kilo. Seconden per vijf: niemand houdt een
+         plank 47 tellen vol. */
+      const stapN = schema.eenheid === 'sec' ? 5 : schema.eenheid === 'min' ? 0.5 : 1;
+      doos.append(el('div', { class: 'setpas' }, [
+        metKg ? stapper('kg', w.kg, w.kg >= 15 ? 2.5 : 0.5,
+                        v => pasSet(id, nr, i, 'kg', v)) : null,
+        stapper(schema.eenheid || 'herhalingen', w.n, stapN,
+                v => pasSet(id, nr, i, 'n', v)),
+      ]));
+    }
+  }
+  return doos;
+}
+
+/* De klok in de rustbalk. Hij rekent elke seconde opnieuw uit hoe lang het
+   geleden is in plaats van zelf te tellen: een telefoon die op de bank in slaap
+   valt, slaat tikken over, en dan loopt een tellende klok achter. Er wordt
+   alleen tekst vervangen -- het scherm opnieuw tekenen zou elke seconde een
+   open invulveld dichtgooien. */
+let rustKlok = null;
+
+function rustTekst(ms) {
+  const sec = Math.max(0, Math.floor(ms / 1000));
+  /* Na een uur is het geen rust meer maar een onderbroken training; dan zegt
+     een klok van 143:12 niets. */
+  return sec < 3600 ? klokje(sec) : '60+';
+}
+
+function tikRust() {
+  const klok = document.getElementById('rust-klok');
+  if (!klok || ui.tab !== 'training') { clearInterval(rustKlok); rustKlok = null; return; }
+  klok.textContent = rustTekst(Date.now() - Number(klok.dataset.sinds));
+  const bezig = document.getElementById('rust-bezig');
+  if (bezig) bezig.textContent = Math.floor((Date.now() - Number(bezig.dataset.sinds)) / 60000) + ' min bezig';
+}
+
+function tekenRustbalk(stand, gedaanVandaag) {
+  if (!stand) return null;
+  const t = TRAINING[stand.id];
+  const klaar = !stand.volgende;
+  /* Alles af én het dagvinkje staat: dan is er niets meer te doen en hoeft er
+     ook geen balk in de weg te hangen. */
+  if (klaar && gedaanVandaag === stand.id) return null;
+
+  const balk = el('div', { class: 'rustbalk', role: 'group', 'aria-label': 'Lopende training' });
+  const streep = el('i');
+  streep.style.width = Math.round(100 * stand.gedaan / stand.totaal) + '%';
+  balk.append(el('div', { class: 'rustvoortgang' }, [streep]));
+
+  const voortgang = el('small');
+  voortgang.append(stand.gedaan + ' van ' + stand.totaal + ' sets · ');
+  if (klaar) {
+    voortgang.append(Math.round((stand.laatste - stand.eerste) / 60000) + ' min');
+  } else {
+    voortgang.append(el('span', { id: 'rust-bezig', 'data-sinds': String(stand.eerste) }));
+  }
+
+  let nu, knop;
+  if (klaar) {
+    nu = [voortgang, el('b', { tekst: 'Alle sets af' }),
+          el('span', { tekst: t.naam + ' zit erop' })];
+    knop = el('button', { type: 'button', class: 'rustknop tekst', tekst: 'Afvinken',
+                          onclick: () => zetTraining(stand.id) });
+  } else {
+    const [nr, i] = stand.volgende;
+    const oef = t.oefeningen[nr];
+    const schema = setSchema(oef);
+    const w = setWaarde(stand.id, oef[0], schema, i, vorigeSets(stand.id, oef[0], dagenMetSets()));
+    nu = [voortgang, el('b', { tekst: oef[0] }),
+          el('span', { tekst: 'set ' + (i + 1) + ' van ' + schema.aantal + ' · ' + setTekst(w, schema) })];
+    knop = el('button', { type: 'button', class: 'rustknop', tekst: '✓',
+                          'aria-label': 'Volgende set afvinken: ' + oef[0] + ' set ' + (i + 1),
+                          onclick: () => tikSet(stand.id, nr, i) });
+  }
+
+  balk.append(el('div', { class: 'rustbinnen' }, [
+    el('div', { class: 'rustklok' }, [
+      el('small', { tekst: 'Rust' }),
+      el('b', { id: 'rust-klok', 'data-sinds': String(stand.laatste) }),
+    ]),
+    el('div', { class: 'rustnu' }, nu),
+    knop,
+  ]));
+  return balk;
+}
+
 function tekenTraining() {
   const doel = document.getElementById('tab-training');
   const stuk = document.createDocumentFragment();
   const gedaanVandaag = trainingVan(vandaag());
   const week = trainingDezeWeek();
   const voorstel = voorstelVandaag();
+  const lopend = sessieVandaag();
+  const eerder = dagenMetSets();
+
+  /* Wie dit scherm opent op een krachtdag, komt om te trainen. Dan staat de dag
+     die aan de beurt is (of waar je al mee bezig was) meteen open en is de
+     eerste set één tik weg. Alleen de eerste keer: klap je hem dicht, dan
+     blijft hij dicht. Op een loopdag gaat er niets vanzelf open -- daar valt
+     niets af te tikken en wilde Gert drie nette regels. */
+  const vanzelf = lopend ? lopend.id
+    : (!gedaanVandaag && voorstel && TRAINING[voorstel.id].soort === 'kracht') ? voorstel.id : null;
+  if (vanzelf && ui.blokOpen['tr-' + vanzelf] === undefined) ui.blokOpen['tr-' + vanzelf] = true;
 
   const kop = document.createElement('div');
   kop.className = 'briefkop';
@@ -5045,8 +5502,13 @@ function tekenTraining() {
     const knop = document.createElement('button');
     knop.className = 'trainingnaam';
     if (!gedaanVandaag && voorstel && voorstel.id === id) knop.classList.add('beurt');
+    /* Ben je met deze dag bezig, dan zegt de regel hoe ver je bent in plaats
+       van hoe lang het duurt: dat laatste weet je inmiddels. */
+    const stand = t.soort === 'kracht' ? setStand(id) : null;
     knop.innerHTML = '<span class="naam">' + t.naam + '</span>' +
-      '<span class="aantal">' + t.onder + ' · ' + t.duur + '</span>' +
+      '<span class="aantal">' + (stand && stand.gedaan
+        ? stand.gedaan + ' van ' + stand.totaal + ' sets'
+        : t.onder + ' · ' + t.duur) + '</span>' +
       '<span class="pijl">&#9656;</span>';
     knop.dataset.sleutel = 'tr:' + id;
     knop.addEventListener('click', () => {
@@ -5062,8 +5524,13 @@ function tekenTraining() {
       inhoud.className = 'inhoud';
       t.oefeningen.forEach(([naam, kit, sets, uitleg, tip], n) => {
         const sleutel = id + '-' + n;
+        const schema = stand ? setSchema(t.oefeningen[n]) : null;
         const o = document.createElement('div');
         o.className = 'oef' + (ui.oefOpen[sleutel] ? ' open' : '');
+        /* Een oefening die erop zit, treedt terug: het aantal rechts wordt
+           grijs, zodat je oog naar de volgende gaat. */
+        if (schema && setsVan(vandaag(), id, naam).slice(0, schema.aantal)
+              .filter(s => s && s.op).length >= schema.aantal) o.classList.add('klaar');
 
         const bovenkant = document.createElement('button');
         bovenkant.className = 'oef-top';
@@ -5092,6 +5559,9 @@ function tekenTraining() {
           body.innerHTML = '<p>' + uitleg + '</p><p class="cue">' + tip + '</p>';
           o.append(body);
         }
+        /* De setregels staan er altijd, de uitleg alleen na een tik op de
+           naam: tijdens het trainen wil je afvinken, niet lezen. */
+        if (schema) o.append(tekenSets(id, n, schema, stand, eerder));
         inhoud.append(o);
       });
       /* Het looppaneel -- de opbouw van deze week, je laatste rondjes, de
@@ -5117,7 +5587,14 @@ function tekenTraining() {
      in de schuur hangt -- daar lees je het één keer en niet honderd keer.
      Zet het niet terug bij een opruiming. */
 
+  const balk = tekenRustbalk(lopend, gedaanVandaag);
+  if (balk) stuk.append(balk);
+  doel.classList.toggle('metbalk', !!balk);
   doel.replaceChildren(stuk);
+
+  clearInterval(rustKlok);
+  rustKlok = null;
+  if (balk) { tikRust(); rustKlok = setInterval(tikRust, 1000); }
 }
 
 /* ===================================================================
