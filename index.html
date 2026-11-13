@@ -402,12 +402,13 @@
      staan er nog, in dezelfde volgorde. Maar het waren menukaarten geworden.
      Hoe de dag ervoor stond moest je uit grijze pilletjes lezen.
 
-     Sinds 13 november 2026 staat er bovenaan één figuur dat die vraag
-     beantwoordt, en dat is het enige zware ding op het scherm: drie halmen
-     naast elkaar (trainingen deze week, vinkjes vandaag, taken vandaag) die
-     van onderaf vollopen. Alle drie even breed en even hoog, en vol betekent
-     voor alle drie hetzelfde: gedaan wat het doel was. Je ziet zonder te
-     lezen hoe ver het is. Alles eronder is ingang en houdt zich klein.
+     Sinds 13 november 2026 staat die stand er als beeld: drie strepen
+     (trainingen deze week, vinkjes vandaag, taken vandaag) die vollopen. Alle
+     drie even lang, en vol betekent voor alle drie hetzelfde: gedaan wat het
+     doel was. Dat waren eerst drie hoge halmen bovenaan, het zwaarste ding
+     op het scherm. Gert zei dezelfde avond dat ze te veel aandacht trokken:
+     de briefing is wat hij verreweg het meest opent. Dus staat de briefing
+     nu bovenaan en groot, en is de stand een rustig blok eronder.
 
      Twee eerdere versies van die dag haalden het niet, en waarom is de moeite
      van onthouden waard. De eerste gaf elke kaart zijn eigen grote cijfer en
@@ -427,49 +428,44 @@
   .startkop .bak { flex-basis: 100%; font-size: 13.5px; line-height: 1.3; color: var(--ink-2); margin-top: -2px; }
   .startkop .bak b { color: var(--warm); font-weight: 600; }
 
-  /* Het hoofdbeeld: links het figuur, rechts bij elke halm zijn getal in
-     dezelfde kleur, in dezelfde volgorde. Daaronder wat er nu aan de beurt
-     is. */
-  .starthoofd { background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+  /* De stand van de dag: drie regels, elk een getal, een naam en een streep
+     die volloopt. Dit waren tot 13 november 2026 drie halmen van 256 punten
+     hoog, en daarmee het grootste op het scherm. Gert vond ze te veel aandacht
+     trekken: de briefing is wat hij verreweg het meest opent, dus die is het
+     hoofdbeeld en dit is de bijzaak eronder. Liggende strepen lossen meteen
+     twee dingen op die de beoordelaars aanwezen: het getal staat nu op de
+     regel van zijn eigen streep, en nul is echt leeg in plaats van een bol. */
+  .starthoofd { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
                 box-shadow: var(--shadow); overflow: hidden; }
-  .startbeeld { display: flex; align-items: stretch; gap: 22px; width: 100%; text-align: left;
-                cursor: pointer; background: none; border: 0; padding: 18px 16px 16px 20px;
-                color: inherit; font: inherit; }
+  .startbeeld { display: block; width: 100%; text-align: left; cursor: pointer; background: none;
+                border: 0; padding: 9px 14px 7px; color: inherit; font: inherit; }
   .startbeeld:active { background: var(--panel-2); }
-  .startfiguur { display: flex; gap: 12px; height: 256px; flex: none; }
-  /* Een halm. Het spoor is een zachte tint van zijn eigen kleur met een
-     stippelrand: zo ziet leeg eruit als iets dat nog vol gaat lopen, en niet
-     als een grijs vlak dat nog moet laden. Onderin zit altijd een knop in de
-     volle kleur. Bij nul is dat alles wat er staat: een begin. */
-  .starthalm { position: relative; width: 44px; height: 100%; }
-  .starthalm::before { content: ''; position: absolute; inset: 0; border-radius: 22px;
-                       background: currentColor; opacity: .11; }
-  .starthalm::after { content: ''; position: absolute; inset: 0; border-radius: 22px;
-                      border: 1.5px dashed currentColor; opacity: .4; }
-  .starthalm i { position: absolute; left: 0; right: 0; bottom: 0; min-height: 44px; z-index: 1;
-                 border-radius: 22px; background: currentColor; }
+  .startstand { display: flex; align-items: center; gap: 12px; padding: 5px 0; }
+  .startstand b { flex: none; width: 46px; font-family: var(--serif); font-weight: 600; font-size: 22px;
+                  line-height: 1; font-variant-numeric: tabular-nums; }
+  .startstand b small { font-size: 14px; opacity: .6; }
+  .startmeter { flex: 1; min-width: 0; }
+  .startmeter span { display: block; font-size: 13px; line-height: 1.2; color: var(--ink-2); margin-bottom: 4px; }
+  .startbaan { position: relative; height: 7px; border-radius: 4px; overflow: hidden; }
+  .startbaan::before { content: ''; position: absolute; inset: 0; background: currentColor; opacity: .15; }
+  .startbaan i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: currentColor; }
   .startkleur-1 { color: var(--accent); }
   .startkleur-2 { color: var(--olijf); }
   .startkleur-3 { color: var(--warm); }
-  .startstanden { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between;
-                  padding: 2px 0; }
-  .startstand b { display: block; font-family: var(--serif); font-weight: 600; font-size: 44px; line-height: 1;
-                  letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-  .startstand b small { font-size: 23px; letter-spacing: 0; opacity: .6; }
-  .startstand span { display: block; margin-top: 3px; font-size: 13.5px; line-height: 1.25; color: var(--ink-2); }
 
-  /* Wat er nu aan de beurt is: de enige gevulde knop op het scherm, dus de
-     plek waar je duim als eerste heen gaat. */
-  .startbeurt { display: flex; align-items: center; gap: 10px; width: calc(100% - 24px); margin: 0 12px 12px;
-                text-align: left; cursor: pointer; background: var(--accent); color: var(--op-accent);
-                border: 0; border-radius: 12px; padding: 10px 14px 11px; font: inherit; }
+  /* Wat er nu aan de beurt is. Geen gevuld groen vlak meer: dat was de
+     felste knop van het scherm en trok harder dan de briefing erboven. Het is
+     nog steeds één duidelijke regel om op te tikken. */
+  .startbeurt { display: flex; align-items: center; gap: 10px; width: 100%;
+                text-align: left; cursor: pointer; background: var(--panel-2); color: inherit;
+                border: 0; border-top: 1px solid var(--line); padding: 9px 14px 10px; font: inherit; }
   .startbeurt:active { transform: translateY(1px); }
   .startbeurt > div { flex: 1; min-width: 0; }
   .startbeurt small { display: block; font-size: 11px; line-height: 1.3; text-transform: uppercase;
-                      letter-spacing: .06em; opacity: .8; }
-  .startbeurt b { display: block; font-family: var(--serif); font-weight: 600; font-size: 18px; line-height: 1.3;
+                      letter-spacing: .06em; color: var(--ink-2); }
+  .startbeurt b { display: block; font-weight: 600; font-size: 15.5px; line-height: 1.3; color: var(--accent);
                   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .startbeurt > span { flex: none; font-size: 24px; line-height: 1; opacity: .8; }
+  .startbeurt > span { flex: none; font-size: 22px; line-height: 1; color: var(--accent); }
 
   /* De ingangen. Een naam en één regel: wat erachter zit lees je daar. */
   .startkaart {
@@ -489,7 +485,20 @@
                        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .startkaart.half { padding-top: 12px; padding-bottom: 13px; }
 
-  /* De koppen van de duiding: hooguit twee, elk op één regel. Dat is het
+  /* De briefing is het hoofdbeeld: bovenaan, de grootste kop van het scherm,
+     drie koppen van de duiding in leesbare letter. Daarvoor opent Gert de
+     app; de rest is wat je daarna doet. */
+  .startkaart.briefing { border-left-width: 6px; padding: 16px 16px 14px 15px; }
+  .startkaart.briefing h2 { font-size: 27px; line-height: 1.15; }
+  .startkaart.briefing .onder { font-size: 14px; margin-top: 4px; }
+  .startkaart.briefing .startkoppen { margin-top: 12px; padding-top: 9px; border-top: 1px solid var(--line); }
+  .startkaart.briefing .startkoppen li { font-size: 17px; line-height: 1.3; padding: 5px 0; gap: 11px; }
+  .startkaart.briefing .startkoppen li i { width: 12px; }
+  .startkaart.briefing .startkoppen li span {
+    white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .startlees { margin-top: 10px; font-size: 14.5px; font-weight: 600; color: var(--teal); }
+
+  /* De koppen van de duiding: hooguit drie. Dat is het
      nieuws zelf en geen menu, maar het blijft kort genoeg om geen muur te
      worden. */
   .startkoppen { list-style: none; margin: 5px 0 0; padding: 0; }
@@ -4358,14 +4367,13 @@ function tekenStart() {
 
   const naar = (tab) => () => { ui.tab = tab; tekenAlles(); window.scrollTo(0, 0); };
 
-  scherm.append(startKop(), startHoofd(naar));
-
-  /* De briefing over de volle breedte, de andere vier als tegels van gelijke
-     maat in twee kolommen. Het spelletje blijft de laatste: het is de
-     beloning, niet het werk. */
+  /* Eerst de briefing, groot: die opent Gert verreweg het meest. Daaronder
+     de stand van de dag als drie rustige regels, en dan de andere vier als
+     tegels van gelijke maat in twee kolommen. Het spelletje blijft de
+     laatste: het is de beloning, niet het werk. */
   const brief = startBriefing();
   brief.addEventListener('click', naar('briefing'));
-  scherm.append(brief);
+  scherm.append(startKop(), brief, startHoofd(naar));
   for (const [tegel, tab] of [[startTraining(), 'training'], [startOpRij(), 'vandaag'],
                               [startTerugblik(), 'terugblik'], [startSpel(), 'spel']]) {
     tegel.classList.add('half');
@@ -4445,14 +4453,14 @@ function startKop() {
   return kop;
 }
 
-/* Het hoofdbeeld: de dag van Gert als drie halmen die vollopen.
+/* De stand van de dag: drie liggende strepen die vollopen.
 
-   Elke halm is gedaan tegen doel, en alle drie zijn ze even hoog:
+   Elke streep is gedaan tegen doel, en alle drie zijn ze even lang:
    - trainingen deze week tegen het weekdoel;
    - de vinkjes van vandaag tegen het aantal tegels;
    - de taken van vandaag: afgevinkt tegen wat er vandaag stond.
-   Vol is dus voor alle drie hetzelfde. Rechts de getallen, in de kleur van
-   hun halm en in dezelfde volgorde. Dat zijn tellingen en geen oordeel: er
+   Vol is dus voor alle drie hetzelfde. Links het getal, in de kleur van
+   zijn streep en op dezelfde regel. Dat zijn tellingen en geen oordeel: er
    staat nergens of het genoeg is.
 
    Training telt per week en de andere twee per dag. Dat is met opzet: het
@@ -4472,25 +4480,23 @@ function startHoofd(naar) {
     [af, af + takenVoorVandaag().length, 'taken vandaag'],
   ];
 
-  const halmen = [], standen = [];
-  rijen.forEach((r, i) => {
-    const kleur = 'startkleur-' + (i + 1);
+  const standen = rijen.map((r, i) => {
     const deel = r[1] > 0 ? Math.min(1, r[0] / r[1]) : 0;
-    /* De knop onderin is 44 punten hoog (de breedte van de halm); de rest van
-       de hoogte is wat er te vullen valt. Zo is nul een ronde knop en geen
-       lege plek. */
+    /* Bij nul geen vulling: een lege streep is nul, en zo leest hij ook. */
     const vulling = el('i');
-    vulling.style.height = 'calc(44px + (100% - 44px) * ' + deel.toFixed(3) + ')';
-    halmen.push(el('div', { class: 'starthalm ' + kleur }, [vulling]));
-    const b = el('b', { class: kleur, tekst: String(r[0]) });
+    vulling.style.width = (deel * 100).toFixed(1) + '%';
+    const b = el('b', { tekst: String(r[0]) });
     if (r[1] > 0) b.appendChild(el('small', { tekst: '/' + r[1] }));
-    standen.push(el('div', { class: 'startstand' }, [b, el('span', { tekst: r[2] })]));
+    return el('div', { class: 'startstand startkleur-' + (i + 1) }, [
+      b,
+      el('div', { class: 'startmeter' }, [
+        el('span', { tekst: r[2] }),
+        el('div', { class: 'startbaan', 'aria-hidden': 'true' }, [vulling]),
+      ]),
+    ]);
   });
 
-  const beeld = el('button', { class: 'startbeeld', type: 'button', onclick: naar('vandaag') }, [
-    el('div', { class: 'startfiguur', 'aria-hidden': 'true' }, halmen),
-    el('div', { class: 'startstanden' }, standen),
-  ]);
+  const beeld = el('button', { class: 'startbeeld', type: 'button', onclick: naar('vandaag') }, standen);
   const beurt = startBeurt();
   return el('div', { class: 'starthoofd' }, [
     beeld,
@@ -4540,11 +4546,12 @@ function startBriefing() {
      staat bovenaan de briefing en die opent deze kaart. */
   if (st.bewaard.length) onder.push(st.bewaard.length + ' bewaard');
 
-  const draden = (briefing.duiding || []).filter(dr => dr && dr.titel).slice(0, 2);
+  const draden = (briefing.duiding || []).filter(dr => dr && dr.titel).slice(0, 3);
   return startKaart('briefing', briefingNaam(briefing), onder.join(' · '), draden.length
     ? [el('ul', { class: 'startkoppen' }, draden.map((dr, i) =>
-        el('li', null, [el('i', { tekst: String(i + 1) }), el('span', { tekst: dr.titel })])))]
-    : null);
+        el('li', null, [el('i', { tekst: String(i + 1) }), el('span', { tekst: dr.titel })]))),
+       el('div', { class: 'startlees', tekst: 'Lees de briefing ›' })]
+    : [el('div', { class: 'startlees', tekst: 'Lees de briefing ›' })]);
 }
 
 /* De training: wat je vandaag deed, of anders wat de vorige keer was. Wat er
