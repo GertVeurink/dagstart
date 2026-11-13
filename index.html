@@ -304,6 +304,76 @@
   .weekkop b { font-size: 14.5px; }
   .weekkop span { font-size: 12.5px; color: var(--ink-3); }
 
+  /* Het beeld bovenaan de terugblik (13 november 2026). De tabel met tellingen
+     die hier stond klopte, maar je moest hem lezen: zeven regels met "was 9×"
+     voordat je wist of het beter of slechter ging. Nu staat er eerst een lijn
+     en drie grote cijfers, en pas daaronder het narekenwerk.
+
+     Alle grafieken zijn SVG zonder vaste maat: het tekenvlak is 100 bij 100 en
+     wordt opgerekt tot de breedte van het paneel. Lijnen en punten houden
+     daarbij hun dikte (`non-scaling-stroke`), en alle tekst staat buiten de
+     SVG als gewone tekst. Zo is een cijfer op een telefoon even groot als op
+     een laptop, en wordt een punt nooit een ei. */
+  .tb-cijfers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; }
+  .tb-cijfer b { display: block; font-family: var(--serif); font-weight: 600; font-size: 31px;
+                 line-height: 1.15; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .tb-cijfer b small { font-size: 17px; font-weight: 600; margin-left: 1px; }
+  .tb-cijfer .wat { font-size: 11px; color: var(--ink-2); text-transform: uppercase; letter-spacing: .05em; }
+  .tb-cijfer .was { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; font-variant-numeric: tabular-nums; }
+  .tb-cijfer .was.op { color: var(--accent-ink); }
+  /* Rechts een strook voor de maat (100%, 50%). Links zou hij onder het begin
+     van de lijn staan. */
+  .tb-grafiek { position: relative; margin-top: 16px; margin-right: 34px; }
+  .tb-grafiek svg { display: block; width: 100%; height: 132px; overflow: visible; }
+  .tb-grafiek .maat { position: absolute; left: 100%; padding-left: 7px; font-size: 10.5px; line-height: 12px;
+                      color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .tb-vlak { fill: var(--accent-zacht); }
+  .tb-lijn { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round;
+             stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .tb-raster { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .tb-raster.grens { stroke: var(--line-2); stroke-dasharray: 3 4; }
+  /* Een punt is een lijntje van lengte nul met een ronde kop: dat blijft een
+     cirkel, hoe breed de grafiek ook wordt opgerekt. Een <circle> niet. */
+  .tb-punt { stroke: var(--accent); stroke-width: 7; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .tb-punt.rand { stroke: var(--panel); stroke-width: 11; }
+  .tb-punt.nu { stroke-width: 10; }
+  .tb-punt.nu.rand { stroke: var(--panel); stroke-width: 16; }
+  .tb-as { display: flex; justify-content: space-between; margin-top: 5px; position: relative;
+           font-size: 11.5px; color: var(--ink-3); }
+  .tb-as .midden { position: absolute; transform: translateX(-50%); }
+  .tb-grafiek + .tb-as { margin-right: 34px; }
+  .tb-noot { font-size: 12.5px; line-height: 1.5; color: var(--ink-3); margin: 10px 0 0; }
+
+  .tb-rij { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .tb-rij:last-of-type { border-bottom: 0; }
+  .tb-rij .naam { flex: 1; min-width: 0; font-size: 14.5px; color: var(--ink-2);
+                  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tb-rij.nogniet .naam { color: var(--ink-3); }
+  .tb-rij svg { flex: none; display: block; }
+  .tb-staaf { fill: var(--accent); opacity: .36; }
+  .tb-staaf.vol { opacity: 1; }
+  .tb-staaf.nul { fill: var(--line-2); opacity: 1; }
+  .tb-staaf.loopt { fill: var(--accent-zacht); stroke: var(--accent); stroke-width: 1; opacity: 1; }
+  .tb-rij .som { flex: none; width: 62px; text-align: right; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .tb-rij .som b { font-size: 16px; font-weight: 600; }
+  .tb-rij .som span { font-size: 12px; color: var(--ink-3); }
+  .tb-rij .som .was { display: block; font-size: 11.5px; color: var(--ink-3); }
+  .tb-rij .som .was.op { color: var(--accent-ink); }
+  .tb-uitleg { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 9px; font-size: 11.5px; color: var(--ink-3); }
+  .tb-uitleg span { display: inline-flex; align-items: center; gap: 5px; }
+  .tb-uitleg i { width: 7px; height: 11px; border-radius: 2px; background: var(--accent); }
+  .tb-uitleg i.half { opacity: .36; }
+  .tb-uitleg i.loopt { background: var(--accent-zacht); box-shadow: inset 0 0 0 1px var(--accent); }
+
+  .tb-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .tb-duo .panel { min-width: 0; }
+  .tb-klein svg { display: block; width: 100%; height: 76px; overflow: visible; }
+  .tb-balk { stroke: var(--accent); stroke-width: 9; stroke-linecap: round; vector-effect: non-scaling-stroke; opacity: .36; }
+  .tb-balk.top { opacity: 1; }
+  .tb-letters { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center;
+                font-size: 11.5px; font-weight: 600; color: var(--ink-2); margin-top: 4px; }
+  .tb-klein .bijschrift { font-size: 11.5px; color: var(--ink-3); margin-top: 5px; line-height: 1.4; }
+
   .aanmelding { width: 100%; font: 11px/1.4 ui-monospace, Menlo, monospace;
                 word-break: break-all; border: 1px solid var(--line);
                 border-radius: 8px; padding: 8px; background: var(--panel-2);
@@ -326,37 +396,118 @@
     .tegel { font-size: 14px; padding: 11px 10px; }
   }
 
-  /* ---------- Startscherm: twee grote blokken ----------------------
-     Bij openen wil Gert niet meteen tegen een muur tekst aankijken. Dus
-     eerst de keuze: wat is er gebeurd, of wat moet ik doen. De rest zit
-     erachter. */
-  .start { padding: 16px; display: grid; gap: 14px; }
+  /* ---------- Startscherm: de stand in één blik ---------------------
+     Bij openen wil Gert niet meteen tegen een muur tekst aankijken. Dat was
+     de reden voor vier kaarten met een keuze, en dat blijft: de ingangen
+     staan er nog, in dezelfde volgorde. Maar het waren menukaarten geworden.
+     Hoe de dag ervoor stond moest je uit grijze pilletjes lezen.
+
+     Sinds 13 november 2026 staat er bovenaan één figuur dat die vraag
+     beantwoordt, en dat is het enige zware ding op het scherm: drie halmen
+     naast elkaar (trainingen deze week, vinkjes vandaag, taken vandaag) die
+     van onderaf vollopen. Alle drie even breed en even hoog, en vol betekent
+     voor alle drie hetzelfde: gedaan wat het doel was. Je ziet zonder te
+     lezen hoe ver het is. Alles eronder is ingang en houdt zich klein.
+
+     Twee eerdere versies van die dag haalden het niet, en waarom is de moeite
+     van onthouden waard. De eerste gaf elke kaart zijn eigen grote cijfer en
+     grafiekje: vier even zware getallen die elk iets anders betekenden. De
+     tweede had één kaart met drie rijen vakjes, maar elke rij had een ander
+     aantal vakjes van een andere breedte, met letters erin. Dat moest je
+     ontcijferen in plaats van zien. */
+  .start { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .start > * { grid-column: 1 / -1; min-width: 0; }
+  .start > .half { grid-column: auto; }
+
+  /* De dag en het weer: klein, want dit is een bijschrift en niet de stand. */
+  .startkop { display: flex; align-items: baseline; gap: 12px; padding: 0 4px; flex-wrap: wrap; }
+  .startkop h1 { font-size: 19px; line-height: 1.25; flex: 1; min-width: 0; }
+  .startkop h1::first-letter { text-transform: uppercase; }
+  .startkop .weer { font-size: 13.5px; color: var(--ink-2); flex: none; }
+  .startkop .bak { flex-basis: 100%; font-size: 13.5px; line-height: 1.3; color: var(--ink-2); margin-top: -2px; }
+  .startkop .bak b { color: var(--warm); font-weight: 600; }
+
+  /* Het hoofdbeeld: links het figuur, rechts bij elke halm zijn getal in
+     dezelfde kleur, in dezelfde volgorde. Daaronder wat er nu aan de beurt
+     is. */
+  .starthoofd { background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+                box-shadow: var(--shadow); overflow: hidden; }
+  .startbeeld { display: flex; align-items: stretch; gap: 22px; width: 100%; text-align: left;
+                cursor: pointer; background: none; border: 0; padding: 18px 16px 16px 20px;
+                color: inherit; font: inherit; }
+  .startbeeld:active { background: var(--panel-2); }
+  .startfiguur { display: flex; gap: 12px; height: 256px; flex: none; }
+  /* Een halm. Het spoor is een zachte tint van zijn eigen kleur met een
+     stippelrand: zo ziet leeg eruit als iets dat nog vol gaat lopen, en niet
+     als een grijs vlak dat nog moet laden. Onderin zit altijd een knop in de
+     volle kleur. Bij nul is dat alles wat er staat: een begin. */
+  .starthalm { position: relative; width: 44px; height: 100%; }
+  .starthalm::before { content: ''; position: absolute; inset: 0; border-radius: 22px;
+                       background: currentColor; opacity: .11; }
+  .starthalm::after { content: ''; position: absolute; inset: 0; border-radius: 22px;
+                      border: 1.5px dashed currentColor; opacity: .4; }
+  .starthalm i { position: absolute; left: 0; right: 0; bottom: 0; min-height: 44px; z-index: 1;
+                 border-radius: 22px; background: currentColor; }
+  .startkleur-1 { color: var(--accent); }
+  .startkleur-2 { color: var(--olijf); }
+  .startkleur-3 { color: var(--warm); }
+  .startstanden { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between;
+                  padding: 2px 0; }
+  .startstand b { display: block; font-family: var(--serif); font-weight: 600; font-size: 44px; line-height: 1;
+                  letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .startstand b small { font-size: 23px; letter-spacing: 0; opacity: .6; }
+  .startstand span { display: block; margin-top: 3px; font-size: 13.5px; line-height: 1.25; color: var(--ink-2); }
+
+  /* Wat er nu aan de beurt is: de enige gevulde knop op het scherm, dus de
+     plek waar je duim als eerste heen gaat. */
+  .startbeurt { display: flex; align-items: center; gap: 10px; width: calc(100% - 24px); margin: 0 12px 12px;
+                text-align: left; cursor: pointer; background: var(--accent); color: var(--op-accent);
+                border: 0; border-radius: 12px; padding: 10px 14px 11px; font: inherit; }
+  .startbeurt:active { transform: translateY(1px); }
+  .startbeurt > div { flex: 1; min-width: 0; }
+  .startbeurt small { display: block; font-size: 11px; line-height: 1.3; text-transform: uppercase;
+                      letter-spacing: .06em; opacity: .8; }
+  .startbeurt b { display: block; font-family: var(--serif); font-weight: 600; font-size: 18px; line-height: 1.3;
+                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .startbeurt > span { flex: none; font-size: 24px; line-height: 1; opacity: .8; }
+
+  /* De ingangen. Een naam en één regel: wat erachter zit lees je daar. */
   .startkaart {
     display: block; width: 100%; text-align: left; cursor: pointer;
     background: var(--panel); border: 1px solid var(--line);
-    border-left: 6px solid var(--accent);
+    border-left: 5px solid var(--accent);
     border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: 18px 18px 16px; color: inherit; font: inherit;
+    padding: 10px 14px 11px 13px; color: inherit; font: inherit;
   }
   .startkaart:active { transform: translateY(1px); }
   .startkaart.briefing { border-left-color: var(--teal); }
   .startkaart.oprij    { border-left-color: var(--olijf); }
-  .startkaart h2 { font-size: 21px; margin-bottom: 4px; }
-  .startkaart .onder { color: var(--ink-2); font-size: 14px; }
-  .startkaart .cijfers {
-    margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px;
-  }
-  .pil {
-    font-size: 12.5px; padding: 3px 9px; border-radius: 999px;
-    background: var(--panel-2); border: 1px solid var(--line);
-    color: var(--ink-2); white-space: nowrap;
-  }
-  .pil.groen { background: var(--accent-zacht); border-color: transparent; color: var(--accent-ink); }
-  .startvoet { padding: 2px 4px 20px; display: flex; gap: 14px; justify-content: center; }
+  .startkaart.terug    { border-left-color: var(--warm); }
+  .startkaart h2 { font-size: 18px; line-height: 1.2; }
+  .startkaart.half h2 { font-size: 16px; }
+  .startkaart .onder { color: var(--ink-2); font-size: 13.5px; line-height: 1.35; margin-top: 1px;
+                       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .startkaart.half { padding-top: 12px; padding-bottom: 13px; }
+
+  /* De koppen van de duiding: hooguit twee, elk op één regel. Dat is het
+     nieuws zelf en geen menu, maar het blijft kort genoeg om geen muur te
+     worden. */
+  .startkoppen { list-style: none; margin: 5px 0 0; padding: 0; }
+  .startkoppen li { display: flex; gap: 9px; align-items: baseline; padding: 2px 0;
+                    font-size: 14.5px; line-height: 1.3; }
+  .startkoppen li i { font-style: normal; font-family: var(--serif); font-weight: 600;
+                      color: var(--teal); flex: none; width: 10px; }
+  .startkoppen li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Twee knoppen en geen onderstreepte woordjes: een duim moet ze kunnen
+     raken zonder te mikken. */
+  .startvoet { padding: 0 0 16px; display: flex; gap: 10px; }
   .startvoet button {
-    background: none; border: 0; color: var(--ink-3); font: inherit;
-    font-size: 14px; text-decoration: underline; cursor: pointer; padding: 6px;
+    flex: 1; min-height: 44px; background: none; border: 1px solid var(--line-2);
+    border-radius: 22px; color: var(--ink-2); font: inherit; font-size: 14px;
+    cursor: pointer; padding: 6px 4px; white-space: nowrap;
   }
+  .startvoet button:active { background: var(--panel-2); }
 
   /* ---------- Ochtendbriefing ---------- */
   /* Titel en datum op één regel en de titel kleiner dan een gewone h1: het
@@ -3217,32 +3368,419 @@ function heeftIets(maandag) {
   return false;
 }
 
+/* ---------- het beeld bovenaan ---------- */
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, opties, kinderen) {
+  const n = document.createElementNS(SVG_NS, tag);
+  if (opties) for (const k in opties) n.setAttribute(k, opties[k]);
+  if (kinderen) for (const kind of [].concat(kinderen)) if (kind) n.appendChild(kind);
+  return n;
+}
+
+/* Een tekenvlak van 100 bij 100 dat tot de breedte van zijn vak wordt opgerekt.
+   De hoogte staat in de opmaak. */
+function tbVlak(kinderen) {
+  return svgEl('svg', { viewBox: '0 0 100 100', preserveAspectRatio: 'none',
+                        'aria-hidden': 'true' }, kinderen);
+}
+
+function tbPunt(x, y, klasse) {
+  return svgEl('line', { x1: x, y1: y, x2: x, y2: y, class: 'tb-punt' + (klasse ? ' ' + klasse : '') });
+}
+
+/* Hoe ver de grafieken terugkijken. Twaalf weken: lang genoeg om een dip en
+   het herstel daarna in één beeld te zien, kort genoeg om op een telefoon nog
+   losse weken te kunnen onderscheiden. */
+const TB_DAGEN = 84;
+const TB_WEKEN = 12;
+
+/* Per gewoonte de eerste dag waarop hij is aangevinkt. Een gewoonte telt pas
+   mee vanaf die dag. Zonder dat zou "Geen chips", die er op 2 november 2026
+   bij kwam, tien weken lang als nul meetellen en de hele lijn omlaag trekken
+   over een tijd waarin hij niet bestond. De opslag weet niet wanneer een
+   gewoonte is toegevoegd; de eerste tik is het eerlijkste dat er is. */
+function eersteKeren() {
+  const uit = {};
+  const datums = Object.keys(st.dagen).sort();
+  for (const g of GEWOONTES) {
+    uit[g.id] = null;
+    for (const d of datums) if (gedaanOp(d, g)) { uit[g.id] = d; break; }
+  }
+  return uit;
+}
+
+/* De stand over de `venster` dagen tot en met `datum`.
+
+   Per gewoonte: hoe vaak gedaan, en hoe vaak het doel in zoveel dagen vraagt.
+   Het cijfer voor alles samen is het gemiddelde van die verhoudingen, waarbij
+   meer dan het doel niet extra telt. Anders maakt zeven keer mediteren een
+   week zonder training goed, en dat is niet wat een weekdoel betekent.
+
+   Een rollend venster en geen kalenderweek, om dezelfde reden als bij het
+   wegen: op een dinsdag wil je zeven dagen achter je hebben en niet twee. Zo
+   is er ook geen "lopende week" die op maandag altijd op nul begint.
+
+   Een gewoonte doet pas mee in het cijfer als hij zeven dagen bestaat: van
+   drie dagen valt geen weekdoel af te lezen. */
+function standOp(datum, venster, eerste) {
+  const per = {};
+  let som = 0, n = 0;
+  for (const g of GEWOONTES) {
+    const doel = doelVan(g), begin = eerste[g.id];
+    if (!doel || !begin || begin > datum) continue;
+    const dagen = Math.min(venster, dagenTussen(begin, datum) + 1);
+    let aantal = 0;
+    for (let i = 0; i < dagen; i++) if (gedaanOp(plusDagen(datum, -i), g)) aantal++;
+    const nodig = doel * Math.max(dagen, 7) / 7;
+    per[g.id] = { aantal, nodig, dagen };
+    if (dagen >= 7) { som += Math.min(1, aantal / nodig); n++; }
+  }
+  return { per, score: n ? som / n : null };
+}
+
+function procent(v) { return Math.round(v * 100); }
+
+/* Eén groot cijfer met eronder wat het is en wat het vier weken eerder was.
+   Geen pijlen en geen rood: groen als het hoger is dan toen, anders grijs.
+   `kleurt` staat uit bij het gewicht, want of lager daar "beter" is, is niet
+   aan de app om te vinden. */
+function tbCijfer(groot, klein, wat, was, hoger, kleurt) {
+  return el('div', { class: 'tb-cijfer' }, [
+    el('b', null, [document.createTextNode(groot), klein ? el('small', { tekst: klein }) : null]),
+    el('div', { class: 'wat', tekst: wat }),
+    was != null ? el('div', { class: 'was' + (kleurt && hoger ? ' op' : ''), tekst: 'was ' + was }) : null,
+  ]);
+}
+
+/* Een vloeiende lijn door een rij punten. Elke bocht vertrekt en komt aan
+   in horizontale richting, zodat de lijn nooit hoger of lager uitschiet dan de
+   punten zelf: een bocht die boven de 100 procent uitkomt zou iets beweren
+   dat niet in de gegevens staat. */
+function tbBocht(punten) {
+  let d = 'M' + punten[0][0].toFixed(2) + ' ' + punten[0][1].toFixed(2);
+  for (let i = 1; i < punten.length; i++) {
+    const a = punten[i - 1], b = punten[i], mx = ((a[0] + b[0]) / 2).toFixed(2);
+    d += ' C' + mx + ' ' + a[1].toFixed(2) + ' ' + mx + ' ' + b[1].toFixed(2)
+       + ' ' + b[0].toFixed(2) + ' ' + b[1].toFixed(2);
+  }
+  return d;
+}
+
+/* De lijn: een punt per week, en elk punt is het deel van de weekdoelen dat
+   in de zeven dagen ervoor gehaald is. Teruggeteld vanaf vandaag, zodat het
+   laatste punt altijd de afgelopen zeven dagen is en nooit een halve week.
+
+   Eerst stond hier een punt per dag. Dat gaf een zaagtand: een rollend venster
+   springt elke dag dat er een goede dag uit valt en een mindere bij komt, en
+   dan kijk je naar de tanden in plaats van naar de richting.
+
+   De as loopt altijd van 0 tot 100 procent. Een as die meeschuift met de
+   gegevens maakt van elke rimpeling een berg, en dan zegt het beeld meer dan
+   de cijfers. */
+function tbLijn(begin, nu, eerste) {
+  const vroegst = plusDagen(begin, 6) > plusDagen(nu, -(TB_DAGEN - 1))
+                ? plusDagen(begin, 6) : plusDagen(nu, -(TB_DAGEN - 1));
+  const stappen = Math.floor(dagenTussen(vroegst, nu) / 7);
+  if (stappen < 1) return null;
+
+  const punten = [];
+  for (let i = stappen; i >= 0; i--) {
+    const s = standOp(plusDagen(nu, -7 * i), 7, eerste).score;
+    punten.push([(stappen - i) / stappen * 100, 100 - (s || 0) * 90]);
+  }
+  const pad = tbBocht(punten);
+  const kinderen = [
+    svgEl('path', { class: 'tb-vlak', d: pad + ' L100 100 L0 100 Z' }),
+    svgEl('line', { class: 'tb-raster', x1: 0, y1: 10, x2: 100, y2: 10 }),
+    svgEl('line', { class: 'tb-raster', x1: 0, y1: 55, x2: 100, y2: 55 }),
+    svgEl('line', { class: 'tb-raster', x1: 0, y1: 100, x2: 100, y2: 100 }),
+  ];
+  /* Een stippellijn waar de laatste vier weken beginnen: links daarvan ligt
+     waar de cijfers hierboven "was" over zeggen. Alleen als er links genoeg
+     ruimte is om dat ook te zien. */
+  const grens = stappen > 5 ? (stappen - 4) / stappen * 100 : null;
+  if (grens != null) {
+    kinderen.push(svgEl('line', { class: 'tb-raster grens', x1: grens, y1: 0, x2: grens, y2: 100 }));
+  }
+  kinderen.push(svgEl('path', { class: 'tb-lijn', d: pad }));
+  punten.forEach((p, i) => {
+    const laatste = i === punten.length - 1;
+    kinderen.push(tbPunt(p[0], p[1], 'rand' + (laatste ? ' nu' : '')));
+    kinderen.push(tbPunt(p[0], p[1], laatste ? 'nu' : ''));
+  });
+  return el('div', null, [
+    el('div', { class: 'tb-grafiek' }, [
+      tbVlak(kinderen),
+      el('span', { class: 'maat', style: 'top:calc(10% - 6px)', tekst: '100%' }),
+      el('span', { class: 'maat', style: 'top:calc(55% - 6px)', tekst: '50%' }),
+    ]),
+    el('div', { class: 'tb-as' }, [
+      el('span', { tekst: korteDatum(plusDagen(nu, -7 * stappen)) }),
+      grens != null ? el('span', { class: 'midden', style: 'left:' + grens.toFixed(1) + '%', tekst: 'vier weken' }) : null,
+      el('span', { tekst: 'vandaag' }),
+    ]),
+  ]);
+}
+
+/* Het gemiddelde gewicht over zeven dagen, of null als er in dat venster niet
+   gewogen is. */
+function tbGewicht(tot) {
+  const w = weekvenster(tot);
+  return w.aantal ? w.gewicht : null;
+}
+
+function takenKlaarTussen(van, tot) {
+  return st.taken.filter(t => t.klaar && t.klaar >= van && t.klaar <= tot).length;
+}
+
+function tbOverzicht(begin, nu, eerste) {
+  const oud = dagenTussen(begin, nu) + 1;           // hoeveel dagen geschiedenis
+  const training = GEWOONTES.find(g => g.id === 'training');
+  const tel = (g, van, tot) => {
+    let n = 0;
+    for (let d = van; d <= tot; d = plusDagen(d, 1)) if (gedaanOp(d, g)) n++;
+    return n;
+  };
+
+  /* De eerste dagen: nog geen week achter de rug, dus geen percentage en geen
+     lijn. Wel wat er staat, zodat het scherm niet leeg is. */
+  if (oud < 7) {
+    let vinkjes = 0;
+    for (const g of GEWOONTES) vinkjes += tel(g, begin, nu);
+    const taken = takenKlaarTussen(begin, nu);
+    return paneel('Tot nu toe', 'sinds ' + korteDatum(begin), [
+      el('div', { class: 'tb-cijfers' }, [
+        tbCijfer(String(vinkjes), '', vinkjes === 1 ? 'vinkje' : 'vinkjes'),
+        tbCijfer(String(tel(training, begin, nu)), '×', 'training'),
+        tbCijfer(String(taken), '', taken === 1 ? 'taak gedaan' : 'taken gedaan'),
+      ]),
+      el('p', { class: 'tb-noot', tekst: 'Na een week staat hier welk deel van je weekdoelen '
+        + 'je haalt, na twee weken komt er een lijn bij.' }),
+    ]);
+  }
+
+  /* Vergelijken met de vier weken ervoor kan pas als daar ook iets ligt. Twee
+     weken is het minimum: een "was" over drie dagen is geen vergelijking. */
+  const toen = plusDagen(nu, -28);
+  const erIsEenToen = oud >= 28 + 14;
+
+  /* Het percentage is het gemiddelde van de laatste vier punten van de lijn
+     eronder, en "was" dat van de vier punten daarvoor. Eerst kwam het uit één
+     venster van 28 dagen, en dat gaf een hoger getal dan de lijn liet zien:
+     over vier weken samen maakt een goede week een slechte goed, per week
+     niet. Een cijfer dat niet bij zijn eigen grafiek past, lees je twee keer. */
+  const gemiddeld = (vanaf) => {
+    let som = 0, n = 0;
+    for (let i = vanaf; i < vanaf + 4; i++) {
+      const dag = plusDagen(nu, -7 * i);
+      if (dag < plusDagen(begin, 6)) break;
+      const s = standOp(dag, 7, eerste).score;
+      if (s != null) { som += s; n++; }
+    }
+    return n ? { score: som / n, n } : null;
+  };
+  const pNu = gemiddeld(0), pToen = gemiddeld(4);
+  const pWas = pToen && pToen.n >= 2 ? pToen.score : null;
+
+  const cijfers = [];
+  cijfers.push(tbCijfer(pNu ? String(procent(pNu.score)) : '\u2013', pNu ? '%' : '', 'weekdoelen',
+    pWas != null ? procent(pWas) + '%' : null, pNu && pWas != null && procent(pNu.score) > procent(pWas), true));
+
+  const tNu = tel(training, plusDagen(nu, -27), nu);
+  const tToen = erIsEenToen ? tel(training, plusDagen(toen, -27), toen) : null;
+  cijfers.push(tbCijfer(String(tNu), '×', 'training',
+    tToen != null ? tToen + '×' : null, tToen != null && tNu > tToen, true));
+
+  /* Het derde cijfer is het gewicht als er gewogen wordt, anders de taken. */
+  const gNu = tbGewicht(nu);
+  if (gNu != null) {
+    const gToen = erIsEenToen ? tbGewicht(toen) : null;
+    cijfers.push(tbCijfer(nl(gNu), ' kg', 'gewicht', gToen != null ? nl(gToen) : null, false, false));
+  } else {
+    const kNu = takenKlaarTussen(plusDagen(nu, -27), nu);
+    const kToen = erIsEenToen ? takenKlaarTussen(plusDagen(toen, -27), toen) : null;
+    cijfers.push(tbCijfer(String(kNu), '', 'taken gedaan',
+      kToen != null ? String(kToen) : null, kToen != null && kNu > kToen, true));
+  }
+
+  const lijn = tbLijn(begin, nu, eerste);
+  const korter = oud < 28;
+  return paneel(korter ? 'Tot nu toe' : 'Laatste vier weken',
+                korter ? 'sinds ' + korteDatum(begin) : (erIsEenToen ? 'tegen de vier daarvoor' : ''), [
+    el('div', { class: 'tb-cijfers' }, cijfers),
+    lijn,
+    el('p', { class: 'tb-noot', tekst: lijn
+      ? 'Een punt per week: het deel van je weekdoelen dat je haalde, alle gewoontes samen.'
+      : 'Weekdoelen: het deel van je doelen dat je haalde, alle gewoontes samen. '
+        + 'Na twee weken komt er een lijn bij.' }),
+  ]);
+}
+
+/* Per gewoonte een rij staafjes, één per week. Hoogte is aantal tegen doel,
+   vol groen is gehaald. Dit is dezelfde informatie als de stippen van "Week
+   voor week", maar dan twaalf weken naast elkaar in plaats van onder elkaar:
+   je ziet aan welke gewoonte het ligt als de lijn hierboven zakt. */
+function tbGewoontes(begin, nu, eerste) {
+  const dezeWeek = maandagVan(nu);
+  const eersteWeek = maandagVan(begin);
+  const oud = dagenTussen(begin, nu) + 1;
+  const erIsEenToen = oud >= 28 + 14;
+  const nuStand = standOp(nu, 28, eerste);
+  const toenStand = erIsEenToen ? standOp(plusDagen(nu, -28), 28, eerste) : null;
+  const STAP = 9, BREED = 6, HOOG = 24;
+
+  const rijen = [];
+  for (const g of GEWOONTES) {
+    const doel = doelVan(g);
+    const start = eerste[g.id];
+    const staven = [];
+    for (let i = 0; i < TB_WEKEN; i++) {
+      const maandag = plusDagen(dezeWeek, -7 * (TB_WEKEN - 1 - i));
+      /* Weken van voor de eerste tik blijven leeg, geen nul: toen deed deze
+         gewoonte nog niet mee. */
+      if (maandag < eersteWeek || !start || maandag < maandagVan(start)) continue;
+      const aantal = telWeek(maandag, g);
+      const gehaald = doel > 0 && aantal >= doel;
+      const h = aantal === 0 ? 2 : Math.max(4, Math.min(1, doel ? aantal / doel : 1) * (HOOG - 1));
+      const klasse = aantal === 0 ? ' nul'
+                   : gehaald ? ' vol'
+                   : maandag === dezeWeek ? ' loopt' : '';
+      staven.push(svgEl('rect', { class: 'tb-staaf' + klasse, x: i * STAP + 1.5, y: HOOG - h - .5,
+                                  width: BREED, height: h, rx: 2 }));
+    }
+    const p = nuStand.per[g.id];
+    const v = toenStand && toenStand.per[g.id];
+    /* "was" alleen als de gewoonte toen ook al vier volle weken bestond,
+       anders vergelijk je vier weken met anderhalf. */
+    const was = p && v && v.dagen === 28 && p.dagen === 28 ? v.aantal : null;
+    rijen.push(el('div', { class: 'tb-rij' + (start ? '' : ' nogniet') }, [
+      el('div', { class: 'naam', tekst: g.naam }),
+      svgEl('svg', { width: TB_WEKEN * STAP, height: HOOG, viewBox: '0 0 ' + (TB_WEKEN * STAP) + ' ' + HOOG,
+                     'aria-hidden': 'true' }, staven),
+      el('div', { class: 'som' }, p ? [
+        el('b', { tekst: String(p.aantal) }),
+        el('span', { tekst: ' van ' + Math.round(p.nodig) }),
+        was != null ? el('span', { class: 'was' + (p.aantal > was ? ' op' : ''), tekst: 'was ' + was }) : null,
+      ] : [el('span', { tekst: 'nog niet' })]),
+    ]));
+  }
+  rijen.push(el('div', { class: 'tb-uitleg' }, [
+    el('span', null, [el('i'), document.createTextNode('doel gehaald')]),
+    el('span', null, [el('i', { class: 'half' }), document.createTextNode('niet gehaald')]),
+    el('span', null, [el('i', { class: 'loopt' }), document.createTextNode('deze week, loopt nog')]),
+  ]));
+  return paneel('Per gewoonte', oud >= 28 ? 'per week · rechts vier weken' : 'per week · rechts sinds het begin', rijen);
+}
+
+/* Op welke weekdagen het gebeurt: het gemiddelde aantal vinkjes per maandag,
+   per dinsdag, enzovoort. De hoogste dag staat vol, de rest lichter. */
+function tbWeekdagen(begin, nu) {
+  const van = begin > plusDagen(nu, -(TB_DAGEN - 1)) ? begin : plusDagen(nu, -(TB_DAGEN - 1));
+  const som = [0, 0, 0, 0, 0, 0, 0], keren = [0, 0, 0, 0, 0, 0, 0];
+  for (let d = van; d <= nu; d = plusDagen(d, 1)) {
+    const wd = (alsDatum(d).getDay() + 6) % 7;      // maandag = 0
+    keren[wd]++;
+    for (const g of GEWOONTES) if (gedaanOp(d, g)) som[wd]++;
+  }
+  const gem = som.map((s, i) => keren[i] ? s / keren[i] : 0);
+  const top = Math.max.apply(null, gem);
+  const balken = [];
+  gem.forEach((v, i) => {
+    if (!keren[i] || !top) return;
+    const x = (i + .5) / 7 * 100;
+    /* De ronde kop steekt boven en onder uit; vandaar de marge van 8. */
+    balken.push(svgEl('line', { class: 'tb-balk' + (v === top ? ' top' : ''),
+                                x1: x, x2: x, y1: 92, y2: 92 - (v / top) * 82 }));
+  });
+  const hoogste = gem.indexOf(top);
+  return el('section', { class: 'panel tb-klein' }, [
+    el('div', { class: 'kop' }, [el('h2', { tekst: 'Per weekdag' })]),
+    el('div', { class: 'body' }, [
+      tbVlak(balken),
+      el('div', { class: 'tb-letters' }, ['M', 'D', 'W', 'D', 'V', 'Z', 'Z'].map(l => el('span', { tekst: l }))),
+      el('div', { class: 'bijschrift', tekst: top
+        ? 'Vinkjes per dag. Meeste op ' + DAGNAMEN[(hoogste + 1) % 7] + ': gemiddeld ' + nl(top) + '.'
+        : 'Vinkjes per dag.' }),
+    ]),
+  ]);
+}
+
+/* Het gewicht als lijn: op elke weegdag het gemiddelde van de zeven dagen
+   ervoor, net als op het scherm Vandaag. De as volgt hier wel de gegevens,
+   anders is een kilo verschil op honderd een rechte streep. Daarom staan het
+   begin en het eind er als getal bij. */
+function tbGewichtPaneel(nu) {
+  const van = plusDagen(nu, -(TB_DAGEN - 1));
+  const reeks = reeksVan('gewicht').filter(p => p[0] >= van && p[0] <= nu);
+  if (reeks.length < 2) return null;
+  const lengte = Math.max(1, dagenTussen(reeks[0][0], nu));
+  const waarden = reeks.map(p => [dagenTussen(reeks[0][0], p[0]) / lengte * 100, tbGewicht(p[0])]);
+  let laag = Infinity, hoog = -Infinity;
+  for (const w of waarden) { laag = Math.min(laag, w[1]); hoog = Math.max(hoog, w[1]); }
+  const bereik = Math.max(hoog - laag, 0.5);
+  const y = v => 90 - (v - laag) / bereik * 80;
+  const pad = waarden.map((w, i) => (i ? 'L' : 'M') + w[0].toFixed(2) + ' ' + y(w[1]).toFixed(2)).join(' ');
+  const eind = waarden[waarden.length - 1];
+  return el('section', { class: 'panel tb-klein' }, [
+    el('div', { class: 'kop' }, [el('h2', { tekst: 'Gewicht' })]),
+    el('div', { class: 'body' }, [
+      tbVlak([
+        svgEl('path', { class: 'tb-vlak', d: pad + ' L' + eind[0].toFixed(2) + ' 100 L0 100 Z' }),
+        svgEl('path', { class: 'tb-lijn', d: pad }),
+        tbPunt(eind[0], y(eind[1]), 'rand nu'),
+        tbPunt(eind[0], y(eind[1]), 'nu'),
+      ]),
+      el('div', { class: 'tb-as' }, [
+        el('span', { tekst: nl(waarden[0][1]) }),
+        el('span', { tekst: nl(eind[1]) + ' kg' }),
+      ]),
+      el('div', { class: 'bijschrift', tekst: 'Zeven dagen gemiddeld, sinds ' + korteDatum(reeks[0][0]) + '.' }),
+    ]),
+  ]);
+}
+
+/* Geen weegschaal in beeld? Dan staan hier de afgevinkte taken per week. */
+function tbTakenPaneel(begin, nu) {
+  const dezeWeek = maandagVan(nu), eersteWeek = maandagVan(begin);
+  const weken = [];
+  for (let i = TB_WEKEN - 1; i >= 0; i--) {
+    const maandag = plusDagen(dezeWeek, -7 * i);
+    if (maandag >= eersteWeek) weken.push(takenKlaarTussen(maandag, plusDagen(maandag, 6)));
+  }
+  const top = Math.max.apply(null, weken);
+  if (!top) return null;
+  const balken = weken.map((v, i) => {
+    const x = (i + .5) / weken.length * 100;
+    return svgEl('line', { class: 'tb-balk' + (i === weken.length - 1 ? ' top' : ''),
+                           x1: x, x2: x, y1: 92, y2: 92 - (v / top) * 82 });
+  });
+  return el('section', { class: 'panel tb-klein' }, [
+    el('div', { class: 'kop' }, [el('h2', { tekst: 'Taken' })]),
+    el('div', { class: 'body' }, [
+      tbVlak(balken),
+      el('div', { class: 'bijschrift', tekst: 'Afgevinkt per week. Deze week ' + weken[weken.length - 1]
+        + ', de meeste in een week ' + top + '.' }),
+    ]),
+  ]);
+}
+
 function tekenTerugblik() {
   const doel = document.getElementById('tab-terugblik');
   doel.textContent = '';
 
   const alle = wekenMetGegevens(ui.weken + 4);
-  const recent = alle.slice(0, 4);
-  const ervoor = alle.slice(4, 8);
-  const erIetsDavoor = ervoor.some(heeftIets);
 
-  /* --- vier weken tegen de vier daarvoor --- */
-  if (erIetsDavoor) {
-    const rijen = [];
-    for (const g of GEWOONTES) {
-      const nu = telBlok(recent, g);
-      const toen = telBlok(ervoor, g);
-      const verschil = nu - toen;
-      /* omhoog is goed bij een minimum, omlaag is goed bij een maximum */
-      const goed = g.soort === 'min' ? verschil > 0 : verschil < 0;
-      const pijl = verschil === 0 ? 'gelijk' : (verschil > 0 ? '+' : '−') + Math.abs(verschil);
-      rijen.push(el('div', { class: 'vgl' }, [
-        el('div', { class: 'naam', tekst: g.naam }),
-        el('div', { class: 'cijfer', tekst: nu + '×' }),
-        el('div', { class: 'pijl' + (goed ? ' op' : ''), tekst: 'was ' + toen + '× · ' + pijl }),
-      ]));
-    }
-    doel.appendChild(paneel('Laatste vier weken', 'tegen de vier daarvoor', rijen));
+  /* --- het beeld: lijn, cijfers, staafjes --- */
+  const nu = vandaag();
+  const eerste = eersteKeren();
+  let begin = null;
+  for (const id in eerste) if (eerste[id] && (!begin || eerste[id] < begin)) begin = eerste[id];
+  if (begin && begin <= nu) {
+    doel.appendChild(tbOverzicht(begin, nu, eerste));
+    doel.appendChild(tbGewoontes(begin, nu, eerste));
+    const duo = [tbWeekdagen(begin, nu), tbGewichtPaneel(nu) || tbTakenPaneel(begin, nu)].filter(Boolean);
+    doel.appendChild(el('div', { class: duo.length > 1 ? 'tb-duo' : '' }, duo));
   }
 
   /* --- week voor week --- */
@@ -3792,122 +4330,274 @@ function briefingDatumTekst() {
   return 'van ' + (wanneer || 'vandaag');
 }
 
+/* Het startscherm: wat staat er vandaag, en hoe sta ik ervoor?
+
+   Tot 13 november 2026 waren dit vier kaarten met een titel, een regel tekst
+   en grijze pilletjes. Dat was een menu: om te weten hoe de dag ervoor stond
+   moest je de pilletjes lezen. Nu staat er bovenaan één figuur dat de dag
+   samenvat (`startHoofd()`), met eronder wat er nu aan de beurt is, en
+   daarna de ingangen, klein gehouden.
+
+   Wat hetzelfde bleef, met opzet:
+   - de volgorde van de ingangen. De briefing is waarvoor Gert de app
+     's ochtends opent en staat eerst; het spelletje is de beloning en staat
+     laatst;
+   - alles wat hier te bereiken was, is hier nog te bereiken. Terugblik is
+     van de voet naar een tegel verhuisd;
+   - dit scherm leest alleen. Er wordt niets bewaard en niets verzonnen: elk
+     cijfer komt uit een functie die er al was.
+
+   De stukken staan in losse functies hieronder en niet hierbinnen. Dat is
+   geen netheid maar nodig: de toets `toets_app_meldingen()` leest deze
+   functie tot aan de eerstvolgende, en kijkt of het telletje bij Meldingen
+   hier met de hand gemaakt wordt. */
 function tekenStart() {
   const doel = document.getElementById('tab-start');
-  const open = takenVoorVandaag().length;
-  const berichten = briefing
-    ? briefing.blokken.reduce((n, b) => n + b.items.length, 0) : 0;
+  const scherm = document.createElement('div');
+  scherm.className = 'start';
 
-  const el = document.createElement('div');
-  el.className = 'start';
+  const naar = (tab) => () => { ui.tab = tab; tekenAlles(); window.scrollTo(0, 0); };
 
-  const brief = document.createElement('button');
-  brief.className = 'startkaart briefing';
-  brief.innerHTML =
-    '<h2>' + briefingNaam(briefing) + '</h2>' +
-    '<div class="onder">' +
-      (briefing ? 'Wat er is gebeurd — ' + briefingDatumTekst()
-                : 'Nog niet opgehaald') + '</div>' +
-    '<div class="cijfers">' +
-      (briefing
-        ? briefing.blokken.map(b =>
-            '<span class="pil">' + b.emoji + ' ' + b.titel +
-            (b.items.length ? ' ' + b.items.length : '') + '</span>').join('')
-        : '') +
-      (briefing && briefing.audio ? '<span class="pil groen">🔊 ingesproken</span>' : '') +
-      /* Zodat je van het startscherm af ziet dat je iets hebt weggezet; het
-         staat bovenaan de briefing en die opent deze kaart. */
-      (st.bewaard.length ? '<span class="pil">★ ' + st.bewaard.length + ' bewaard</span>' : '') +
-    '</div>';
-  brief.addEventListener('click', () => { ui.tab = 'briefing'; tekenAlles(); window.scrollTo(0,0); });
+  scherm.append(startKop(), startHoofd(naar));
 
-  const rij = document.createElement('button');
-  rij.className = 'startkaart oprij';
-  rij.innerHTML =
-    '<h2>Op Rij</h2>' +
-    '<div class="onder">Wat je moet doen, en hoe de week ervoor staat</div>' +
-    '<div class="cijfers">' +
-      '<span class="pil' + (open ? ' groen' : '') + '">' +
-        (open === 0 ? 'geen taken open' : open + (open === 1 ? ' taak open' : ' taken open')) +
-      '</span>' +
-      '<span class="pil">' + gewoontesVandaagTekst() + '</span>' +
-    '</div>';
-  rij.addEventListener('click', () => { ui.tab = 'vandaag'; tekenAlles(); window.scrollTo(0,0); });
-
-  const week = trainingDezeWeek();
-  const vandaagGedaan = trainingVan(vandaag());
-  const voorstel = voorstelVandaag();
-  const tr = document.createElement('button');
-  tr.className = 'startkaart training';
-  tr.innerHTML =
-    '<h2>Training</h2>' +
-    '<div class="onder">' +
-      (vandaagGedaan ? 'Vandaag gedaan: ' + TRAINING[vandaagGedaan].naam
-                     : 'Vandaag aan de beurt: ' + TRAINING[voorstel.id].naam) + '</div>' +
-    '<div class="cijfers">' +
-      '<span class="pil' + (week.gedaan >= week.doel ? ' groen' : '') + '">' +
-        week.gedaan + ' van ' + week.doel + ' deze week</span>' +
-      (vandaagGedaan ? '<span class="pil groen">✓ vandaag</span>' : '') +
-    '</div>';
-  tr.addEventListener('click', () => { ui.tab = 'training'; tekenAlles(); window.scrollTo(0,0); });
-
-  /* Als laatste: het is de beloning, niet het werk. */
-  const sd = spelDag(vandaag());
-  const welk = sd ? sd.welk : spelVan(vandaag());
-  const gespeeld = sd ? sd.scores.length : 0;
-  const rec = spelRecord(welk);
-  const sp = document.createElement('button');
-  sp.className = 'startkaart spel';
-  sp.innerHTML =
-    '<h2>Spelletje</h2>' +
-    '<div class="onder">' +
-      (gespeeld >= SPEL_POGINGEN
-        ? 'Vandaag gespeeld: ' + SPELLEN[welk].naam + ', beste ' + scoreTekst(welk, besteVan(sd.scores))
-        : 'Vandaag: ' + SPELLEN[welk].naam + ' — drie keer ' + duurTekst(welk)) + '</div>' +
-    '<div class="cijfers">' +
-      (gespeeld >= SPEL_POGINGEN
-        ? '<span class="pil groen">✓ vandaag</span>'
-        : '<span class="pil">nog ' + (SPEL_POGINGEN - gespeeld) +
-          (SPEL_POGINGEN - gespeeld === 1 ? ' poging' : ' pogingen') + '</span>') +
-      (rec ? '<span class="pil">★ record ' + rec.score + '</span>' : '') +
-    '</div>';
-  sp.addEventListener('click', () => { ui.tab = 'spel'; tekenAlles(); window.scrollTo(0,0); });
-
-  el.append(brief, tr, rij, sp);
+  /* De briefing over de volle breedte, de andere vier als tegels van gelijke
+     maat in twee kolommen. Het spelletje blijft de laatste: het is de
+     beloning, niet het werk. */
+  const brief = startBriefing();
+  brief.addEventListener('click', naar('briefing'));
+  scherm.append(brief);
+  for (const [tegel, tab] of [[startTraining(), 'training'], [startOpRij(), 'vandaag'],
+                              [startTerugblik(), 'terugblik'], [startSpel(), 'spel']]) {
+    tegel.classList.add('half');
+    tegel.addEventListener('click', naar(tab));
+    scherm.append(tegel);
+  }
 
   const voet = document.createElement('div');
   voet.className = 'startvoet';
   const nieuweM = nieuweMeldingen();
-  for (const [naam, tab] of [['Meldingen','meldingen'], ['Terugblik','terugblik'],
-                             ['Instellingen','instellingen']]) {
+  for (const [naam, tab] of [['Meldingen','meldingen'], ['Instellingen','instellingen']]) {
     const k = document.createElement('button');
     k.textContent = naam;
     /* Het aantal erbij, maar alleen als er iets nieuws is. Een vast cijfer
        achter 'Meldingen' zou je leren het te negeren. */
-    /* Met de hand en niet met el(): binnen deze functie is `el` een lokale
-       div (zie boven), en die overschaduwt de hulpfunctie. Dat kostte hier
-       een "el is not a function" die de hele startpagina leeg liet. */
+    /* Met de hand en niet met de hulpfunctie die elders elementen maakt. Hier
+       stond lang een lokale div met dezelfde naam als die hulpfunctie, en dat
+       kostte een "el is not a function" die de hele startpagina leeg liet.
+       Die div heet nu `scherm`, maar de toets bewaakt dit stukje nog steeds
+       en dat mag zo blijven. */
     if (tab === 'meldingen' && nieuweM) {
       const stip = document.createElement('span');
       stip.className = 'nieuwtje';
       stip.textContent = String(nieuweM);
       k.appendChild(stip);
     }
-    k.addEventListener('click', () => { ui.tab = tab; tekenAlles(); window.scrollTo(0,0); });
+    k.addEventListener('click', naar(tab));
     voet.append(k);
   }
-  el.append(voet);
+  scherm.append(voet);
 
-  doel.replaceChildren(el);
+  doel.replaceChildren(scherm);
 }
 
-/* Hoeveel vinkjes van vandaag al staan — één regel op de startkaart, zodat je
-   ziet of er nog iets te doen is zonder de app in te gaan. */
-function gewoontesVandaagTekst() {
+/* Een ingang is één knop: een naam, één regel, en soms iets eronder. */
+function startKaart(soort, titel, onder, meer) {
+  return el('button', { class: 'startkaart ' + soort, type: 'button' }, [
+    el('h2', { tekst: titel }),
+    onder ? el('div', { class: 'onder', tekst: onder }) : null,
+  ].concat(meer || []));
+}
+
+/* De dag, en het weer dat erbij hoort. Het weer alleen uit een briefing van
+   vandaag: de verwachting van gisteren boven de dag van vandaag is erger dan
+   geen weer. 's Avonds dat van morgen, net als bovenaan de briefing.
+
+   Eronder de bak, maar alleen als hij vandaag of morgen aan de weg moet. Dat
+   is het enige op dit scherm met een deadline die vanavond afloopt. */
+function startKop() {
+  const nu = vandaag();
+  const kop = el('div', { class: 'startkop' }, [el('h1', { tekst: langeDatum(nu) })]);
+  if (!briefing || briefing.datum !== nu) return kop;
+
+  const weerblok = (briefing.blokken || []).find(b => b.id === 'weer');
+  let w = weerblok && weerblok.weer;
+  const avond = /^avond/i.test(briefingNaam(briefing));
+  if (w && avond && w.morgen) w = w.morgen;
+  else if (w && avond) w = null;
+  if (w) {
+    const dal = w.dalfsen || {};
+    const min = dal.min != null ? dal.min : w.min;
+    const max = dal.max != null ? dal.max : w.max;
+    const regen = dal.regenkans != null ? dal.regenkans : w.regenkans;
+    if (min != null && max != null) {
+      kop.appendChild(el('div', { class: 'weer', tekst: (avond ? 'morgen ' : '') + min + ' tot ' + max + '°'
+        + (regen != null ? (regen < 10 ? ' · droog' : ' · ' + regen + '% regen') : '') }));
+    }
+  }
+
+  const bak = (briefing.afval || []).find(a => dagenTot(a.datum) >= 0);
+  if (bak && dagenTot(bak.datum) <= 1) {
+    kop.appendChild(el('div', { class: 'bak' }, [
+      el('b', { tekst: bak.naam }),
+      document.createTextNode(dagenTot(bak.datum) === 0 ? ' vandaag aan de weg' : ' morgen aan de weg'),
+    ]));
+  }
+  return kop;
+}
+
+/* Het hoofdbeeld: de dag van Gert als drie halmen die vollopen.
+
+   Elke halm is gedaan tegen doel, en alle drie zijn ze even hoog:
+   - trainingen deze week tegen het weekdoel;
+   - de vinkjes van vandaag tegen het aantal tegels;
+   - de taken van vandaag: afgevinkt tegen wat er vandaag stond.
+   Vol is dus voor alle drie hetzelfde. Rechts de getallen, in de kleur van
+   hun halm en in dezelfde volgorde. Dat zijn tellingen en geen oordeel: er
+   staat nergens of het genoeg is.
+
+   Training telt per week en de andere twee per dag. Dat is met opzet: het
+   doel van de training ís een weekdoel (vijf keer), en één training per dag
+   zou als halm alleen leeg of vol kunnen zijn.
+
+   Een tik op het beeld opent Vandaag, waar de vinkjes en de taken staan. De
+   knop eronder is wat er nu aan de beurt is (`startBeurt()`). */
+function startHoofd(naar) {
+  const week = trainingDezeWeek();
   const d = dag(vandaag(), false);
   const tegels = GEWOONTES.filter(g => g.tegel);
-  const n = tegels.filter(g => d[g.id]).length;
-  return n + ' van ' + tegels.length + ' vinkjes';
+  const af = takenAfVandaag().length;
+  const rijen = [
+    [week.gedaan, week.doel, week.gedaan === 1 && !week.doel ? 'training deze week' : 'trainingen deze week'],
+    [tegels.filter(g => d[g.id]).length, tegels.length, 'vinkjes vandaag'],
+    [af, af + takenVoorVandaag().length, 'taken vandaag'],
+  ];
+
+  const halmen = [], standen = [];
+  rijen.forEach((r, i) => {
+    const kleur = 'startkleur-' + (i + 1);
+    const deel = r[1] > 0 ? Math.min(1, r[0] / r[1]) : 0;
+    /* De knop onderin is 44 punten hoog (de breedte van de halm); de rest van
+       de hoogte is wat er te vullen valt. Zo is nul een ronde knop en geen
+       lege plek. */
+    const vulling = el('i');
+    vulling.style.height = 'calc(44px + (100% - 44px) * ' + deel.toFixed(3) + ')';
+    halmen.push(el('div', { class: 'starthalm ' + kleur }, [vulling]));
+    const b = el('b', { class: kleur, tekst: String(r[0]) });
+    if (r[1] > 0) b.appendChild(el('small', { tekst: '/' + r[1] }));
+    standen.push(el('div', { class: 'startstand' }, [b, el('span', { tekst: r[2] })]));
+  });
+
+  const beeld = el('button', { class: 'startbeeld', type: 'button', onclick: naar('vandaag') }, [
+    el('div', { class: 'startfiguur', 'aria-hidden': 'true' }, halmen),
+    el('div', { class: 'startstanden' }, standen),
+  ]);
+  const beurt = startBeurt();
+  return el('div', { class: 'starthoofd' }, [
+    beeld,
+    beurt ? el('button', { class: 'startbeurt', type: 'button', onclick: naar(beurt.tab) }, [
+      el('div', null, [el('small', { tekst: beurt.bij }), el('b', { tekst: beurt.tekst })]),
+      el('span', { 'aria-hidden': 'true', tekst: '›' }),
+    ]) : null,
+  ]);
+}
+
+/* Wat er nu aan de beurt is, als één regel: { bij, tekst, tab } of null.
+
+   Eerst de training van vandaag. Het schema stelt voor welke van de drie, en
+   dat is de regel die je 's ochtends wilt zien. Zit die erop, dan de eerste
+   taak die nog open staat. Is er niets meer, dan is er geen knop: een vol
+   figuur zegt het zelf. */
+function startBeurt() {
+  if (!trainingVan(vandaag())) {
+    const sessie = sessieVandaag();
+    if (sessie) {
+      return { bij: 'Bezig', tab: 'training',
+               tekst: TRAINING[sessie.id].naam + ' · ' + sessie.gedaan + ' van ' + sessie.totaal + ' sets' };
+    }
+    const voorstel = voorstelVandaag();
+    return { bij: 'Aan de beurt', tab: 'training',
+             tekst: TRAINING[voorstel.id].naam + ' · ' + TRAINING[voorstel.id].duur };
+  }
+  const taken = takenVoorVandaag();
+  if (taken.length) return { bij: 'Aan de beurt', tab: 'vandaag', tekst: taken[0].tekst };
+  return null;
+}
+
+/* De briefing: van wanneer hij is, hoeveel er bij is gekomen sinds je vorige
+   bezoek, en de eerste twee koppen van de duiding. Het aantal staat in de
+   regel en niet groot: het is een telling van berichten, niet de stand van
+   de dag. */
+function startBriefing() {
+  if (!briefing) return startKaart('briefing', briefingNaam(briefing), 'Nog niet opgehaald');
+  let nieuw = 0;
+  for (const b of briefing.blokken || []) nieuw += (b.items || []).filter(isNieuw).length;
+
+  const tijd = /T\d\d:\d\d/.test(briefing.opgehaald || '') ? briefing.opgehaald.slice(11, 16) : '';
+  const onder = [briefingDatumTekst() + (tijd && briefing.datum === vandaag() ? ', ' + tijd : '')];
+  if (nieuw) onder.push(nieuw + ' nieuw');
+  if (briefing.audio) onder.push('ingesproken');
+  /* Zodat je van het startscherm af ziet dat je iets hebt weggezet; het
+     staat bovenaan de briefing en die opent deze kaart. */
+  if (st.bewaard.length) onder.push(st.bewaard.length + ' bewaard');
+
+  const draden = (briefing.duiding || []).filter(dr => dr && dr.titel).slice(0, 2);
+  return startKaart('briefing', briefingNaam(briefing), onder.join(' · '), draden.length
+    ? [el('ul', { class: 'startkoppen' }, draden.map((dr, i) =>
+        el('li', null, [el('i', { tekst: String(i + 1) }), el('span', { tekst: dr.titel })])))]
+    : null);
+}
+
+/* De training: wat je vandaag deed, of anders wat de vorige keer was. Wat er
+   aan de beurt is staat al in de knop onder het hoofdbeeld; dit zegt waarom
+   (na kracht komt lopen, na lopen kracht). */
+function startTraining() {
+  const gedaan = trainingVan(vandaag());
+  if (gedaan) return startKaart('training', 'Training', 'Vandaag: ' + TRAINING[gedaan].naam);
+  const vorige = trainingHistorie(1)[0];
+  return startKaart('training', 'Training',
+    vorige ? 'Vorige: ' + TRAINING[vorige.soort].naam : 'Kracht en lopen');
+}
+
+/* Op Rij: hoeveel er vandaag nog open staat. */
+function startOpRij() {
+  const n = takenVoorVandaag().length;
+  return startKaart('oprij', 'Op Rij',
+    n === 0 ? 'Geen taken open' : n + (n === 1 ? ' taak open' : ' taken open'));
+}
+
+/* De ingang naar Terugblik, met één getal dat zegt waar het heen gaat.
+
+   Is er de laatste zeven dagen gewogen, dan het gemiddelde van die zeven
+   dagen en niet de weegschaal van vanochtend: één ochtend zegt weinig (zie
+   `weekvenster()`). Het getal tussen haakjes is het verschil met het
+   gemiddelde van een week eerder; een getal, geen oordeel en geen
+   verwachting. Zonder weegschaal de trainingen van de laatste zes weken. */
+function startTerugblik() {
+  const nu = vandaag();
+  const w = weekvenster(nu);
+  if (w.aantal) {
+    const eerder = weekvenster(plusDagen(nu, -7));
+    return startKaart('terug', 'Terugblik', nl(w.gewicht) + ' kg' + (eerder.aantal
+      ? ' ' + verschilTekst(w.gewicht, eerder.gewicht, 'kg').replace(' kg)', ')').trim() : ''));
+  }
+  const training = GEWOONTES.find(g => g.id === 'training');
+  let som = 0;
+  for (let i = 0; i < 6; i++) som += telWeek(plusDagen(maandagVan(nu), -7 * i), training);
+  return startKaart('terug', 'Terugblik',
+    som ? som + (som === 1 ? ' training' : ' trainingen') + ' in zes weken' : 'Week voor week');
+}
+
+/* Het spelletje: welk spel het vandaag is, en wat je er vandaag van maakte. */
+function startSpel() {
+  const sd = spelDag(vandaag());
+  const welk = sd ? sd.welk : spelVan(vandaag());
+  const scores = sd ? sd.scores : [];
+  const rec = spelRecord(welk);
+  const over = SPEL_POGINGEN - scores.length;
+  const bij = scores.length ? (over > 0 ? 'nog ' + over + (over === 1 ? ' poging' : ' pogingen')
+                                        : 'beste ' + besteVan(scores))
+            : rec ? 'record ' + rec.score : '';
+  return startKaart('spel', 'Spelletje', SPELLEN[welk].naam + (bij ? ' · ' + bij : ''));
 }
 
 /* Opnieuw tekenen zonder dat de pagina naar boven springt.
