@@ -2969,7 +2969,12 @@ function slimmeRegels() {
     if (r[0] === vandaag() || r[0] === gisteren) {
       const wanneer = r[0] === vandaag() ? 'van vandaag' : 'van gisteren';
       const nu = st.dagen[r[0]].loop;
-      const tijd = tempoTekst(nu.min);
+      /* "20:00" las als een klok ("20:00 uur", 14 november 2026). Dus met
+         "min" erachter, en het tempo per kilometer erbij: daar zit de lat
+         van 5:45 op, niet op de kale tijd. */
+      const sec0 = Math.round((nu.min % 1) * 60);
+      const tijd = (sec0 ? tempoTekst(nu.min) : String(Math.round(nu.min))) + ' min' +
+        (tempoVan(nu) != null ? ' (' + tempoTekst(tempoVan(nu)) + ' per km)' : '');
       /* Het snelst tot nu toe gaat op tempo en niet op de kale tijd: het
          rondje mag tien procent schelen, en dan wint een korter rondje
          vanzelf. */
@@ -2977,19 +2982,20 @@ function slimmeRegels() {
       const eerdere = rondjes().slice(1).map(d => tempoVan(st.dagen[d].loop))
         .filter(t => t != null);
       if (eerdere.length && mijnTempo != null && mijnTempo < Math.min(...eerdere)) {
-        uit.push('Je rondje ' + wanneer + ' was ' + tijd + ' — je snelste tot nu toe.');
+        uit.push('Je rondje ' + wanneer + ' duurde ' + tijd + ', je snelste tot nu toe.');
       } else if (r.length > 1) {
         const vorige = st.dagen[r[1]].loop;
         const sec = Math.round((vorige.min - nu.min) * 60);
         if (Math.abs(sec) >= 10) {
-          uit.push('Je rondje ' + wanneer + ' was ' + tijd + ', ' +
+          uit.push('Je rondje ' + wanneer + ' duurde ' + tijd + ', ' +
             Math.abs(sec) + ' seconden ' + (sec > 0 ? 'sneller' : 'trager') +
             ' dan de keer ervoor.');
         } else {
-          uit.push('Je rondje ' + wanneer + ' was ' + tijd + ', vrijwel gelijk aan de vorige.');
+          uit.push('Je rondje ' + wanneer + ' duurde ' + tijd + ', vrijwel gelijk aan de vorige.');
         }
       } else {
-        uit.push('Je rondje ' + wanneer + ' was ' + tijd + ' — de eerste in de reeks.');
+        uit.push('Je rondje ' + wanneer + ' duurde ' + tijd + '. Dat is het eerste ' +
+          'dat in de app staat; vanaf de volgende keer zie je hier of je sneller gaat.');
       }
     }
   }
