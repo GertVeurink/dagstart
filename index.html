@@ -508,6 +508,20 @@
                       color: var(--teal); flex: none; width: 10px; }
   .startkoppen li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+  /* De passage van vandaag uit Denkwerk (sinds 15 november 2026). Bewust
+     geen kaart met een gekleurde rand zoals de ingangen erboven: dit is geen
+     werk om te doen maar iets om even bij stil te staan. Een dunne lijn
+     erboven, de schreefletter cursief, en hooguit zes regels -- de rest staat
+     in Denkwerk zelf, en daar brengt een tik je heen. */
+  .startcitaat { display: block; color: inherit; text-decoration: none;
+                 border-top: 1px solid var(--line); padding: 12px 4px 4px; margin-top: 2px; }
+  .startcitaat:active { opacity: .7; }
+  .startcitaat q { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6;
+                   overflow: hidden; quotes: '\201C' '\201D';
+                   font-family: var(--serif); font-style: italic; font-size: 17px; line-height: 1.4; }
+  .startcitaat .wie { margin-top: 6px; font-size: 13.5px; color: var(--ink-2); line-height: 1.35; }
+  .startcitaat .naar { color: var(--accent); font-weight: 600; white-space: nowrap; }
+
   /* Twee knoppen en geen onderstreepte woordjes: een duim moet ze kunnen
      raken zonder te mikken. */
   .startvoet { padding: 0 0 16px; display: flex; gap: 10px; }
@@ -4387,6 +4401,9 @@ function tekenStart() {
     scherm.append(tegel);
   }
 
+  const citaat = startCitaat();
+  if (citaat) scherm.append(citaat);
+
   const voet = document.createElement('div');
   voet.className = 'startvoet';
   const nieuweM = nieuweMeldingen();
@@ -4412,6 +4429,26 @@ function tekenStart() {
   scherm.append(voet);
 
   doel.replaceChildren(scherm);
+}
+
+/* De passage van vandaag uit Denkwerk, Gerts eigen app met denkers.
+   Welke dat is rekent de Mac uit met dezelfde som als Denkwerk zelf (zie
+   `denkwerk()` in ophalen.py), dus een tik opent Denkwerk op zijn beginscherm
+   en daar staat dezelfde. Alleen uit een briefing van vandaag: een citaat van
+   gisteren is niet de passage van vandaag. Onderaan en niet bovenaan, want de
+   briefing is waar je de app voor opent. */
+function startCitaat() {
+  const c = briefing && briefing.datum === vandaag() && briefing.denkwerk;
+  if (!c || !c.tekst) return null;
+  const bron = c.wie + (c.werk ? ', ' + c.werk + (c.jaar ? ' (' + c.jaar + ')' : '') : '') +
+    (c.parafrase ? ', in eigen woorden' : '');
+  return el('a', { class: 'startcitaat', href: c.link, target: '_blank', rel: 'noopener' }, [
+    el('q', { tekst: c.tekst }),
+    el('div', { class: 'wie' }, [
+      document.createTextNode(bron + '  '),
+      el('span', { class: 'naar', tekst: 'Denkwerk \u203a' }),
+    ]),
+  ]);
 }
 
 /* Een ingang is één knop: een naam, één regel, en soms iets eronder. */
