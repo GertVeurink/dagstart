@@ -425,6 +425,8 @@
   .startkop h1 { font-size: 19px; line-height: 1.25; flex: 1; min-width: 0; }
   .startkop h1::first-letter { text-transform: uppercase; }
   .startkop .weer { font-size: 13.5px; color: var(--ink-2); flex: none; }
+  .startkop .weerstapel { flex: none; text-align: right; }
+  .startkop .morgen { font-size: 13px; color: var(--ink-3); margin-top: 1px; }
   .startkop .bak { flex-basis: 100%; font-size: 13.5px; line-height: 1.3; color: var(--ink-2); margin-top: -2px; }
   .startkop .bak b { color: var(--warm); font-weight: 600; }
 
@@ -4473,7 +4475,10 @@ function startKop() {
   const weerblok = (briefing.blokken || []).find(b => b.id === 'weer');
   let w = weerblok && weerblok.weer;
   const avond = /^avond/i.test(briefingNaam(briefing));
-  if (w && avond && w.morgen) w = w.morgen;
+  const morgen = morgenWeer(w);
+  /* Vandaag en morgen onder elkaar, rechts naast de datum. */
+  const stapel = el('div', { class: 'weerstapel' });
+  if (w && avond && morgen) w = morgen;
   else if (w && avond) w = null;
   if (w) {
     const dal = w.dalfsen || {};
@@ -4481,10 +4486,18 @@ function startKop() {
     const max = dal.max != null ? dal.max : w.max;
     const regen = dal.regenkans != null ? dal.regenkans : w.regenkans;
     if (min != null && max != null) {
-      kop.appendChild(el('div', { class: 'weer', tekst: (avond ? 'morgen ' : '') + min + ' tot ' + max + '°'
+      stapel.appendChild(el('div', { class: 'weer', tekst: (avond ? 'morgen ' : '') + min + ' tot ' + max + '°'
         + (regen != null ? (regen < 10 ? ' · droog' : ' · ' + regen + '% regen') : '') }));
     }
   }
+  /* Overdag morgen eronder, rechts onder vandaag (19 november 2026). 's Avonds
+     staat morgen er al in plaats van vandaag, dus dan niet nog een keer. */
+  if (w && !avond && morgen && morgen.min != null && morgen.max != null) {
+    const r = morgen.regenkans;
+    stapel.appendChild(el('div', { class: 'morgen', tekst: 'morgen ' + morgen.min + ' tot ' + morgen.max + '°'
+      + (r != null ? (r < 10 ? ' · droog' : ' · ' + r + '% regen') : '') }));
+  }
+  if (stapel.childNodes.length) kop.appendChild(stapel);
 
   const bak = (briefing.afval || []).find(a => dagenTot(a.datum) >= 0);
   if (bak && dagenTot(bak.datum) <= 1) {
@@ -5076,6 +5089,14 @@ function korteBron(bron) {
 /* Het weer in één regel, voor op de knop van het weerblok. Uit de verwachting
    voor Dalfsen zelf, en anders uit de landelijke cijfers van vandaag. Liever
    niets dan een half getal. */
+/* Het weer van morgen: dat van Dalfsen zelf als het er is (sinds 19 november
+   2026, Open-Meteo op de coördinaten van Dalfsen), anders het landelijke van
+   Buienradar. Een oude briefing heeft alleen dat laatste. */
+function morgenWeer(w) {
+  if (!w) return null;
+  return (w.dalfsen && w.dalfsen.morgen) || w.morgen || null;
+}
+
 function weerKort(w) {
   if (!w) return '';
   const d = w.dalfsen || {};
@@ -5410,10 +5431,13 @@ function tekenBriefing() {
   const weerblok = (toon.blokken || []).find(b => b.id === 'weer');
   const w = weerblok && weerblok.weer;
   const avond = /^avond/i.test(briefingNaam(toon));
-  const weerregel = !w ? ''
-    : (avond && w.morgen) ? 'Morgen: ' + weerKort(w.morgen).replace(/^./, c => c.toLowerCase())
-    : weerKort(w);
+  /* Overdag sinds 19 november 2026 ook morgen eronder, op Gerts verzoek: of
+     je morgen kunt lopen beslis je niet pas om negen uur 's avonds. */
+  const m = morgenWeer(w);
+  const morgenTekst = m ? 'Morgen: ' + weerKort(m).replace(/^./, c => c.toLowerCase()) : '';
+  const weerregel = !w ? '' : (avond && m) ? morgenTekst : weerKort(w);
   if (weerregel) kop.append(el('div', { class: 'weerregel', tekst: weerregel }));
+  if (w && !avond && m && weerKort(m)) kop.append(el('div', { class: 'weerregel', tekst: morgenTekst }));
   stuk.append(kop);
 
   const kiezer = dagkiezer();
@@ -5606,10 +5630,13 @@ function tekenBriefing() {
              verwachting op de coördinaten van Dalfsen zelf. */
           (w.dalfsen && w.dalfsen.zin
             ? '<p class="dalfsen">' + w.dalfsen.zin + '</p>' : '') +
-          (w.morgen ? '<p><b>Morgen</b> ' + (w.morgen.omschrijving || '').toLowerCase() +
-            (w.morgen.min != null ? ', ' + w.morgen.min + ' tot ' + w.morgen.max + ' graden' : '') +
-            (w.morgen.regenkans != null ? ' · ' + w.morgen.regenkans + '% kans op regen' : '') +
-            '</p>' : '') +
+          (morgenWeer(w) ? '<p><b>Morgen</b> ' + (() => {
+            const m = morgenWeer(w);
+            return [(m.omschrijving || '').toLowerCase(),
+                    m.min != null ? m.min + ' tot ' + m.max + ' graden' : '',
+                    m.regenkans != null ? (m.regenkans < 10 ? 'droog' : m.regenkans + '% kans op regen') : '']
+              .filter(Boolean).join(', ');
+          })() + '</p>' : '') +
           (w.omslag ? '<p class="omslag">' + w.omslag + '</p>' : '') +
           (w.vooruit ? '<p class="vooruit">' + w.vooruit + '</p>' : '');
         inhoud.append(d);
