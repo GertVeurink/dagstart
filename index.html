@@ -586,10 +586,7 @@
   .vlees { margin-top: 16px; width: 100%; font: inherit; font-weight: 600; font-size: 16px; padding: 14px;
            border-radius: 16px; border: 0; background: #fff; color: #111; cursor: pointer; }
   body.verhaalopen { overflow: hidden; }
-  /* De knop in het leesscherm, en de koppen op de startkaart die nu tikbaar zijn. */
-  .eerstdit .kopje { display: flex; align-items: center; gap: 8px; }
-  .alsverhaal { margin-left: auto; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--accent);
-                background: var(--accent-zacht); border: 0; border-radius: 12px; padding: 4px 10px; cursor: pointer; }
+  /* De koppen op de startkaart zijn tikbaar: elk opent zijn eigen verhaal. */
   .start .startkaart.briefing .startkoppen li { cursor: pointer; }
 
   /* De waarneming van de dag: de foto groot, de tekst er wit onderin. */
@@ -4763,7 +4760,11 @@ function tekenStart() {
      tegels van gelijke maat in twee kolommen. Het spelletje blijft de
      laatste: het is de beloning, niet het werk. */
   const brief = startBriefing();
-  brief.addEventListener('click', naar('briefing'));
+  /* Een tik op de briefing opent de verhalen (sinds 22 november 2026, Gerts
+     idee): het slotscherm daarvan brengt je naar de hele briefing, dus een
+     aparte knop "Als verhalen" was overbodig. Zonder duiding (een oude
+     briefing) valt openVerhalen() zelf terug op het leesscherm. */
+  brief.addEventListener('click', () => openVerhalen(0));
   scherm.append(startKop(), brief, startHoofd(naar));
   const beslis = startBeslisboek();
   if (beslis) scherm.append(beslis);
@@ -6091,11 +6092,8 @@ function tekenEerstDit(draden, dag, blokken, verder) {
      3 november 2026 draagt het veld niet; dan staat er niets, en dat is beter
      dan een verzonnen tijd. */
   const geschreven = draden.find(d => d.geschreven);
-  const alsVerhaal = el('button', { type: 'button', class: 'alsverhaal', tekst: '\u25b6 Als verhalen' });
-  alsVerhaal.addEventListener('click', () => openVerhalen(0, draden));
-  vak.append(el('div', { class: 'kopje' }, [
-    document.createTextNode('Eerst dit' + (geschreven ? ' · geschreven om ' + geschreven.geschreven : '')),
-    alsVerhaal]));
+  vak.append(el('div', { class: 'kopje',
+    tekst: 'Eerst dit' + (geschreven ? ' · geschreven om ' + geschreven.geschreven : '') }));
 
   draden.forEach((d, nr) => {
     /* Onthouden per dag en per draad: draad 3 van vandaag is een ander verhaal
