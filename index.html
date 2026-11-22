@@ -4765,7 +4765,12 @@ function tekenStart() {
      aparte knop "Als verhalen" was overbodig. Zonder duiding (een oude
      briefing) valt openVerhalen() zelf terug op het leesscherm. */
   brief.addEventListener('click', () => openVerhalen(0));
-  scherm.append(startKop(), brief, startHoofd(naar));
+  /* Het blok met de drie strepen (trainingen, vinkjes, taken) en "aan de
+     beurt" is er sinds 22 november 2026 uit, op Gerts verzoek: via de tegels
+     kom je er toch, en het nam ruimte onder de briefing. startHoofd() staat
+     er nog voor als hij terug moet. Wat er aan de beurt is, staat nu in de
+     tegel Training. */
+  scherm.append(startKop(), brief);
   const beslis = startBeslisboek();
   if (beslis) scherm.append(beslis);
   for (const [tegel, tab] of [[startTraining(), 'training'], [startOpRij(), 'vandaag'],
@@ -5570,6 +5575,14 @@ function toonVerhaal(nr) {
 function startTraining() {
   const gedaan = trainingVan(vandaag());
   if (gedaan) return startKaart('training', 'Training', 'Vandaag: ' + TRAINING[gedaan].naam);
+  /* Sinds het blok met de strepen weg is (22 november 2026) staat hier wat
+     er vandaag aan de beurt is, of hoe ver de sessie van vandaag is. */
+  const sessie = sessieVandaag();
+  if (sessie) return startKaart('training', 'Training',
+    'Bezig: ' + sessie.gedaan + ' van ' + sessie.totaal + ' sets');
+  const voorstel = voorstelVandaag();
+  if (voorstel && TRAINING[voorstel.id]) return startKaart('training', 'Training',
+    'Aan de beurt: ' + TRAINING[voorstel.id].naam);
   const vorige = trainingHistorie(1)[0];
   return startKaart('training', 'Training',
     vorige ? 'Vorige: ' + TRAINING[vorige.soort].naam : 'Kracht en lopen');
