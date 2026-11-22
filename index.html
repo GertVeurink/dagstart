@@ -482,10 +482,11 @@
   .lucht[data-dagdeel="avond"][data-weer="regen"] { --luchtverloop: linear-gradient(180deg, #161b22 0%, #2c333d 55%, #262b30 100%); }
 
   /* De zonneboog, rechts in het beeld. */
-  .zonneboog { position: absolute; right: 16px; top: calc(var(--kopbalk, 0px) + 96px); width: 160px;
+  .zonneboog { position: absolute; right: 12px; top: calc(var(--kopbalk, 0px) + 14px); width: 142px;
                text-align: center; font-size: 11.5px; line-height: 1.2; color: rgba(255,255,255,.88);
-               text-shadow: 0 1px 8px rgba(0,0,0,.35); opacity: var(--vervaag, 1); }
-  .zonneboog svg { display: block; margin: 0 auto; width: 124px; height: 68px; overflow: visible; }
+               text-shadow: 0 1px 6px rgba(0,0,0,.6), 0 0 14px rgba(0,0,0,.35); opacity: var(--vervaag, 1); }
+  .zonneboog svg { display: block; margin: 0 auto; width: 108px; height: 59px; overflow: visible;
+                  filter: drop-shadow(0 0 6px rgba(0,0,0,.35)); }
   .zonneboog .horizon { stroke: rgba(255,255,255,.35); stroke-width: 1; }
   .zonneboog .baan { fill: none; stroke: rgba(255,255,255,.4); stroke-width: 1.2; stroke-dasharray: 2 3.5; }
   .zonneboog .afgelegd { fill: none; stroke: rgba(255,236,190,.9); stroke-width: 1.6; }
@@ -511,7 +512,7 @@
   body.avond[data-scherm="start"] .lucht { height: calc(400px + var(--kopbalk, 48px)); }
   @media (min-width: 749px) { body[data-scherm="start"] .lucht { margin-top: 0; height: 370px; }
     body[data-scherm="start"] .luchttekst { padding-top: 22px; }
-    body[data-scherm="start"] .zonneboog { top: 96px; } }
+    body[data-scherm="start"] .zonneboog { top: 18px; } }
   header.app { transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease; }
   header.app .kopmini { display: none; margin-left: auto; font-size: 13.5px; color: var(--ink-2);
                         font-variant-numeric: tabular-nums; }
