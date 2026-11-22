@@ -157,6 +157,7 @@
   .uitdaging .achter { color: var(--warm); }
   .meting { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
   .meting label { flex: 1 1 110px; font-size: 13px; color: var(--ink-3); }
+  .meting label.kort { flex: 1 1 64px; }
   .meting input { width: 100%; margin-top: 4px; padding: 9px 10px; font: inherit;
                   font-size: 16px; border: 1px solid var(--line-2); border-radius: 8px;
                   background: var(--vlak); color: var(--ink); }
@@ -1265,14 +1266,14 @@ const TRAINING = {
     ],
   },
   lopen: {
-    naam: 'Lopen', onder: 'lange dag of je rondje', duur: '22–42 min', soort: 'lopen',
+    naam: 'Lopen', onder: 'lange dag of je rondje', duur: '32–70 min', soort: 'lopen',
     oefeningen: [
-      ['De lange dag', 'rustig, je moet kunnen praten', 'zie hieronder',
-       'Dit is de dag die groeit. Je loopt op de klok en niet op afstand: tot de tijd om is, in een tempo waarbij je hele zinnen kunt uitspreken. Dat is rustiger dan je rondje van 3 km — waarschijnlijk zo\u2019n halve minuut per kilometer. Elke week komt er drie minuten bij, en elke vierde week niets.',
-       'Dit tempo voelt te langzaam, en dat is precies waarom het werkt: de lange dag is langzaam zodat hij lang kan worden. Ga je hem op je rondjetempo lopen, dan kun je er geen minuten meer bij doen en loopt de opbouw vast. De snelheid komt van de andere dag, later.'],
-      ['Je rondje van 3 km', 'dezelfde route, dezelfde meting', 'zoals je het doet',
-       'Je eigen rondje om het huis, in het tempo dat je gewend bent. Niet rustiger dan nodig en niet elke keer een wedstrijd: dit is je meetlat. Dezelfde route en dezelfde manier van klokken, dus wat er verandert is jij en niet het parcours.',
-       'Klok hem niet elke keer op de seconde — eens in de twee à drie weken is genoeg, anders meet je vooral de wind en hoe je die ochtend sliep. Vanaf januari komen hier korte stukjes sneller bij: zes keer een minuut stevig met twee minuten wandelen ertussen. Niet eerder, en nooit in dezelfde week waarin de lange dag langer wordt.'],
+      ['De lange dag', 'op gevoel, in je eigen tempo', 'zie hieronder',
+       'Dit is de dag die groeit, op weg naar 10 km. Je loopt op de klok en niet op afstand: tot de tijd om is, in je eigen tempo en op gevoel. Elke week komt er drie minuten bij, en elke vierde week niets. Bij 70 minuten stopt het groeien: dat is ongeveer 10 km.',
+       'Merk je dat de extra minuten zwaar worden, laat dan het tempo wat zakken en niet de minuten. De minuten zijn de opbouw naar 10 km; het tempo komt van je rondje.'],
+      ['Je rondje van 5 km', 'dezelfde route, elke keer geklokt', 'zoals je het doet',
+       'Je eigen rondje van 5 km, in het tempo dat je gewend bent. Dit is je meetlat: dezelfde route en dezelfde manier van klokken met je hardloopapp, dus wat er verandert ben jij en niet het parcours. Vul de tijd elke keer in; de app rekent er je lijn naar de 30 minuten uit.',
+       'Vanaf januari komen hier korte stukjes sneller bij: zes keer een minuut stevig met twee minuten wandelen ertussen. Niet eerder, en nooit in dezelfde week waarin de lange dag langer wordt.'],
       ['Als het niet gaat', 'crosstrainer', 'zelfde tijd',
        'Regent het, is het glad of zijn je knieën er niet naar: de crosstrainer in de schuur telt ook, met dezelfde regel en dezelfde tijd. Dan sla je deze dag niet over, en dat is het enige wat telt.',
        'Een gemiste loopdag haal je niet in door de volgende harder te doen. Schoenen de avond ervoor klaar.'],
@@ -1295,6 +1296,9 @@ const TRAINING_VOLGORDE = ['a', 'b', 'lopen'];
  * een halve minuut per kilometer -- ruim een derde van wat er tot 5 km onder
  * de 30 minuten nog bij moet. De rest komt uit lopen.
  *
+ * (Tot 22 november 2026 gold dat ook voor het lopen; sinds het loopdoel naar
+ * 1 maart 2027 ging, blijven gewicht en buik op 1 juli. Gert koos dat zo.)
+ *
  * De 102 cm is niet verzonnen maar de grens waarboven de buikomvang zelf als
  * risico telt. De 92 kg hoort daarbij en is een schatting; Gert heeft geen
  * streefgewicht genoemd. Wil hij iets anders, dan is dat deze regel.
@@ -1306,11 +1310,22 @@ const AMBITIE = {
   buik: 102,
 };
 
-/* 5 km onder de 30 minuten is 6:00 per kilometer. Zijn rondje van 3 km ging op
- * 2 november in 22 minuten, en dat is 7:20 -- nét boven zijn praattempo. Er
- * moet dus twee kilometer bij én anderhalve minuut per kilometer af. Dat zijn
- * twee projecten, en ze gaan niet tegelijk. */
-const LOOPDOEL = { afstand: 5, tijd: 30, rondje: 3 };
+/* Bijgesteld op 22 november 2026. Het schema van 2 november ging uit van een
+ * rondje van 3 km in 22 minuten (7:20 per km) en had 5 km aan één stuk pas
+ * rond 21 december, in zo'n 40 minuten. Op 22 november liep Gert 5 km in
+ * 31:50 (6:22 per km), gemeten met gps. Hij zat dus een maand vóór op de
+ * afstand en vier maanden op het tempo.
+ *
+ * Nu: zijn rondje is 5 km en dat is de meetlat, elke keer geklokt (zijn keuze:
+ * hij vindt dat prettig, en zijn hardloopapp meet nauwkeurig genoeg). Het doel
+ * is 5 km onder de 30 minuten rond 1 maart 2027; daar moeten 22 seconden per
+ * km af, anderhalve seconde per week. De ambitie daarna is 10 km onder het uur
+ * rond 1 oktober 2027: hetzelfde tempo, twee keer zo lang. Onder de 30 op de
+ * 5 km was zes jaar geleden zijn plafond, en verder onder die 30 komen is bij
+ * 51 jaar en 100 kilo het zwaarste stuk. Langer lopen is beter voor conditie
+ * en gewicht, en minder riskant als het geleidelijk gaat. */
+const LOOPDOEL = { afstand: 5, tijd: 30, rondje: 5, op: '2027-03-01' };
+const LOOPAMBITIE = { afstand: 10, tijd: 60, op: '2027-10-01' };
 
 /* De opbouw van de lange dag, in minuten.
  *
@@ -1323,10 +1338,12 @@ const LOOPDOEL = { afstand: 5, tijd: 30, rondje: 3 };
  * er iets protesteert, en een blessure kost meer weken dan hij oplevert.
  */
 const LOOPOPBOUW = {
-  van: '2026-11-02',      // de maandag waarop dit begint (moet een maandag zijn)
-  startMin: 24,
+  /* Opnieuw begonnen op 22 november 2026, vanaf wat hij die dag liep (5 km in
+     31:50). Daarvoor: vanaf 2 november, 24 minuten, tot hooguit 42. */
+  van: '2026-11-16',      // de maandag waarop dit begint (moet een maandag zijn)
+  startMin: 33,           // net boven zijn 31:50 van 22 november
   perWeek: 3,
-  maxMin: 42,             // daarboven wordt het niet langer maar sneller
+  maxMin: 70,             // zo'n 10 km in zijn eigen tempo; rond half maart 2027
 };
 
 /* Drie smoothies, zodat de ochtend niet elke keer dezelfde is zonder dat er
@@ -1517,9 +1534,12 @@ function langeDatum(s) {
   return DAGNAMEN[d.getDay()] + ' ' + d.getDate() + ' ' + MAANDEN[d.getMonth()];
 }
 
+/* "1 mrt" en niet "1 maa": de eerste drie letters werken voor elke maand
+   behalve maart, en dat viel pas op toen er een loopdoel op 1 maart kwam. */
 function korteDatum(s) {
   const d = alsDatum(s);
-  return d.getDate() + ' ' + MAANDEN[d.getMonth()].slice(0, 3);
+  const kort = MAANDEN[d.getMonth()] === 'maart' ? 'mrt' : MAANDEN[d.getMonth()].slice(0, 3);
+  return d.getDate() + ' ' + kort;
 }
 
 /* ---------- dagen en tellingen ---------- */
@@ -2448,23 +2468,23 @@ function tekenLoop(binnenin) {
   vak.appendChild(el('div', { class: 'regel' }, [
     el('span', { tekst: 'Deze week: lange dag ' }),
     el('b', { tekst: lang + ' minuten' }),
-    el('span', { tekst: ' rustig, en je rondje zoals je het doet.'
+    el('span', { tekst: ' op gevoel, en je rondje zoals je het doet.'
                         + (rust ? ' Deze week komt er niets bij \u2014 dat is de'
                                 + ' pas op de plaats.' : '') }),
   ]));
 
   if (lang >= LOOPOPBOUW.maxMin) {
     vak.appendChild(el('div', { class: 'kant',
-      tekst: 'De lange dag groeit niet verder. Vanaf hier wordt het niet langer '
-             + 'maar sneller, op je rondje.' }));
+      tekst: 'De lange dag groeit niet verder: ' + LOOPOPBOUW.maxMin + ' minuten is zo\u2019n '
+             + LOOPAMBITIE.afstand + ' km. Vanaf hier gaat het om je tempo.' }));
   } else {
-    const week = vijfKmWeek();
+    const week = kmWeek(LOOPAMBITIE.afstand);
     if (week) {
       vak.appendChild(el('div', { class: 'kant',
         tekst: dagenTussen(vandaag(), week) <= 7
-          ? '5 km aan \u00e9\u00e9n stuk zit er deze week in.'
-          : '5 km aan \u00e9\u00e9n stuk komt in zicht rond ' + korteDatum(week)
-            + ', op je huidige duurtempo.' }));
+          ? LOOPAMBITIE.afstand + ' km aan \u00e9\u00e9n stuk zit er deze week in.'
+          : LOOPAMBITIE.afstand + ' km aan \u00e9\u00e9n stuk komt in zicht rond ' + korteDatum(week)
+            + ', op je huidige tempo.' }));
     }
   }
 
@@ -2474,7 +2494,7 @@ function tekenLoop(binnenin) {
     if (vanVandaag && !ui.loopOpen) {
       vak.appendChild(el('div', { class: 'regel' }, [
         el('span', { tekst: 'Vandaag: ' }),
-        el('b', { tekst: nl(vanVandaag.km) + ' km in ' + nl(vanVandaag.min) + ' min' }),
+        el('b', { tekst: nl(vanVandaag.km) + ' km in ' + looptijdTekst(vanVandaag.min) }),
         el('span', { tekst: ' \u00b7 ' + tempoTekst(tempoVan(vanVandaag)) + ' per km' }),
       ]));
       vak.appendChild(el('button', {
@@ -2485,16 +2505,29 @@ function tekenLoop(binnenin) {
       const rij = el('div', { class: 'meting' });
       const kmv = el('input', { type: 'number', step: '0.1', inputmode: 'decimal',
                                 placeholder: 'km' });
-      const mnv = el('input', { type: 'number', step: '0.5', inputmode: 'decimal',
+      /* Minuten en seconden in twee vakjes (23 november 2026). Eerst was het één
+         vak in minuten, en dan werd "31,50" voor 31 minuten en 50 seconden
+         gelezen als 31,5 minuut: 31:30. Een dubbele punt kan niet, want die zit
+         niet op het cijfertoetsenbord van de iPhone. Opgeslagen wordt nog
+         steeds één getal in minuten, dus oude loopjes blijven kloppen. */
+      const mnv = el('input', { type: 'number', step: '1', min: '0', inputmode: 'numeric',
                                 placeholder: 'min' });
-      if (vanVandaag) { kmv.value = vanVandaag.km; mnv.value = vanVandaag.min; }
+      const scv = el('input', { type: 'number', step: '1', min: '0', max: '59', inputmode: 'numeric',
+                                placeholder: 'sec' });
+      if (vanVandaag) {
+        const [m, sc] = minSec(vanVandaag.min);
+        kmv.value = vanVandaag.km; mnv.value = m; scv.value = sc || '';
+      }
       rij.appendChild(el('label', { tekst: 'Afstand' }, [kmv]));
-      rij.appendChild(el('label', { tekst: 'Tijd' }, [mnv]));
+      rij.appendChild(el('label', { class: 'kort', tekst: 'Minuten' }, [mnv]));
+      rij.appendChild(el('label', { class: 'kort', tekst: 'Seconden' }, [scv]));
       rij.appendChild(el('button', {
         class: 'schakel', tekst: 'Bewaren',
         onclick: () => {
-          const km = getal(kmv.value), mn = getal(mnv.value);
-          if (km == null || mn == null) { zeg('Vul allebei in'); return; }
+          const km = getal(kmv.value), m = getal(mnv.value), sc = getal(scv.value) || 0;
+          if (km == null || m == null) { zeg('Vul afstand en minuten in'); return; }
+          if (sc < 0 || sc >= 60) { zeg('Seconden gaan tot 59'); return; }
+          const mn = Math.round(m) + Math.round(sc) / 60;
           dag(vandaag(), true).loop = { km, min: mn };
           ui.loopOpen = false;
           bewaar();
@@ -2516,7 +2549,7 @@ function tekenLoop(binnenin) {
       hist.appendChild(el('div', {}, [
         el('span', { tekst: korteDatum(d) + ' \u00b7 ' }),
         el('b', { tekst: nl(l.km) + ' km' }),
-        el('span', { tekst: ' in ' + nl(l.min) + ' min \u00b7 ' }),
+        el('span', { tekst: ' in ' + looptijdTekst(l.min) + ' \u00b7 ' }),
         el('b', { tekst: tempoTekst(tempoVan(l)) }),
         el('span', { tekst: ' per km' + (opRondje ? ' \u00b7 je rondje' : '') }),
       ]));
@@ -2553,8 +2586,8 @@ function tekenLoop(binnenin) {
     }
     if (trend.aantal < 5) {
       vooruit.appendChild(el('div', { class: 'kant',
-        tekst: 'Nog maar ' + trend.aantal + ' keer geklokt op dezelfde route. Klok '
-               + 'hem eens in de twee \u00e0 drie weken \u2014 vaker meet vooral de wind.' }));
+        tekst: 'Nog maar ' + trend.aantal + ' keer geklokt op je rondje van '
+               + LOOPDOEL.rondje + ' km. Vanaf een keer of vijf wordt de lijn betrouwbaar.' }));
     }
   } else {
     vooruit.appendChild(el('div', { class: 'kant',
@@ -2562,17 +2595,16 @@ function tekenLoop(binnenin) {
              + 'je tempo doet. Vul je loopjes in, dan rekent hij het uit.' }));
   }
 
-  /* De ambitie. Het verschil tussen 3 en 5 km staat er met opzet bij: 6:00 op
-     je rondje is nog geen 6:00 over vijf kilometer, en dat is precies het
-     soort detail waar een doel op stukloopt. */
-  const nodigRondje = LOOPDOEL.tijd / LOOPDOEL.afstand - LANGER_IS_TRAGER;
+  /* Het doel en de ambitie. Het doel is het rondje zelf, dus de tijd op je
+     rondje is de tijd die telt; de ambitie is hetzelfde tempo over twee keer
+     die afstand. */
   const mijlpaal = LOOPMIJLPALEN.find(([d]) => d >= vandaag());
   const doelblok = el('div', { class: 'ambitie' }, [
-    el('div', { tekst: 'Ambitie: ' + LOOPDOEL.afstand + ' km onder de ' + LOOPDOEL.tijd
-           + ' minuten, dat is ' + tempoTekst(LOOPDOEL.tijd / LOOPDOEL.afstand)
-           + ' per km. Over ' + LOOPDOEL.afstand + ' km loop je zo\u2019n kwart '
-           + 'minuut per km rustiger dan over ' + LOOPDOEL.rondje + ', dus je rondje '
-           + 'moet richting ' + tempoTekst(nodigRondje) + '.' }),
+    el('div', { tekst: 'Doel: ' + LOOPDOEL.afstand + ' km onder de ' + LOOPDOEL.tijd
+           + ' minuten, rond ' + korteDatum(LOOPDOEL.op) + '. Dat is '
+           + tempoTekst(LOOPDOEL.tijd / LOOPDOEL.afstand) + ' per km.' }),
+    el('div', { tekst: 'Ambitie: ' + LOOPAMBITIE.afstand + ' km onder het uur, rond '
+           + korteDatum(LOOPAMBITIE.op) + ' 2027. Hetzelfde tempo, twee keer zo lang.' }),
     mijlpaal ? el('div', { tekst: 'Eerstvolgende mijlpaal: ' + mijlpaal[1] + ', rond '
              + korteDatum(mijlpaal[0]) + '.' }) : null,
   ]);
@@ -2623,15 +2655,12 @@ function ambitieRegel(veld, trend) {
 
 /* ---------- lopen ---------- */
 
-/* Gert loopt een vast rondje van 3 km om zijn huis en deed daar op 2 november
- * 2026 zo\u2019n 22 minuten over -- net boven zijn praattempo. Het doel is 5 km
- * onder de 30 minuten. Dat is twee kilometer erbij en anderhalve minuut per
- * kilometer eraf, en dat zijn twee projecten.
- *
- * Eerst de afstand, en wel hierom: je komt niet aan 5 km door 3 km harder te
- * lopen, en het tempo zakt onderweg vanzelf mee -- deels door de opbouw,
- * deels doordat er gewicht af gaat. Pas als 5 km staat, gaat er op de andere
- * dag snelheid bij. Nooit allebei in dezelfde week.
+/* Twee loopdagen: de lange dag, die in minuten groeit naar zo'n 10 km, en
+ * het rondje van 5 km, dat de meetlat is (zie LOOPDOEL voor waarom het sinds
+ * 22 november 2026 zo staat). De lange dag loopt hij op gevoel in zijn eigen
+ * tempo; een rustiger tempo voorschrijven wilde hij niet. Snelheid komt er
+ * vanaf januari op de rondjedag bij, en nooit in een week waarin de lange dag
+ * langer wordt.
  *
  * Opgeslagen als dagen[datum].loop = { km, min }, dus het zit in oprij.v1 en
  * gaat mee in de reservekopie -- net als de training en het spelletje.
@@ -2639,16 +2668,20 @@ function ambitieRegel(veld, trend) {
 const LOOPRUIS = 0.25;          // minuten per km die een dag nu eenmaal scheelt
 const LOOPMAX_PER_WEEK = 0.12;  // 7 sec per km per week; sneller houdt niemand maanden vol
 
-/* Over 5 km loop je rustiger dan over 3. Zo\u2019n vijftien seconden per
- * kilometer, en dat verschil is precies groot genoeg om het te noemen:
- * 6:00 over 5 km vraagt ongeveer 5:45 op zijn rondje. */
+/* Langer lopen gaat iets trager. Zo\u2019n vijftien seconden per kilometer: dat
+ * gebruikt duurtempo() om te schatten hoe ver de lange dag komt zolang er nog
+ * geen echte lange loop is ingevuld. */
 const LANGER_IS_TRAGER = 0.25;
 
+/* Gezet op 22 november 2026, na 5 km in 31:50. De eerste drie zijn
+ * anderhalve seconde per km per week: ruim onder wat LOOPMAX_PER_WEEK nog
+ * houdbaar vindt. */
 const LOOPMIJLPALEN = [
-  ['2026-12-21', '5 km aan \u00e9\u00e9n stuk, rond de 40 minuten'],
-  ['2027-02-01', '5 km onder de 37 minuten'],
-  ['2027-04-01', '5 km onder de 33 minuten'],
-  ['2027-07-01', '5 km onder de 30 minuten'],
+  ['2027-01-01', '5 km onder 31:00'],
+  ['2027-02-01', '5 km onder 30:30'],
+  ['2027-03-01', '5 km onder de 30 minuten'],
+  ['2027-03-15', 'een lange dag van 70 minuten, zo\u2019n 10 km'],
+  ['2027-10-01', '10 km onder het uur'],
 ];
 
 function loopDagen(hoeveel) {
@@ -2668,8 +2701,23 @@ function tempoTekst(minPerKm) {
   return m + ':' + String(sec).padStart(2, '0');
 }
 
+/* Een looptijd als minuten en hele seconden: 31,8333 wordt [31, 50]. */
+function minSec(min) {
+  let m = Math.floor(min);
+  let sc = Math.round((min - m) * 60);
+  if (sc === 60) { m++; sc = 0; }
+  return [m, sc];
+}
+
+/* 31 min 50 sec schrijf je als 31:50, en 32 minuten gewoon als 32 min. Niet
+   "31,8 min": dat leest als 31 minuten en 8 tienden, en dat is niemands klok. */
+function looptijdTekst(min) {
+  const [m, sc] = minSec(min);
+  return sc ? m + ':' + String(sc).padStart(2, '0') : m + ' min';
+}
+
 /* Loopjes op het vaste rondje: dezelfde route, dus onderling te vergelijken.
-   Een marge van tien procent, want niemand loopt precies 3,00 km. */
+   Een marge van tien procent, want niemand loopt precies 5,00 km. */
 function rondjes(hoeveel) {
   return loopDagen().filter(d => {
     const km = st.dagen[d].loop.km;
@@ -2678,16 +2726,15 @@ function rondjes(hoeveel) {
 }
 
 /* Het tempo waarop de lange dag gelopen wordt. Uit een echte lange loop als
-   die er is, anders het rondjetempo plus een halve minuut -- want de lange
-   dag hoort rustiger te zijn dan het rondje, en zonder dat verschil loopt de
-   opbouw vast. */
+   die er is, anders het rondjetempo plus vijftien seconden: hij loopt de lange
+   dag op gevoel in zijn eigen tempo, en langer gaat vanzelf iets trager. */
 function duurtempo() {
   const lang = loopDagen().map(d => st.dagen[d].loop)
     .filter(l => l.km >= LOOPDOEL.rondje * 1.15);
   if (lang.length) return tempoVan(lang[0]);
   const r = rondjes(1);
-  if (r.length) return tempoVan(st.dagen[r[0]].loop) + 0.5;
-  return 8;
+  if (r.length) return tempoVan(st.dagen[r[0]].loop) + LANGER_IS_TRAGER;
+  return 7;
 }
 
 function loopWeekNr() {
@@ -2701,11 +2748,11 @@ function langeDagVan(n) {
   return Math.min(LOOPOPBOUW.maxMin, LOOPOPBOUW.startMin + stappen * LOOPOPBOUW.perWeek);
 }
 
-/* De week waarin die lange dag lang genoeg is voor vijf kilometer. Dat is
-   rekenwerk en geen voorspelling: de minuten liggen vast, het tempo komt uit
-   zijn eigen loopjes. */
-function vijfKmWeek() {
-  const nodig = LOOPDOEL.afstand * duurtempo();
+/* De week waarin de lange dag lang genoeg is voor die afstand (sinds
+   22 november 2026 de 10 km; daarvoor de 5 km). Dat is rekenwerk en geen
+   voorspelling: de minuten liggen vast, het tempo komt uit zijn eigen loopjes. */
+function kmWeek(afstand) {
+  const nodig = afstand * duurtempo();
   const nu = loopWeekNr();
   for (let n = nu; n < nu + 60; n++) {
     if (langeDagVan(n) >= nodig) return plusDagen(maandagVan(vandaag()), (n - nu) * 7);
@@ -5964,7 +6011,11 @@ function zetTraining(id) {
    `dagen[datum].training` -- het dagvinkje -- weet hier niets van en werkt
    zoals het werkte. */
 
-function getal(s) { return parseFloat(String(s).replace(',', '.')); }
+/* Hier stond tot 23 november 2026 een tweede getal(). Een latere functie met
+   dezelfde naam wint in JavaScript, dus die gold overal, ook bij het lopen en
+   het wegen. Hij gaf NaN in plaats van null voor een leeg vak, en daardoor
+   kwam "Vul allebei in" nooit: een leeg vak werd als NaN bewaard. Nu is er
+   één, bovenaan bij de metingen. pasSet() vangt null net zo goed af. */
 
 /* Geeft null voor een regel die geen sets heeft ('zie hieronder' bij het
    lopen): dan komen er ook geen setregels. */
