@@ -5026,7 +5026,9 @@ function startKop() {
    staan. Wifi kan een webapp op de iPhone niet zien, daarom zijn de
    filmpjes klein gehouden (onder de 0,8 MB) en laadt de browser ze pas als
    de rest er staat. */
-const LUCHT_FILMS = ['herfst-ochtend-mist', 'herfst-ochtend-helder', 'herfst-ochtend-bewolkt', 'herfst-avond-helder'];
+const LUCHT_FILMS = ['herfst-ochtend-mist', 'herfst-ochtend-helder', 'herfst-ochtend-bewolkt', 'herfst-avond-helder',
+  'herfst-avond-vorst', 'herfst-avond-mist', 'herfst-middag-mist', 'herfst-avond-bewolkt',
+  'winter-ochtend-helder', 'winter-ochtend-vorst', 'winter-avond-helder', 'winter-ochtend-bewolkt'];
 function luchtFilm(naam) {
   if (!LUCHT_FILMS.includes(naam)) return null;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
