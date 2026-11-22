@@ -451,12 +451,15 @@
   .lucht img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
                z-index: -2; opacity: 0; transition: opacity .6s ease; }
   .lucht img.geladen { opacity: 1; }
+  .lucht video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+                 z-index: -2; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+  .lucht video.speelt { opacity: 1; }
   /* Boven een donkere waas zodat witte letters op elk beeld leesbaar blijven,
      onder een overgang naar de achtergrond van de pagina: het beeld loopt
      over in het scherm in plaats van als plaatje erop te liggen. */
   .lucht::after { content: ''; position: absolute; inset: 0; z-index: -1;
     background: linear-gradient(180deg, rgba(0,0,0,.38) 0%, rgba(0,0,0,.08) 42%,
-                rgba(0,0,0,0) 72%, var(--bg) 100%); }
+                rgba(0,0,0,0) 70%, var(--bg) 96%); }
   .luchttekst { padding: 22px 20px 0; text-shadow: 0 1px 12px rgba(0,0,0,.25); }
   .luchttekst .dag { font-size: 13.5px; letter-spacing: .02em; opacity: .9; }
   .luchttekst .dag::first-letter { text-transform: uppercase; }
@@ -477,6 +480,51 @@
   .lucht[data-weer="regen"]  { --luchtverloop: linear-gradient(180deg, #56616c 0%, #8a939a 55%, #7a8270 85%, #4c5442 100%); }
   .lucht[data-dagdeel="avond"][data-weer="mist"],
   .lucht[data-dagdeel="avond"][data-weer="regen"] { --luchtverloop: linear-gradient(180deg, #161b22 0%, #2c333d 55%, #262b30 100%); }
+
+  /* De zonneboog, rechts in het beeld. */
+  .zonneboog { position: absolute; right: 16px; top: calc(var(--kopbalk, 0px) + 96px); width: 160px;
+               text-align: center; font-size: 11.5px; line-height: 1.2; color: rgba(255,255,255,.88);
+               text-shadow: 0 1px 8px rgba(0,0,0,.35); opacity: var(--vervaag, 1); }
+  .zonneboog svg { display: block; margin: 0 auto; width: 124px; height: 68px; overflow: visible; }
+  .zonneboog .horizon { stroke: rgba(255,255,255,.35); stroke-width: 1; }
+  .zonneboog .baan { fill: none; stroke: rgba(255,255,255,.4); stroke-width: 1.2; stroke-dasharray: 2 3.5; }
+  .zonneboog .afgelegd { fill: none; stroke: rgba(255,236,190,.9); stroke-width: 1.6; }
+  .zonneboog .zon { fill: #fff3cf; }
+  .zonneboog .zongloed { fill: rgba(255,214,130,.35); }
+  .zonneboog .maandonker { fill: rgba(255,255,255,.12); stroke: rgba(255,255,255,.25); stroke-width: .6; }
+  .zonneboog .maan { fill: #f4f1e6; }
+  @media (max-width: 360px) { .zonneboog { display: none; } }
+
+  /* Meescrollen: het beeld blijft iets achter, de tekst vervaagt. De waarden
+     zet luchtBijScrollen() met de hand, zonder transitie, zodat het de duim
+     volgt. */
+  .lucht img, .lucht video { transform: translate3d(0, calc(var(--scroll, 0px) * .45), 0) scale(1.06); }
+  .luchttekst { opacity: var(--vervaag, 1);
+                transform: translate3d(0, calc(var(--scroll, 0px) * .2), 0); }
+
+  /* Op het startscherm ligt de kopbalk óp het beeld: doorzichtig met wit
+     erin. Is het beeld weggescrold, dan wordt hij van glas, met de datum en
+     de temperatuur klein rechts. */
+  body[data-scherm="start"] .lucht { margin-top: calc(-14px - var(--kopbalk, 48px));
+    height: calc(370px + var(--kopbalk, 48px)); }
+  body[data-scherm="start"] .luchttekst { padding-top: calc(var(--kopbalk, 48px) + 18px); }
+  body.avond[data-scherm="start"] .lucht { height: calc(400px + var(--kopbalk, 48px)); }
+  @media (min-width: 749px) { body[data-scherm="start"] .lucht { margin-top: 0; height: 370px; }
+    body[data-scherm="start"] .luchttekst { padding-top: 22px; }
+    body[data-scherm="start"] .zonneboog { top: 96px; } }
+  header.app { transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease; }
+  header.app .kopmini { display: none; margin-left: auto; font-size: 13.5px; color: var(--ink-2);
+                        font-variant-numeric: tabular-nums; }
+  body[data-scherm="start"] header.app.opbeeld { background: transparent; border-bottom-color: transparent; }
+  @media (max-width: 748px) {
+    body[data-scherm="start"] header.app.opbeeld .brand b { color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.3); }
+    body[data-scherm="start"] header.app.opbeeld .brand .merk { background: #fff; }
+  }
+  body[data-scherm="start"] header.app.vast {
+    background: color-mix(in srgb, var(--panel) 78%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
+    box-shadow: 0 1px 0 var(--line); border-bottom-color: transparent; }
+  body[data-scherm="start"] header.app.vast .kopmini { display: block; animation: binnen .3s ease both; }
 
   /* De briefing schuift over de onderrand van het beeld, als glas. */
   .start > .startkaart.briefing { position: relative; z-index: 1; margin-top: -84px;
@@ -1242,6 +1290,7 @@
       <button role="tab" data-tab="terugblik" aria-selected="false">Terugblik</button>
       <button role="tab" data-tab="instellingen" aria-selected="false" aria-label="Instellingen">&#9881;</button>
     </div>
+    <span class="kopmini" id="kopmini"></span>
   </div>
 </header>
 
@@ -4741,6 +4790,7 @@ function startKop() {
     if (pogingen.length) beeld.src = pogingen[0]; else beeld.remove();
   });
   beeld.src = pogingen[0];
+  const film = luchtFilm(s + '-' + dagdeel + '-' + weer);
 
   const datum = alsDatum(nu);
   const tekst = el('div', { class: 'luchttekst' }, [
@@ -4748,11 +4798,164 @@ function startKop() {
       (weer !== 'bewolkt' ? ' · ' + { helder: dagdeel === 'avond' ? 'helder' : 'zon', regen: 'regen', mist: 'mist', vorst: 'vorst' }[weer] : '') }),
     el('h1', { tekst: datum.getDate() + ' ' + MAANDEN[datum.getMonth()] }),
   ]);
-  const lucht = el('div', { class: 'lucht', 'data-dagdeel': dagdeel, 'data-weer': weer }, [beeld, tekst]);
+  const lucht = el('div', { class: 'lucht', 'data-dagdeel': dagdeel, 'data-weer': weer }, [beeld, film, tekst]);
 
   const weerregels = startWeer();
   if (weerregels) tekst.appendChild(weerregels);
+  const boog = zonneboog();
+  if (boog) lucht.appendChild(boog);
   return lucht;
+}
+
+/* De bewegende lucht (sinds 22 november 2026). Van Gerts eigen foto's heeft
+   Runway een filmpje van een paar seconden gemaakt: de mist die schuift, de
+   wolken die drijven. Alleen voor de beelden in LUCHT_FILMS, zodat er geen
+   verzoek uitgaat voor een filmpje dat er niet is.
+
+   Het eerste beeld van zo'n filmpje ís de foto (Runway begint ermee), dus het
+   filmpje ligt over de foto heen en kan onzichtbaar beginnen. Aan het eind
+   vervaagt het in een seconde naar de foto eronder en begint het opnieuw:
+   zo zie je geen sprong van het laatste naar het eerste beeld.
+
+   Niet bij "minder beweging" en niet bij Databesparing; dan blijft de foto
+   staan. Wifi kan een webapp op de iPhone niet zien, daarom zijn de
+   filmpjes klein gehouden (onder de 0,8 MB) en laadt de browser ze pas als
+   de rest er staat. */
+const LUCHT_FILMS = ['herfst-ochtend-mist', 'herfst-ochtend-helder', 'herfst-ochtend-bewolkt', 'herfst-avond-helder'];
+function luchtFilm(naam) {
+  if (!LUCHT_FILMS.includes(naam)) return null;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+  if (navigator.connection && navigator.connection.saveData) return null;
+  const v = el('video', { muted: '', playsinline: '', preload: 'auto', 'aria-hidden': 'true',
+                          poster: 'lucht/' + naam + '.jpg' });
+  v.muted = true; v.defaultMuted = true;
+  v.addEventListener('playing', () => v.classList.add('speelt'));
+  v.addEventListener('ended', () => {
+    v.classList.remove('speelt');
+    setTimeout(() => { v.currentTime = 0; v.play().catch(() => {}); }, 1100);
+  });
+  /* Pas na het tekenen beginnen, zodat het filmpje de rest niet ophoudt. */
+  setTimeout(() => { v.src = 'lucht/' + naam + '.mp4'; v.play().catch(() => {}); }, 400);
+  return v;
+}
+
+/* Zonsopkomst en -ondergang voor Dalfsen (sinds 22 november 2026).
+
+   Rekenwerk en geen bron: de zonsopkomstvergelijking zoals die in elk
+   sterrenkundeboek staat, met -0,833 graden voor de breking van het licht en
+   de straal van de zon. Nagerekend tegen de tabellen voor Zwolle: het scheelt
+   hooguit vier minuten, en dat is precies wat Dalfsen van Zwolle scheelt.
+   Geen verzoek dus, en het werkt ook als de briefing oud is. */
+const ZON_PUNT = { lat: 52.5108, lon: 6.2544 };    // dezelfde plek als DALFSEN_PUNT in ophalen.py
+function zonTijden(datum) {
+  const rad = Math.PI / 180, { lat, lon } = ZON_PUNT;
+  const n = Math.round(new Date(datum + 'T12:00:00Z').getTime() / 86400000 + 2440587.5 - 2451545.0 + 0.0008);
+  const jster = n - lon / 360;
+  const M = (357.5291 + 0.98560028 * jster) % 360;
+  const C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+  const lam = (M + C + 180 + 102.9372) % 360;
+  const jtrans = 2451545 + jster + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * lam * rad);
+  const sind = Math.sin(lam * rad) * Math.sin(23.4397 * rad);
+  const cosd = Math.cos(Math.asin(sind));
+  const cosw = (Math.sin(-0.833 * rad) - Math.sin(lat * rad) * sind) / (Math.cos(lat * rad) * cosd);
+  const w = Math.acos(Math.max(-1, Math.min(1, cosw))) / rad;
+  const naar = j => new Date((j - 2440587.5) * 86400000);
+  return { op: naar(jtrans - w / 360), onder: naar(jtrans + w / 360) };
+}
+
+/* De maan: hoe oud (dagen sinds nieuwe maan) en hoeveel er verlicht is.
+   Gerekend vanaf de nieuwe maan van 6 januari 2000; dat zit er hooguit een
+   halve dag naast, en dat zie je niet aan een maantje van twintig pixels. */
+function maanFase(t) {
+  const P = 29.530588853, nieuw = Date.UTC(2000, 0, 6, 18, 14);
+  const leeftijd = (((t - nieuw) / 86400000) % P + P) % P;
+  return { leeftijd, licht: (1 - Math.cos(2 * Math.PI * leeftijd / P)) / 2, groeit: leeftijd < P / 2 };
+}
+
+/* De zonneboog rechts in de lucht: een halve cirkel van op naar onder, met de
+   zon op de plek waar hij nu staat. 's Nachts staat daar de maan in zijn
+   echte fase, met wanneer de zon weer opkomt. Klein en wit: het is een
+   bijschrift bij het beeld, net als de temperatuur. */
+function zonneboog() {
+  const nu = new Date();
+  const z = zonTijden(vandaag());
+  const tijd = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 120 66');
+  svg.setAttribute('aria-hidden', 'true');
+  const maak = (tag, attr) => { const n = document.createElementNS(NS, tag);
+    for (const k in attr) n.setAttribute(k, attr[k]); svg.appendChild(n); return n; };
+  maak('line', { x1: 4, y1: 60, x2: 116, y2: 60, class: 'horizon' });
+  maak('path', { d: 'M10 60 A50 50 0 0 1 110 60', class: 'baan' });
+
+  let regel;
+  if (nu >= z.op && nu <= z.onder) {
+    /* Overdag: de zon op de boog, en het stuk dat hij al afgelegd heeft
+       iets feller. */
+    const t = (nu - z.op) / (z.onder - z.op);
+    const hoek = Math.PI * (1 - t);
+    const x = 60 + 50 * Math.cos(hoek), y = 60 - 50 * Math.sin(hoek);
+    maak('path', { d: 'M10 60 A50 50 0 0 1 ' + x.toFixed(1) + ' ' + y.toFixed(1), class: 'afgelegd' });
+    maak('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 9, class: 'zongloed' });
+    maak('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 4.5, class: 'zon' });
+    regel = 'op ' + tijd(z.op) + ' · onder ' + tijd(z.onder);
+  } else {
+    /* 's Nachts: de maan bovenin de boog, in zijn fase. Het verlichte deel is
+       een halve cirkel plus een ellips die meegroeit of krimpt. */
+    const m = maanFase(nu.getTime());
+    const r = 9, cx = 60, cy = 26;
+    const k = Math.cos(2 * Math.PI * m.leeftijd / 29.530588853);   // 1 = nieuw, -1 = vol
+    const rx = Math.abs(k) * r;
+    const rechts = m.groeit;                       // wassende maan: rechts verlicht
+    maak('circle', { cx, cy, r, class: 'maandonker' });
+    const boven = cx + ' ' + (cy - r), onder = cx + ' ' + (cy + r);
+    const d = 'M' + boven + ' A' + r + ' ' + r + ' 0 0 ' + (rechts ? 1 : 0) + ' ' + onder +
+              ' A' + rx.toFixed(2) + ' ' + r + ' 0 0 ' + ((k > 0) === rechts ? 0 : 1) + ' ' + boven;
+    maak('path', { d, class: 'maan' });
+    const morgen = nu > z.onder ? zonTijden(sleutelVan(new Date(nu.getTime() + 86400000))) : z;
+    regel = 'maan ' + Math.round(m.licht * 100) + '% · zon op ' + tijd(morgen.op);
+  }
+  return el('div', { class: 'zonneboog' }, [svg, el('div', { tekst: regel })]);
+}
+
+/* De kop schuift mee als je scrolt (sinds 22 november 2026). Het beeld
+   blijft iets achter (parallax), de tekst vervaagt, en zodra het beeld
+   grotendeels weg is wordt de kopbalk van glas met de datum en de
+   temperatuur er klein in. Eén luisteraar voor de hele app; buiten het
+   startscherm doet hij niets. Alleen transform en opacity, zodat de telefoon
+   het zonder haperen bijhoudt. */
+let luchtRamen = false;
+function luchtBijScrollen() {
+  if (luchtRamen) return;
+  luchtRamen = true;
+  requestAnimationFrame(() => {
+    luchtRamen = false;
+    const kop = document.querySelector('header.app');
+    const lucht = document.body.dataset.scherm === 'start' && document.querySelector('.lucht');
+    if (!lucht) { kop.classList.remove('opbeeld', 'vast'); return; }
+    const y = Math.max(0, window.scrollY);
+    /* Het omslagpunt ligt waar de briefingkaart tegen de kopbalk aan komt,
+       niet pas onderaan het beeld: een korte pagina scrolt daar soms niet
+       eens naartoe, en dan bleef de balk doorzichtig boven de tekst. */
+    const hoog = lucht.offsetHeight - kop.offsetHeight - 110;
+    const p = Math.min(1, y / Math.max(1, hoog));
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      lucht.style.setProperty('--scroll', y.toFixed(0) + 'px');
+    }
+    lucht.style.setProperty('--vervaag', (1 - Math.min(1, p * 1.5)).toFixed(3));
+    kop.classList.toggle('vast', y > hoog);
+    kop.classList.toggle('opbeeld', y <= hoog);
+  });
+}
+window.addEventListener('scroll', luchtBijScrollen, { passive: true });
+
+/* De korte regel in de kopbalk zodra die van glas is: "22 nov · 4°". */
+function kopMini() {
+  const w = briefing && briefing.datum === vandaag() &&
+    ((briefing.blokken || []).find(b => b.id === 'weer') || {}).weer;
+  const graden = w && w.nu != null ? ' · ' + Math.round(w.nu) + '°' : '';
+  return korteDatum(vandaag()) + graden;
 }
 
 /* De temperatuur groot, en ernaast in klein de dag, morgen en de bak. Wat
@@ -7909,6 +8112,12 @@ function tekenAlles() {
   document.getElementById('tab-meldingen').hidden = ui.tab !== 'meldingen';
   document.getElementById('tab-terugblik').hidden = ui.tab !== 'terugblik';
   document.getElementById('tab-instellingen').hidden = ui.tab !== 'instellingen';
+  /* De hoogte van de kopbalk, zodat het beeld op het startscherm er precies
+     onder doorloopt (met de inham van de iPhone erbij). */
+  const kop = document.querySelector('header.app');
+  document.documentElement.style.setProperty('--kopbalk', kop.offsetHeight + 'px');
+  document.getElementById('kopmini').textContent = kopMini();
+  luchtBijScrollen();
 }
 
 document.getElementById('naar-start').addEventListener('click', () => {
