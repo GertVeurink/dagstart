@@ -42,7 +42,7 @@
     --olijf: #6b7a25;
     --leisteen: #4a6858;
     --serif: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
-    --radius: 10px;
+    --radius: 14px;   /* was 10; ronder sinds 22 november 2026, zoals het startscherm */
     --shadow: 0 1px 2px rgba(30,28,24,.06), 0 4px 14px rgba(30,28,24,.05);
   }
   @media (prefers-color-scheme: dark) {
@@ -1351,6 +1351,66 @@
   .spelscores li b { font-variant-numeric: tabular-nums; color: var(--ink); }
   .spelscores .record { color: var(--accent-ink); }
   .spelscores p.record { margin: 8px 0 0; font-size: 14px; font-weight: 600; }
+
+  /* ---------- Eén stijl voor de hele app (22 november 2026) -------------
+     Het startscherm kreeg die avond een lucht, glas en ronde kaarten. Daarna
+     viel juist op dat de schermen erachter nog de oude stijl hadden: crème
+     met een gekleurd streepje links aan elk vak. Dit blok trekt dat gelijk.
+
+     De gekleurde randen gaan eraf waar ze alleen versiering waren (de
+     blokken van de briefing, de speler, "Eerst dit", de trainingskaart). Ze
+     blijven waar ze iets betekenen: een oude briefing (.oud) en een bericht
+     met voorrang (.bericht.sein). De blokkleur zat inline op de knop
+     (style.borderLeftColor), vandaar de !important. */
+  .blok > button, .speler, .eerstdit, .startkaart, .slim {
+    border-left-width: 1px !important; border-left-color: var(--line) !important; }
+  .blok > button, .speler, .eerstdit, .panel { border-radius: 16px; }
+
+  /* De smalle lucht bovenin elk ander scherm: hetzelfde beeld als op het
+     startscherm, maar laag en zonder tekst. De kopbalk ligt erop; de inhoud
+     begint waar het beeld al in de achtergrond is overgegaan. */
+  .luchtband { position: relative; overflow: hidden; isolation: isolate;
+    margin: calc(-14px - var(--kopbalk, 48px)) -14px -18px; height: calc(var(--kopbalk, 48px) + 96px);
+    background: var(--luchtverloop); pointer-events: none; }
+  .luchtband img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    z-index: -2; opacity: 0; transition: opacity .5s ease;
+    transform: translate3d(0, calc(var(--scroll, 0px) * .45), 0) scale(1.06); }
+  .luchtband img.geladen { opacity: 1; }
+  .luchtband::after { content: ''; position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(180deg, rgba(0,0,0,.32) 0%, rgba(0,0,0,.05) 45%, var(--bg) 100%); }
+  .luchtband[data-dagdeel="ochtend"] { --luchtverloop: linear-gradient(180deg, #7d93a8, #c7c2b4); }
+  .luchtband[data-dagdeel="middag"]  { --luchtverloop: linear-gradient(180deg, #5f8fb8, #a9c3d6); }
+  .luchtband[data-dagdeel="avond"]   { --luchtverloop: linear-gradient(180deg, #121c2c, #4b4a5c); }
+  @media (min-width: 749px) { .luchtband { display: none; } }
+
+  /* De kopbalk op een beeld, op élk scherm: doorzichtig met wit erin, en van
+     glas zodra je doorscrolt. Op het startscherm stond dit al; nu overal. */
+  header.app.opbeeld { background: transparent; border-bottom-color: transparent; }
+  @media (max-width: 748px) {
+    header.app.opbeeld .brand b, header.app.opbeeld #naar-start { color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.3); }
+    header.app.opbeeld .brand .merk { background: #fff; }
+    header.app.opbeeld .tabs { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.25);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+    header.app.opbeeld .tabs button { color: #fff; }
+    header.app.opbeeld .tabs button[aria-selected="true"] { background: rgba(255,255,255,.9); color: #1a1a1a; }
+  }
+  header.app.vast {
+    background: color-mix(in srgb, var(--panel) 78%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
+    box-shadow: 0 1px 0 var(--line); border-bottom-color: transparent; }
+
+  /* De vier tegels op het startscherm: een pictogram in een zacht rondje
+     boven de naam, zodat het ingangen worden en geen tekstvakjes. */
+  .startkaart.half { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; }
+  .startkaart.half .tegelicoon { grid-row: span 2; width: 38px; height: 38px; border-radius: 12px;
+    display: grid; place-items: center; background: var(--accent-zacht); color: var(--accent); }
+  .startkaart.half .tegelicoon svg { width: 21px; height: 21px; }
+  .startkaart.half h2 { align-self: end; }
+  .startkaart.half .onder { align-self: start; white-space: normal; display: -webkit-box;
+    -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 13px; line-height: 1.3; }
+  .startkaart.terug .tegelicoon { background: var(--warm-zacht); color: var(--warm); }
+  .startkaart.spel .tegelicoon { background: color-mix(in srgb, var(--leisteen) 16%, transparent); color: var(--leisteen); }
+  .startkaart.oprij .tegelicoon { background: color-mix(in srgb, var(--olijf) 18%, transparent); color: var(--olijf); }
 </style>
 </head>
 <body>
@@ -1372,6 +1432,7 @@
 </header>
 
 <main>
+  <div class="luchtband" id="luchtband" hidden aria-hidden="true"></div>
   <div id="tab-start"></div>
   <div id="tab-briefing" hidden></div>
   <div id="tab-training" hidden></div>
@@ -4690,6 +4751,7 @@ function tekenStart() {
   for (const [tegel, tab] of [[startTraining(), 'training'], [startOpRij(), 'vandaag'],
                               [startTerugblik(), 'terugblik'], [startSpel(), 'spel']]) {
     tegel.classList.add('half');
+    tegel.prepend(tegelIcoon(tab));
     tegel.addEventListener('click', naar(tab));
     scherm.append(tegel);
   }
@@ -4791,6 +4853,22 @@ function startCitaat() {
       el('span', { class: 'naar', tekst: 'Denkwerk \u203a' }),
     ]),
   ]);
+}
+
+/* Een pictogram per tegel (22 november 2026), in dezelfde lijnstijl als de
+   oefeningen: currentColor, zodat hij meekleurt met de lichte en donkere
+   stand. Een halter, een afvinklijstje, een stijgende lijn en een spelknop. */
+const TEGELICOON = {
+  training: '<path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/>',
+  vandaag: '<path d="M4 6l2 2 3-3M4 13l2 2 3-3M12 7h8M12 14h8M12 20h8M4 20h3"/>',
+  terugblik: '<path d="M4 19h16M5 15l4-4 3 3 6-7"/><path d="M15 7h3v3"/>',
+  spel: '<rect x="3" y="7" width="18" height="11" rx="5"/><path d="M8 10v5M5.5 12.5h5M15.5 12h.01M18 14h.01"/>',
+};
+function tegelIcoon(tab) {
+  const s = el('span', { class: 'tegelicoon', 'aria-hidden': 'true' });
+  s.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+    'stroke-linecap="round" stroke-linejoin="round">' + (TEGELICOON[tab] || '') + '</svg>';
+  return s;
 }
 
 /* De waarneming van de dag (sinds 22 november 2026): een eigen waarneming
@@ -5038,13 +5116,17 @@ function luchtBijScrollen() {
   requestAnimationFrame(() => {
     luchtRamen = false;
     const kop = document.querySelector('header.app');
-    const lucht = document.body.dataset.scherm === 'start' && document.querySelector('.lucht');
-    if (!lucht) { kop.classList.remove('opbeeld', 'vast'); return; }
+    const start = document.body.dataset.scherm === 'start';
+    const lucht = start ? document.querySelector('.lucht') : document.getElementById('luchtband');
+    /* Op een breed scherm staat de smalle lucht uit (offsetParent is dan
+       leeg); dan hoort de kopbalk gewoon dicht te zijn. */
+    if (!lucht || !lucht.offsetParent) { kop.classList.remove('opbeeld', 'vast'); return; }
     const y = Math.max(0, window.scrollY);
     /* Het omslagpunt ligt waar de briefingkaart tegen de kopbalk aan komt,
        niet pas onderaan het beeld: een korte pagina scrolt daar soms niet
-       eens naartoe, en dan bleef de balk doorzichtig boven de tekst. */
-    const hoog = lucht.offsetHeight - kop.offsetHeight - 110;
+       eens naartoe, en dan bleef de balk doorzichtig boven de tekst. Bij de
+       smalle lucht al na een paar pixels, want die is laag. */
+    const hoog = lucht.offsetHeight - kop.offsetHeight - (start ? 110 : 40);
     const p = Math.min(1, y / Math.max(1, hoog));
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
       lucht.style.setProperty('--scroll', y.toFixed(0) + 'px');
@@ -5055,6 +5137,31 @@ function luchtBijScrollen() {
   });
 }
 window.addEventListener('scroll', luchtBijScrollen, { passive: true });
+
+/* De smalle lucht bovenin elk scherm behalve het startscherm (22 november
+   2026). Eén element in <main> en niet in elk scherm apart: de schermen
+   tekenen zichzelf vaak opnieuw (herteken), en dan zou de lucht steeds
+   verdwijnen. Hetzelfde beeld als het startscherm, zonder filmpje: hier is
+   het een rand en geen hoofdbeeld. */
+function tekenLuchtband() {
+  const band = document.getElementById('luchtband');
+  const zien = ui.tab !== 'start';
+  band.hidden = !zien;
+  if (!zien) return;
+  const { dagdeel, weer } = luchtSoort();
+  const sleutel = dagdeel + '-' + weer;
+  if (band.dataset.sleutel === sleutel) return;
+  band.dataset.sleutel = sleutel;
+  band.dataset.dagdeel = dagdeel;
+  const s = seizoenVan(vandaag());
+  const seizoenen = ['lente', 'zomer', 'herfst', 'winter'];
+  const pogingen = [s, seizoenen[(seizoenen.indexOf(s) + 3) % 4]].map(z => 'lucht/' + z + '-' + sleutel + '.jpg');
+  const beeld = el('img', { alt: '', decoding: 'async' });
+  beeld.addEventListener('load', () => beeld.classList.add('geladen'));
+  beeld.addEventListener('error', () => { pogingen.shift(); if (pogingen.length) beeld.src = pogingen[0]; else beeld.remove(); });
+  beeld.src = pogingen[0];
+  band.replaceChildren(beeld);
+}
 
 /* De korte regel in de kopbalk zodra die van glas is: "22 nov · 4°". */
 function kopMini() {
@@ -8386,6 +8493,7 @@ function tekenAlles() {
   const kop = document.querySelector('header.app');
   document.documentElement.style.setProperty('--kopbalk', kop.offsetHeight + 'px');
   document.getElementById('kopmini').textContent = kopMini();
+  tekenLuchtband();
   luchtBijScrollen();
 }
 
