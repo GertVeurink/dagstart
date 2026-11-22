@@ -526,6 +526,82 @@
     box-shadow: 0 1px 0 var(--line); border-bottom-color: transparent; }
   body[data-scherm="start"] header.app.vast .kopmini { display: block; animation: binnen .3s ease both; }
 
+  /* ---------- De briefing als verhalen (22 november 2026) ----------
+     Een laag over de hele app, op een donker en wazig beeld van de lucht.
+     Altijd donker, ook overdag: zo lees je wit op zwart, zoals bij elk
+     verhalenformaat, en het voelt als een ander soort scherm dan de lijst. */
+  .verhalen { position: fixed; inset: 0; z-index: 100; color: #fff; overflow: hidden;
+    display: flex; flex-direction: column; touch-action: none; user-select: none;
+    -webkit-user-select: none; background: #0d121a; opacity: 0; transform: scale(.98);
+    transition: opacity .22s ease, transform .22s ease;
+    padding: calc(env(safe-area-inset-top) + 10px) 18px calc(env(safe-area-inset-bottom) + 14px); }
+  .verhalen.open { opacity: 1; transform: none; }
+  .vachter { position: absolute; inset: -40px; z-index: -1;
+    background: var(--verhaalbeeld, none) center / cover, linear-gradient(160deg, #1d2a3a, #0d121a);
+    filter: blur(28px) brightness(.38) saturate(1.2); }
+  .vstreepjes { display: flex; gap: 4px; max-width: 680px; width: 100%; margin: 0 auto; }
+  .vstreepjes i { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.28); overflow: hidden; }
+  .vstreepjes i b { display: block; height: 100%; width: 0; background: #fff; }
+  .vstreepjes i.gezien b { width: 100%; }
+  .vstreepjes i.nu b { width: 100%; transition: width .5s ease; animation: vvul .5s ease both; }
+  @keyframes vvul { from { width: 0; } }
+  .vkop { display: flex; align-items: center; max-width: 680px; width: 100%; margin: 10px auto 0;
+          font-size: 13px; color: rgba(255,255,255,.75); }
+  .vkop .vwie { flex: 1; }
+  .vdicht { background: none; border: 0; color: #fff; font-size: 20px; padding: 6px 2px 6px 14px; cursor: pointer; }
+  .vvak { flex: 1; min-height: 0; max-width: 680px; width: 100%; margin: 0 auto; position: relative; }
+  .vblad { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+           overflow-y: auto; padding: 16px 2px 8px; }
+  .vblad.vanrechts { animation: vrechts .28s cubic-bezier(.2,.7,.2,1) both; }
+  .vblad.vanlinks { animation: vlinks .28s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes vrechts { from { opacity: 0; transform: translateX(26px); } }
+  @keyframes vlinks { from { opacity: 0; transform: translateX(-26px); } }
+  @media (prefers-reduced-motion: reduce) { .vblad.vanrechts, .vblad.vanlinks { animation: none; } }
+  .vnr { font-family: var(--serif); font-size: 15px; color: #ffd99a; margin-bottom: 6px; }
+  .vblad h2 { font-family: var(--serif); font-size: 31px; line-height: 1.12; font-weight: 600;
+              letter-spacing: -.01em; margin: 0 0 16px; color: #fff; }
+  .veerste { font-size: 19px; line-height: 1.42; font-weight: 600; margin: 0 0 12px; color: #fff; }
+  .vrest p { font-family: var(--serif); font-size: 17px; line-height: 1.5; margin: 0 0 9px;
+             color: rgba(255,255,255,.86); }
+  .verhalen .bronlabel { color: #ffd99a; font-size: 12px; text-decoration: none; font-family: ui-sans-serif, -apple-system, sans-serif;
+                         border: 1px solid rgba(255,217,154,.45); border-radius: 9px; padding: 0 6px; }
+  .verhalen sup.bronnr { color: rgba(255,255,255,.6); }
+  .vbronnen { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+  .vbronnen a { color: #fff; text-decoration: none; font-size: 13px; line-height: 1.3; padding: 7px 11px;
+                border-radius: 14px; background: rgba(255,255,255,.12); max-width: 100%; }
+  .vbronnen a b { color: #ffd99a; font-weight: 600; }
+  .vhint { margin-top: 18px; font-size: 12.5px; color: rgba(255,255,255,.5); text-align: center; }
+  .vslot h2 { margin-bottom: 18px; }
+  .vblokken { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .vblokken button { display: flex; align-items: center; gap: 6px; text-align: left; font: inherit; font-size: 14.5px;
+                     color: #fff; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.14);
+                     border-radius: 14px; padding: 12px; cursor: pointer; }
+  .vblokken button span { flex: 1; min-width: 0; }
+  .vblokken button i { font-style: normal; font-size: 12.5px; color: rgba(255,255,255,.6); }
+  .vlees { margin-top: 16px; width: 100%; font: inherit; font-weight: 600; font-size: 16px; padding: 14px;
+           border-radius: 16px; border: 0; background: #fff; color: #111; cursor: pointer; }
+  body.verhaalopen { overflow: hidden; }
+  /* De knop in het leesscherm, en de koppen op de startkaart die nu tikbaar zijn. */
+  .eerstdit .kopje { display: flex; align-items: center; gap: 8px; }
+  .alsverhaal { margin-left: auto; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--accent);
+                background: var(--accent-zacht); border: 0; border-radius: 12px; padding: 4px 10px; cursor: pointer; }
+  .start .startkaart.briefing .startkoppen li { cursor: pointer; }
+
+  /* De waarneming van de dag: de foto groot, de tekst er wit onderin. */
+  .startwaarneming { position: relative; display: block; height: 210px; border-radius: 16px; overflow: hidden;
+    color: #fff; text-decoration: none; background: var(--panel-2); box-shadow: var(--shadow); margin-top: 4px; }
+  .startwaarneming img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transition: opacity .5s ease, transform 6s ease; }
+  .startwaarneming img.geladen { opacity: 1; }
+  .startwaarneming:active img { transform: scale(1.03); }
+  .startwaarneming::after { content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.62) 100%); }
+  .wtekst { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 1;
+            text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+  .wwanneer { font-size: 12px; letter-spacing: .03em; opacity: .9; }
+  .wnaam { font-family: var(--serif); font-size: 22px; font-weight: 600; line-height: 1.15; margin-top: 2px; }
+  .wwaar { font-size: 13px; opacity: .85; margin-top: 2px; }
+
   /* De briefing schuift over de onderrand van het beeld, als glas. */
   .start > .startkaart.briefing { position: relative; z-index: 1; margin-top: -84px;
     background: color-mix(in srgb, var(--panel) 88%, transparent);
@@ -4617,6 +4693,9 @@ function tekenStart() {
     scherm.append(tegel);
   }
 
+  const waarneming = startWaarneming();
+  if (waarneming) scherm.append(waarneming);
+
   const citaat = startCitaat();
   if (citaat) scherm.append(citaat);
 
@@ -4711,6 +4790,32 @@ function startCitaat() {
       el('span', { class: 'naar', tekst: 'Denkwerk \u203a' }),
     ]),
   ]);
+}
+
+/* De waarneming van de dag (sinds 22 november 2026): een eigen waarneming
+   van een jaar geleden, met Gerts eigen foto groot. Elke soortgroep, op zijn
+   verzoek, dus ook een spin of een paddenstoel. De keuze maakt ophalen.py
+   (`waarneming_van_de_dag()`); hier staat alleen het tonen. De foto komt
+   rechtstreeks van waarneming.nl en laadt pas als de kaart in beeld komt.
+   Een tik opent de waarneming op waarneming.nl. */
+function startWaarneming() {
+  const w = briefing && briefing.datum === vandaag() && briefing.waarneming;
+  if (!w || !w.foto) return null;
+  const jaren = Math.max(1, Number(vandaag().slice(0, 4)) - Number(String(w.datum).slice(0, 4)));
+  const wanneer = (jaren === 1 ? 'Een jaar geleden' : jaren + ' jaar geleden') +
+    ' \u00b7 ' + langeDatum(w.datum).replace(/^\S+ /, '') + ' ' + String(w.datum).slice(0, 4);
+  const foto = el('img', { src: w.foto, alt: w.naam, loading: 'lazy', decoding: 'async' });
+  foto.addEventListener('load', () => foto.classList.add('geladen'));
+  foto.addEventListener('error', () => kaart.remove());
+  const kaart = el('a', { class: 'startwaarneming', href: w.link || '#', target: '_blank', rel: 'noopener' }, [
+    foto,
+    el('div', { class: 'wtekst' }, [
+      el('div', { class: 'wwanneer', tekst: wanneer }),
+      el('div', { class: 'wnaam', tekst: w.naam + (w.aantal > 1 ? ' \u00d7 ' + w.aantal : '') }),
+      el('div', { class: 'wwaar', tekst: [w.groep, w.plek].filter(Boolean).join(' \u00b7 ') }),
+    ]),
+  ]);
+  return kaart;
 }
 
 /* Een ingang is één knop: een naam, één regel, en soms iets eronder. */
@@ -5140,9 +5245,169 @@ function startBriefing() {
   const draden = (briefing.duiding || []).filter(dr => dr && dr.titel).slice(0, 3);
   return startKaart('briefing', briefingNaam(briefing), onder.join(' · '), draden.length
     ? [el('ul', { class: 'startkoppen' }, draden.map((dr, i) =>
-        el('li', null, [el('i', { tekst: String(i + 1) }), el('span', { tekst: dr.titel })]))),
+        el('li', { onclick: (e) => { e.stopPropagation(); openVerhalen(i); } },
+          [el('i', { tekst: String(i + 1) }), el('span', { tekst: dr.titel })]))),
        el('div', { class: 'startlees', tekst: 'Lees de briefing ›' })]
     : [el('div', { class: 'startlees', tekst: 'Lees de briefing ›' })]);
+}
+
+/* De briefing als verhalen (sinds 22 november 2026).
+
+   Elke draad van de duiding als een eigen scherm, zoals verhalen op Instagram
+   of bij de NOS: bovenin streepjes voor waar je bent, de titel groot, de
+   eerste zin vet en de rest eronder, en de bronnen als knopjes onderaan.
+   Gert wilde de briefing zo kunnen doorlopen met zijn duim; het leesscherm
+   blijft voor wie wil doorlezen.
+
+   - Tik rechts: volgende. Tik links: vorige.
+   - Veeg omhoog: naar het leesscherm, met deze draad opengeklapt.
+   - Veeg omlaag of het kruisje: dicht. Op de Mac ook de pijltjes en Escape.
+
+   Geen klok die doorloopt, met opzet. Bij Instagram gaat een verhaal na een
+   paar seconden vanzelf verder, maar dit is tekst om te lezen, en een balk
+   die wegloopt terwijl je halverwege een zin bent is stress. Het streepje
+   loopt vol op het moment dat je het verhaal opent.
+
+   Na de laatste draad een slotscherm met de blokken van de briefing, zodat
+   je meteen kunt doorgaan waar je wilt. Achter alles ligt het beeld van de
+   lucht van dat moment, donker en wazig: zo hoort het bij het startscherm.
+
+   De tekst komt van een model en gaat dus alleen via textContent en
+   metNummers() het scherm op, nooit als HTML. */
+let verhaal = null;
+function openVerhalen(start, draden) {
+  draden = (draden || (briefing && briefing.duiding) || []).filter(d => d && d.titel);
+  if (!draden.length) { ui.tab = 'briefing'; tekenAlles(); return; }
+  sluitVerhalen();
+  const laag = el('div', { class: 'verhalen', role: 'dialog', 'aria-modal': 'true',
+                           'aria-label': briefingNaam(briefing) + ' als verhalen' });
+  const achter = document.querySelector('.lucht img.geladen');
+  if (achter) laag.style.setProperty('--verhaalbeeld', 'url("' + achter.currentSrc + '")');
+  const streepjes = el('div', { class: 'vstreepjes', 'aria-hidden': 'true' });
+  const totaal = draden.length + 1;              // plus het slotscherm
+  for (let i = 0; i < totaal; i++) streepjes.append(el('i', null, [el('b')]));
+  const kop = el('div', { class: 'vkop' }, [
+    el('span', { class: 'vwie' }),
+    el('button', { type: 'button', class: 'vdicht', 'aria-label': 'Sluiten', tekst: '✕',
+                   onclick: (e) => { e.stopPropagation(); sluitVerhalen(); } }),
+  ]);
+  const vak = el('div', { class: 'vvak' });
+  laag.append(el('div', { class: 'vachter', 'aria-hidden': 'true' }), streepjes, kop, vak);
+  document.body.append(laag);
+  document.body.classList.add('verhaalopen');
+  verhaal = { laag, vak, draden, nr: 0, totaal, streepjes, kop };
+  toonVerhaal(Math.max(0, Math.min(start || 0, totaal - 1)));
+  /* Eerst de beginstand laten tekenen (offsetWidth dwingt dat af), dan pas
+     'open': zo loopt de overgang, ook als er even geen animatieframe komt. */
+  void laag.offsetWidth;
+  laag.classList.add('open');
+
+  /* Tikken en vegen met dezelfde vinger: kort en weinig bewogen is een tik,
+     anders telt de richting. Een tik op een link of bronknopje gaat naar die
+     link en niet naar het volgende verhaal. */
+  let x0 = 0, y0 = 0, t0 = 0;
+  laag.addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; t0 = Date.now(); });
+  laag.addEventListener('pointerup', (e) => {
+    if (e.target.closest('a, button')) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0;
+    if (dy < -70 && Math.abs(dy) > Math.abs(dx)) return naarLeesscherm();
+    if (dy > 90 && Math.abs(dy) > Math.abs(dx)) return sluitVerhalen();
+    if (Math.abs(dx) > 60) return toonVerhaal(verhaal.nr + (dx < 0 ? 1 : -1));
+    if (Date.now() - t0 > 600 || Math.abs(dx) > 12 || Math.abs(dy) > 12) return;
+    toonVerhaal(verhaal.nr + (e.clientX < innerWidth / 3 ? -1 : 1));
+  });
+  document.addEventListener('keydown', verhaalToets);
+}
+
+function verhaalToets(e) {
+  if (!verhaal) return;
+  if (e.key === 'Escape') sluitVerhalen();
+  else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); toonVerhaal(verhaal.nr + 1); }
+  else if (e.key === 'ArrowLeft') toonVerhaal(verhaal.nr - 1);
+  else if (e.key === 'ArrowUp') naarLeesscherm();
+}
+
+function sluitVerhalen() {
+  if (!verhaal) return;
+  verhaal.laag.remove();
+  verhaal = null;
+  document.body.classList.remove('verhaalopen');
+  document.removeEventListener('keydown', verhaalToets);
+}
+
+/* Naar het leesscherm, met de draad van dit verhaal opengeklapt. */
+function naarLeesscherm() {
+  const nr = verhaal ? verhaal.nr : 0;
+  const draden = verhaal ? verhaal.draden : [];
+  sluitVerhalen();
+  if (nr < draden.length && briefing) ui.draadOpen[(briefing.datum || '') + '|' + nr] = true;
+  ui.tab = 'briefing';
+  tekenAlles();
+  window.scrollTo(0, 0);
+}
+
+function toonVerhaal(nr) {
+  const v = verhaal;
+  if (!v) return;
+  if (nr < 0) nr = 0;
+  if (nr >= v.totaal) return sluitVerhalen();   // voorbij het slotscherm: klaar
+  const vooruit = nr >= v.nr;
+  v.nr = nr;
+  [...v.streepjes.children].forEach((s, i) => s.className = i < nr ? 'gezien' : i === nr ? 'nu' : '');
+  v.kop.querySelector('.vwie').textContent = briefingNaam(briefing) +
+    (nr < v.draden.length ? ' · ' + (nr + 1) + ' van ' + v.draden.length : '');
+
+  const blad = el('article', { class: 'vblad ' + (vooruit ? 'vanrechts' : 'vanlinks') });
+  if (nr < v.draden.length) {
+    const d = v.draden[nr];
+    const perNummer = new Map();
+    for (const w of (d.verwijzingen || [])) for (const n of (w.nummers || [])) perNummer.set(Number(n), w);
+    const zinnen = zinnenVan(String(d.tekst || '').replace(/\s*\n\s*\n\s*/g, ' '));
+    blad.append(el('div', { class: 'vnr', tekst: String(nr + 1) }), el('h2', { tekst: d.titel }));
+    if (zinnen.length) {
+      const eerste = el('p', { class: 'veerste' });
+      metNummers(eerste, zinnen[0], perNummer);
+      blad.append(eerste);
+    }
+    const rest = el('div', { class: 'vrest' });
+    for (const z of zinnen.slice(1)) { const p = el('p'); metNummers(p, z, perNummer); rest.append(p); }
+    blad.append(rest);
+    const bronnen = (d.verwijzingen || []).filter(w => w.link).slice(0, 4);
+    if (bronnen.length) {
+      blad.append(el('div', { class: 'vbronnen' }, bronnen.map(w =>
+        el('a', { href: w.link, target: '_blank', rel: 'noopener' }, [
+          el('b', { tekst: korteBron(w.bron) || 'Bron' }),
+          document.createTextNode(' ' + ((w.titel || '').length > 48
+            ? w.titel.slice(0, 48).replace(/\s+\S*$/, '') + '…' : (w.titel || ''))),
+        ]))));
+    }
+    blad.append(el('div', { class: 'vhint', tekst: nr === 0 ? 'Tik rechts voor het volgende · veeg omhoog om verder te lezen' : 'Veeg omhoog om verder te lezen' }));
+  } else {
+    /* Het slotscherm: wat er nog meer in de briefing staat. */
+    blad.classList.add('vslot');
+    blad.append(el('h2', { tekst: 'Verder in de briefing' }));
+    const lijst = el('div', { class: 'vblokken' });
+    for (const b of (briefing.blokken || [])) {
+      const n = (b.items || []).length;
+      if (!n || b.id === 'weer') continue;
+      const knop = el('button', { type: 'button' }, [
+        el('span', { tekst: (b.emoji ? b.emoji + ' ' : '') + (b.titel || b.id) }), el('i', { tekst: String(n) })]);
+      knop.addEventListener('click', () => {
+        sluitVerhalen();
+        ui.blokOpen[b.id] = true;
+        ui.tab = 'briefing';
+        tekenAlles();
+        const doel = document.querySelector('[data-sleutel="blok:' + b.id + '"]');
+        if (doel) doel.scrollIntoView({ block: 'start' });
+      });
+      lijst.append(knop);
+    }
+    blad.append(lijst);
+    const lees = el('button', { type: 'button', class: 'vlees', tekst: 'Open de hele briefing ›' });
+    lees.addEventListener('click', naarLeesscherm);
+    blad.append(lees);
+  }
+  v.vak.replaceChildren(blad);
 }
 
 /* De training: wat je vandaag deed, of anders wat de vorige keer was. Wat er
@@ -5673,8 +5938,11 @@ function tekenEerstDit(draden, dag, blokken, verder) {
      3 november 2026 draagt het veld niet; dan staat er niets, en dat is beter
      dan een verzonnen tijd. */
   const geschreven = draden.find(d => d.geschreven);
-  vak.append(el('div', { class: 'kopje',
-    tekst: 'Eerst dit' + (geschreven ? ' · geschreven om ' + geschreven.geschreven : '') }));
+  const alsVerhaal = el('button', { type: 'button', class: 'alsverhaal', tekst: '\u25b6 Als verhalen' });
+  alsVerhaal.addEventListener('click', () => openVerhalen(0, draden));
+  vak.append(el('div', { class: 'kopje' }, [
+    document.createTextNode('Eerst dit' + (geschreven ? ' · geschreven om ' + geschreven.geschreven : '')),
+    alsVerhaal]));
 
   draden.forEach((d, nr) => {
     /* Onthouden per dag en per draad: draad 3 van vandaag is een ander verhaal
