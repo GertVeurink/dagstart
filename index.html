@@ -4941,10 +4941,11 @@ function startKaart(soort, titel, onder, meer) {
    bewolking op de zonkans. Vorst alleen 's ochtends: rijp op het land is een
    ochtendbeeld, om drie uur 's middags is het weg.
 
-   Voor de proef kan het met de hand: `#lucht=avond-mist` achter het adres. */
+   Voor de proef kan het met de hand: `#lucht=avond-mist` achter het adres,
+   of met een seizoen ervoor: `#lucht=winter-ochtend-helder`. */
 const LUCHT_WEER = ['helder', 'bewolkt', 'regen', 'mist', 'vorst'];
 function luchtSoort() {
-  const hand = /lucht=(ochtend|middag|avond)(?:-(\w+))?/.exec(location.hash);
+  const hand = /lucht=(?:(lente|zomer|herfst|winter)-)?(ochtend|middag|avond)(?:-(\w+))?/.exec(location.hash);
   const uur = new Date().getHours();
   let dagdeel = uur < 6 || uur >= 18 ? 'avond' : uur < 12 ? 'ochtend' : 'middag';
   let weer = 'bewolkt';
@@ -4961,8 +4962,9 @@ function luchtSoort() {
     else if (/sneeuw/i.test(tekst) || (dagdeel === 'ochtend' && min <= -1)) weer = 'vorst';
     else if (w.zonkans >= 55) weer = 'helder';
   }
-  if (hand) { dagdeel = hand[1]; if (LUCHT_WEER.includes(hand[2])) weer = hand[2]; }
-  return { dagdeel, weer };
+  let seizoen = seizoenVan(vandaag());
+  if (hand) { if (hand[1]) seizoen = hand[1]; dagdeel = hand[2]; if (LUCHT_WEER.includes(hand[3])) weer = hand[3]; }
+  return { dagdeel, weer, seizoen };
 }
 
 function seizoenVan(datum) {
@@ -4979,11 +4981,11 @@ function seizoenVan(datum) {
    servicewerker laat een 404 gewoon door. */
 function startKop() {
   const nu = vandaag();
-  const { dagdeel, weer } = luchtSoort();
+  const { dagdeel, weer, seizoen } = luchtSoort();
   document.body.classList.toggle('avond', dagdeel === 'avond');
 
   const seizoenen = ['lente', 'zomer', 'herfst', 'winter'];
-  const s = seizoenVan(nu);
+  const s = seizoen;
   const vorig = seizoenen[(seizoenen.indexOf(s) + 3) % 4];
   const pogingen = [s, vorig].map(z => 'lucht/' + z + '-' + dagdeel + '-' + weer + '.jpg');
   const beeld = el('img', { alt: '', decoding: 'async' });
@@ -5167,12 +5169,12 @@ function tekenLuchtband() {
   const zien = ui.tab !== 'start';
   band.hidden = !zien;
   if (!zien) return;
-  const { dagdeel, weer } = luchtSoort();
+  const { dagdeel, weer, seizoen } = luchtSoort();
   const sleutel = dagdeel + '-' + weer;
-  if (band.dataset.sleutel === sleutel) return;
-  band.dataset.sleutel = sleutel;
+  if (band.dataset.sleutel === seizoen + '-' + sleutel) return;
+  band.dataset.sleutel = seizoen + '-' + sleutel;
   band.dataset.dagdeel = dagdeel;
-  const s = seizoenVan(vandaag());
+  const s = seizoen;
   const seizoenen = ['lente', 'zomer', 'herfst', 'winter'];
   const pogingen = [s, seizoenen[(seizoenen.indexOf(s) + 3) % 4]].map(z => 'lucht/' + z + '-' + sleutel + '.jpg');
   const beeld = el('img', { alt: '', decoding: 'async' });
