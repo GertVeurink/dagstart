@@ -524,6 +524,18 @@
   .startcitaat .wie { margin-top: 6px; font-size: 13.5px; color: var(--ink-2); line-height: 1.35; }
   .startcitaat .naar { color: var(--accent); font-weight: 600; white-space: nowrap; }
 
+  /* De vraag voor het Beslisboek, op maandag (sinds 23 november 2026). Een
+     kaart zoals de ingangen, met een rustige grijze rand: het is een vraag, geen
+     taak met een termijn. */
+  .startkaart.beslis { cursor: default; border-left-color: var(--ink-3); }
+  .startkaart.beslis:active { transform: none; }
+  .startkaart.beslis h2 { font-size: 17px; line-height: 1.3; }
+  .startkaart.beslis .onder { white-space: normal; margin-top: 4px; }
+  .beslisknoppen { display: flex; gap: 10px; margin-top: 10px; }
+  .beslisknoppen button { flex: 1; min-height: 44px; border: 1px solid var(--line-2); border-radius: 22px;
+                          background: none; color: inherit; font: inherit; font-size: 15px; cursor: pointer; }
+  .beslisknoppen button.ja { background: var(--accent); border-color: var(--accent); color: var(--op-accent); font-weight: 600; }
+
   /* Twee knoppen en geen onderstreepte woordjes: een duim moet ze kunnen
      raken zonder te mikken. */
   .startvoet { padding: 0 0 16px; display: flex; gap: 10px; }
@@ -1404,7 +1416,7 @@ let opslagWerkt = true;
 function leeg() {
   return { versie: 1, taken: [], dagen: {}, doelen: Object.assign({}, STANDAARD_DOELEN),
            bewaard: [], gevierd: [], dossiers: [], metingen: {}, laatsteKopie: null,
-           meldingGezien: null };
+           meldingGezien: null, beslisboek: {} };
 }
 
 /* Elk veld hier moet ook in leeg() staan, en andersom.
@@ -1431,6 +1443,7 @@ function vormGoed() {
   if (!Array.isArray(st.dossiers)) st.dossiers = [];
   if (!st.metingen || typeof st.metingen !== 'object') st.metingen = {};
   if (typeof st.meldingGezien !== 'string') st.meldingGezien = null;
+  if (!st.beslisboek || typeof st.beslisboek !== 'object' || Array.isArray(st.beslisboek)) st.beslisboek = {};
 }
 
 function laad() {
@@ -1584,6 +1597,7 @@ const ui = {
   draadOpen: {},        // welke draden onder Eerst dit opengeklapt staan
   bronnenOpen: {},      // bij welke draden alle bronnen zichtbaar zijn
   briefingDag: null,    // null = vandaag, anders een datum uit het archief
+  beslisJa: null,       // de week waarin je net "Ja" zei bij het Beslisboek: dan staat de uitleg er even
   label: null,          // voorgekozen etiket bij het invoerveld
   filter: null,         // filter op de lijst van vandaag
   bewerkt: null,        // id van de taak die je aan het bewerken bent
@@ -4396,6 +4410,8 @@ function tekenStart() {
   const brief = startBriefing();
   brief.addEventListener('click', naar('briefing'));
   scherm.append(startKop(), brief, startHoofd(naar));
+  const beslis = startBeslisboek();
+  if (beslis) scherm.append(beslis);
   for (const [tegel, tab] of [[startTraining(), 'training'], [startOpRij(), 'vandaag'],
                               [startTerugblik(), 'terugblik'], [startSpel(), 'spel']]) {
     tegel.classList.add('half');
@@ -4431,6 +4447,52 @@ function tekenStart() {
   scherm.append(voet);
 
   doel.replaceChildren(scherm);
+}
+
+/* De vraag voor het Beslisboek (23 november 2026). Gert houdt een beslisboek
+   bij: per wezenlijk besluit vooraf wat hij verwacht en hoe zeker hij is. Op
+   maandag vraagt Dagstart of er vorige week zo'n besluit was. Heeft hij de app
+   maandag niet geopend, dan staat de vraag er dinsdag en woensdag nog; daarna
+   is de week te ver weg om nog goed te weten wat je toen dacht.
+
+   Nee of Ja, en de vraag is weg tot de volgende maandag. Bij Ja vertelt het
+   kaartje dat hij het in Wolf inspreekt: Wolf op de Mac maakt er de vijf regels
+   van en zet het, na nakijken, in het Beslisboek. Wat hij besluit komt dus
+   nooit in Dagstart; hier staat alleen per week "ja" of "nee".
+
+   Geen link naar Wolf, met opzet. Dagstart staat openbaar bij GitHub, en het
+   adres van Wolf hoort daar niet. En een link opent op de iPhone in Safari,
+   niet in de Wolf-app op het beginscherm: Safari bewaart zijn opnames apart,
+   en daar raakt een opname makkelijk zoek. */
+function startBeslisboek() {
+  const nu = vandaag();
+  const week = weekVan(nu);
+  if (ui.beslisJa === week) {
+    const ok = el('button', { type: 'button', class: 'ja', tekst: 'Goed' });
+    ok.addEventListener('click', () => { ui.beslisJa = null; tekenAlles(); });
+    return el('div', { class: 'startkaart beslis' }, [
+      el('h2', { tekst: 'Spreek het in met Wolf' }),
+      el('div', { class: 'onder', tekst: 'Tik in Wolf op “Besluit inspreken” en loop de vijf vragen af. ' +
+        'Op je Mac kijk je het na, en dan zet Wolf het in je Beslisboek.' }),
+      el('div', { class: 'beslisknoppen' }, [ok]),
+    ]);
+  }
+  const weekdag = alsDatum(nu).getDay();          // 1 = maandag, 3 = woensdag
+  if (weekdag < 1 || weekdag > 3 || st.beslisboek[week]) return null;
+  const knop = (tekst, antwoord, klasse) => {
+    const b = el('button', { type: 'button', class: klasse || '', tekst });
+    b.addEventListener('click', () => {
+      st.beslisboek[week] = antwoord;
+      bewaar();
+      if (antwoord === 'ja') ui.beslisJa = week;
+      tekenAlles();
+    });
+    return b;
+  };
+  return el('div', { class: 'startkaart beslis' }, [
+    el('h2', { tekst: 'Heb je vorige week iets besloten dat in het beslisboek hoort?' }),
+    el('div', { class: 'beslisknoppen' }, [knop('Nee', 'nee'), knop('Ja', 'ja', 'ja')]),
+  ]);
 }
 
 /* De passage van vandaag uit Denkwerk, Gerts eigen app met denkers.
