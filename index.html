@@ -431,6 +431,108 @@
   .startkop .bak { flex-basis: 100%; font-size: 13.5px; line-height: 1.3; color: var(--ink-2); margin-top: -2px; }
   .startkop .bak b { color: var(--warm); font-weight: 600; }
 
+  /* ---------- De lucht boven de dag (proef, 22 november 2026) -----------
+     Gert vond Dagstart een topapp die er te veel uitzag als iets zelfgemaakts.
+     Dat zat niet in de inhoud maar in de verpakking: crème papier met kaartjes
+     die allemaal even zwaar zijn, een gekleurd streepje links aan elke kaart,
+     en nergens beeld of beweging. Hij koos uit drie schetsen voor deze: een
+     beeld van het moment bovenaan (dagdeel en weer), met de datum en de
+     temperatuur er groot in wit op, en de briefing die half over de onderrand
+     schuift. Zo blijft de briefing het hoofdbeeld (zie het geheugen) en wordt
+     hij er zelfs sterker van.
+
+     De beelden maakt Gert zelf in Runway, met de prompts uit
+     `bron/lucht-prompts.md`; `bron/maak-lucht.py` verkleint ze naar
+     `publiceren/lucht/`. Ontbreekt een beeld, dan staat er een kleurverloop
+     dat bij het dagdeel past: de kop werkt dus ook zonder één foto. */
+  .lucht { position: relative; margin: -14px -14px 0; height: 370px; overflow: hidden;
+           color: #fff; background: var(--luchtverloop); isolation: isolate; }
+  @media (min-width: 749px) { .lucht { margin: 0; border-radius: 18px; } }
+  .lucht img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+               z-index: -2; opacity: 0; transition: opacity .6s ease; }
+  .lucht img.geladen { opacity: 1; }
+  /* Boven een donkere waas zodat witte letters op elk beeld leesbaar blijven,
+     onder een overgang naar de achtergrond van de pagina: het beeld loopt
+     over in het scherm in plaats van als plaatje erop te liggen. */
+  .lucht::after { content: ''; position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(180deg, rgba(0,0,0,.38) 0%, rgba(0,0,0,.08) 42%,
+                rgba(0,0,0,0) 72%, var(--bg) 100%); }
+  .luchttekst { padding: 22px 20px 0; text-shadow: 0 1px 12px rgba(0,0,0,.25); }
+  .luchttekst .dag { font-size: 13.5px; letter-spacing: .02em; opacity: .9; }
+  .luchttekst .dag::first-letter { text-transform: uppercase; }
+  .luchttekst h1 { font-size: 34px; line-height: 1.05; margin-top: 2px; font-weight: 600; }
+  .luchtrij { display: flex; align-items: flex-end; gap: 14px; margin-top: 10px; }
+  .luchtgraden { font-size: 54px; font-weight: 200; line-height: .9; letter-spacing: -.03em;
+                 font-variant-numeric: tabular-nums; }
+  .luchtweer { font-size: 13.5px; line-height: 1.35; padding-bottom: 3px; opacity: .92; }
+  .luchtweer .bak { display: inline-block; margin-top: 4px; padding: 2px 9px; border-radius: 11px;
+                    background: rgba(255,255,255,.22); -webkit-backdrop-filter: blur(8px);
+                    backdrop-filter: blur(8px); font-weight: 600; }
+
+  /* Kleurverlopen per dagdeel, voor zolang er geen beeld is (of het laadt). */
+  .lucht[data-dagdeel="ochtend"] { --luchtverloop: linear-gradient(180deg, #7d93a8 0%, #c7c2b4 48%, #a7ab8f 76%, #5e6a4b 100%); }
+  .lucht[data-dagdeel="middag"]  { --luchtverloop: linear-gradient(180deg, #5f8fb8 0%, #a9c3d6 50%, #9fb08a 78%, #56683f 100%); }
+  .lucht[data-dagdeel="avond"]   { --luchtverloop: linear-gradient(180deg, #121c2c 0%, #2b3b55 45%, #4b4a5c 72%, #1a2230 100%); }
+  .lucht[data-weer="mist"]   { --luchtverloop: linear-gradient(180deg, #9aa3a6 0%, #c9cbc4 55%, #a8ad9c 85%, #78806a 100%); }
+  .lucht[data-weer="regen"]  { --luchtverloop: linear-gradient(180deg, #56616c 0%, #8a939a 55%, #7a8270 85%, #4c5442 100%); }
+  .lucht[data-dagdeel="avond"][data-weer="mist"],
+  .lucht[data-dagdeel="avond"][data-weer="regen"] { --luchtverloop: linear-gradient(180deg, #161b22 0%, #2c333d 55%, #262b30 100%); }
+
+  /* De briefing schuift over de onderrand van het beeld, als glas. */
+  .start > .startkaart.briefing { position: relative; z-index: 1; margin-top: -84px;
+    background: color-mix(in srgb, var(--panel) 88%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2); backdrop-filter: blur(18px) saturate(1.2);
+    border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+
+  /* Geen gekleurd streepje meer aan de kaarten op dit scherm: dat was het
+     meest "zelfgemaakte" aan de hele app. De kleur zit nu in wat ertoe doet
+     (de cijfers, de strepen), niet in de rand van elk vak. */
+  /* Met het id ervoor, want `.startkaart.training` en zijn broertjes staan
+     verderop in het bestand en zouden anders hun kleur terugzetten. */
+  #tab-start .startkaart { border-left-width: 1px; border-left-color: var(--line); }
+  .start .startkaart, .start .starthoofd { border-radius: 16px; }
+  #tab-start .startkaart.briefing { border-color: transparent; }
+  .start .startkaart.briefing .startkoppen li i { color: var(--accent); }
+  .start .startlees { color: var(--accent); }
+
+  /* Rustig binnenkomen: de kaarten schuiven een paar pixels omhoog en de
+     strepen lopen vol. Eén keer, kort, en niet bij wie minder beweging wil. */
+  @media (prefers-reduced-motion: no-preference) {
+    .start > * { animation: binnen .45s cubic-bezier(.2,.7,.2,1) both; }
+    .start > :nth-child(2) { animation-delay: .06s; }
+    .start > :nth-child(3) { animation-delay: .12s; }
+    .start > :nth-child(n+4) { animation-delay: .18s; }
+    .start > .lucht { animation: none; }
+    .start .startbaan i { transform-origin: left; animation: vol .9s .25s cubic-bezier(.2,.7,.2,1) both; }
+  }
+  @keyframes binnen { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes vol { from { transform: scaleX(0); } }
+
+  /* 's Avonds: donker glas (schets B). Op het startscherm alleen, en los van
+     de donkere stand van de telefoon: het gaat om het uur, niet om een
+     instelling. De variabelen worden op body overschreven, zodat de kopbalk
+     meegaat; op elk ander scherm staat body niet op "start" en is alles als
+     altijd. */
+  body.avond[data-scherm="start"] {
+    --bg: #101722; --panel: rgba(255,255,255,.08); --panel-2: rgba(255,255,255,.05);
+    --ink: #f2f4f0; --ink-2: rgba(242,244,240,.72); --ink-3: rgba(242,244,240,.5);
+    --line: rgba(255,255,255,.13); --line-2: rgba(255,255,255,.2);
+    --accent: #a9d38f; --accent-ink: #c4e4b0; --accent-zacht: rgba(169,211,143,.15);
+    --op-accent: #101722; --warm: #f0b862; --warm-zacht: rgba(240,184,98,.15);
+    --teal: #7fc4aa; --olijf: #c3d27a; --leisteen: #9db8a8;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.3);
+    color-scheme: dark;
+    background: linear-gradient(180deg, #101722 0%, #0c1119 100%) fixed;
+  }
+  body.avond[data-scherm="start"] header.app { background: rgba(16,23,34,.72); border-bottom-color: transparent;
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  body.avond[data-scherm="start"] .start .startkaart,
+  body.avond[data-scherm="start"] .start .starthoofd {
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  body.avond[data-scherm="start"] .lucht { height: 400px; }
+  body.avond[data-scherm="start"] .start > .startkaart.briefing {
+    background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.16); }
+
   /* De stand van de dag: drie regels, elk een getal, een naam en een streep
      die volloopt. Dit waren tot 13 november 2026 drie halmen van 256 punten
      hoog, en daarmee het grootste op het scherm. Gert vond ze te veel aandacht
@@ -4576,7 +4678,128 @@ function startKaart(soort, titel, onder, meer) {
 
    Eronder de bak, maar alleen als hij vandaag of morgen aan de weg moet. Dat
    is het enige op dit scherm met een deadline die vanavond afloopt. */
+/* Welk beeld er bovenaan hoort: dagdeel en weer (proef, 22 november 2026).
+
+   Het dagdeel komt uit de klok en niet uit de briefing: om tien uur 's avonds
+   is het avond, ook als de laatste briefing van vanmiddag is. Avond loopt van
+   18:00 tot 06:00, want in november is het om zes uur al donker.
+
+   Het weer komt uit de briefing van vandaag, met dezelfde velden als de
+   weerregel. Mist en regen gaan voor, want die zie je; dan zon of
+   bewolking op de zonkans. Vorst alleen 's ochtends: rijp op het land is een
+   ochtendbeeld, om drie uur 's middags is het weg.
+
+   Voor de proef kan het met de hand: `#lucht=avond-mist` achter het adres. */
+const LUCHT_WEER = ['helder', 'bewolkt', 'regen', 'mist', 'vorst'];
+function luchtSoort() {
+  const hand = /lucht=(ochtend|middag|avond)(?:-(\w+))?/.exec(location.hash);
+  const uur = new Date().getHours();
+  let dagdeel = uur < 6 || uur >= 18 ? 'avond' : uur < 12 ? 'ochtend' : 'middag';
+  let weer = 'bewolkt';
+  const weerblok = briefing && briefing.datum === vandaag() &&
+    (briefing.blokken || []).find(b => b.id === 'weer');
+  const w = weerblok && weerblok.weer;
+  if (w) {
+    const d = w.dalfsen || {};
+    const tekst = [w.omschrijving, d.omschrijving, w.vandaag].filter(Boolean).join(' ');
+    const regen = d.regenkans != null ? d.regenkans : w.regenkans;
+    const min = Number(d.min != null ? d.min : w.min);
+    if (/mist|nevel/i.test(tekst)) weer = 'mist';
+    else if (regen >= 50 || /regen|bui/i.test(d.omschrijving || '')) weer = 'regen';
+    else if (/sneeuw/i.test(tekst) || (dagdeel === 'ochtend' && min <= -1)) weer = 'vorst';
+    else if (w.zonkans >= 55) weer = 'helder';
+  }
+  if (hand) { dagdeel = hand[1]; if (LUCHT_WEER.includes(hand[2])) weer = hand[2]; }
+  return { dagdeel, weer };
+}
+
+function seizoenVan(datum) {
+  const m = alsDatum(datum).getMonth();            // 0 = januari
+  return m < 2 || m === 11 ? 'winter' : m < 5 ? 'lente' : m < 8 ? 'zomer' : 'herfst';
+}
+
+/* De kop van het startscherm: het beeld, de dag, de temperatuur.
+
+   De beelden heten `lucht/<seizoen>-<dagdeel>-<weer>.jpg`. Er wordt eerst
+   het beeld van precies dit seizoen gezocht, dan dat van het seizoen ervoor
+   (een winterochtend zonder eigen beeld mag dat van de herfst lenen) en
+   anders blijft het kleurverloop staan. Een mislukte poging kost niets: de
+   servicewerker laat een 404 gewoon door. */
 function startKop() {
+  const nu = vandaag();
+  const { dagdeel, weer } = luchtSoort();
+  document.body.classList.toggle('avond', dagdeel === 'avond');
+
+  const seizoenen = ['lente', 'zomer', 'herfst', 'winter'];
+  const s = seizoenVan(nu);
+  const vorig = seizoenen[(seizoenen.indexOf(s) + 3) % 4];
+  const pogingen = [s, vorig].map(z => 'lucht/' + z + '-' + dagdeel + '-' + weer + '.jpg');
+  const beeld = el('img', { alt: '', decoding: 'async' });
+  beeld.addEventListener('load', () => beeld.classList.add('geladen'));
+  beeld.addEventListener('error', () => {
+    pogingen.shift();
+    if (pogingen.length) beeld.src = pogingen[0]; else beeld.remove();
+  });
+  beeld.src = pogingen[0];
+
+  const datum = alsDatum(nu);
+  const tekst = el('div', { class: 'luchttekst' }, [
+    el('div', { class: 'dag', tekst: DAGNAMEN[datum.getDay()] +
+      (weer !== 'bewolkt' ? ' · ' + { helder: dagdeel === 'avond' ? 'helder' : 'zon', regen: 'regen', mist: 'mist', vorst: 'vorst' }[weer] : '') }),
+    el('h1', { tekst: datum.getDate() + ' ' + MAANDEN[datum.getMonth()] }),
+  ]);
+  const lucht = el('div', { class: 'lucht', 'data-dagdeel': dagdeel, 'data-weer': weer }, [beeld, tekst]);
+
+  const weerregels = startWeer();
+  if (weerregels) tekst.appendChild(weerregels);
+  return lucht;
+}
+
+/* De temperatuur groot, en ernaast in klein de dag, morgen en de bak. Wat
+   hier staat is wat er eerst in `startKop` stond; alleen de vorm is anders. */
+function startWeer() {
+  const nu = vandaag();
+  if (!briefing || briefing.datum !== nu) return null;
+  const weerblok = (briefing.blokken || []).find(b => b.id === 'weer');
+  let w = weerblok && weerblok.weer;
+  const avond = /^avond/i.test(briefingNaam(briefing));
+  const morgen = morgenWeer(w);
+  const regels = [];
+  if (w && avond && morgen) w = morgen;
+  else if (w && avond) w = null;
+  if (w) {
+    const dal = w.dalfsen || {};
+    const min = dal.min != null ? dal.min : w.min;
+    const max = dal.max != null ? dal.max : w.max;
+    const regen = dal.regenkans != null ? dal.regenkans : w.regenkans;
+    if (min != null && max != null) {
+      regels.push((avond ? 'morgen ' : '') + min + ' tot ' + max + '°'
+        + (regen != null ? (regen < 10 ? ' · droog' : ' · ' + regen + '% regen') : ''));
+    }
+  }
+  if (w && !avond && morgen && morgen.min != null && morgen.max != null) {
+    const r = morgen.regenkans;
+    regels.push('morgen ' + morgen.min + ' tot ' + morgen.max + '°'
+      + (r != null ? (r < 10 ? ' · droog' : ' · ' + r + '% regen') : ''));
+  }
+  const weerKant = el('div', { class: 'luchtweer' }, regels.map((r, i) =>
+    el('div', { tekst: r, style: i ? 'opacity:.8' : null })));
+  const bak = (briefing.afval || []).find(a => dagenTot(a.datum) >= 0);
+  if (bak && dagenTot(bak.datum) <= 1) {
+    weerKant.appendChild(el('div', { class: 'bak',
+      tekst: bak.naam + (dagenTot(bak.datum) === 0 ? ' vandaag aan de weg' : ' morgen aan de weg') }));
+  }
+  /* De temperatuur van nu, gemeten bij Heino. 's Avonds niet: dan staat
+     morgen ernaast en zou het getal over iets anders lijken te gaan. */
+  const graden = weerblok && weerblok.weer && weerblok.weer.nu != null && !avond
+    ? el('div', { class: 'luchtgraden', tekst: Math.round(weerblok.weer.nu) + '°' }) : null;
+  if (!graden && !weerKant.childNodes.length) return null;
+  return el('div', { class: 'luchtrij' }, [graden, weerKant]);
+}
+
+/* De oude kop, voor als iemand hem terug wil: de dag en het weer klein boven
+   de briefing. Wordt niet meer aangeroepen. */
+function startKopOud() {
   const nu = vandaag();
   const kop = el('div', { class: 'startkop' }, [el('h1', { tekst: langeDatum(nu) })]);
   if (!briefing || briefing.datum !== nu) return kop;
