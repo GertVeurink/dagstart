@@ -41,7 +41,11 @@
     --teal: #1a5a46;
     --olijf: #6b7a25;
     --leisteen: #4a6858;
-    --serif: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    /* New York, de schreefletter van Apple zelf (sinds 22 november 2026). Hij
+       zit in elke iPhone en Mac, dus er hoeft niets te worden gedownload en
+       er gaat geen verzoek de deur uit. Safari kent hem als ui-serif; andere
+       browsers vallen terug op Palatino, de letter van daarvoor. */
+    --serif: ui-serif, "New York", Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
     --radius: 14px;   /* was 10; ronder sinds 22 november 2026, zoals het startscherm */
     --shadow: 0 1px 2px rgba(30,28,24,.06), 0 4px 14px rgba(30,28,24,.05);
   }
@@ -1398,6 +1402,21 @@
     background: color-mix(in srgb, var(--panel) 78%, transparent);
     -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
     box-shadow: 0 1px 0 var(--line); border-bottom-color: transparent; }
+
+  /* De kleur die meeloopt met de lucht (zetLuchtkleur). Elk accent haalt op
+     crème (#fbf9f3) ruim de 4,5 : 1 die tekst nodig heeft. */
+  body[data-kleur="zon"]   { --accent: #8a5a12; --accent-ink: #6e470c; --accent-zacht: #f5ead6; --teal: #8a5a12; }
+  body[data-kleur="mist"]  { --accent: #4a6472; --accent-ink: #3a4f5a; --accent-zacht: #e4eaec; --teal: #4a6472; }
+  body[data-kleur="regen"] { --accent: #2f5f86; --accent-ink: #244a69; --accent-zacht: #e1eaf2; --teal: #2f5f86; }
+  body[data-kleur="vorst"] { --accent: #34658f; --accent-ink: #284f70; --accent-zacht: #e2ecf4; --teal: #34658f; }
+  body[data-kleur="avond"] { --accent: #9a4a22; --accent-ink: #7a3a1a; --accent-zacht: #f4e4da; --teal: #9a4a22; }
+  body.avond[data-scherm="start"][data-kleur="avond"] { --accent: #f2b07c; --accent-ink: #f7c79e;
+    --accent-zacht: rgba(242,176,124,.15); --teal: #f2b07c; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) body[data-kleur="avond"]:not([data-scherm="start"]) {
+      --accent: #f2b07c; --accent-ink: #f7c79e; --accent-zacht: #3a2a1e; --teal: #f2b07c; } }
+  :root[data-theme="dark"] body[data-kleur="avond"]:not([data-scherm="start"]) {
+      --accent: #f2b07c; --accent-ink: #f7c79e; --accent-zacht: #3a2a1e; --teal: #f2b07c; }
 
   /* De vier tegels op het startscherm: een pictogram in een zacht rondje
      boven de naam, zodat het ingangen worden en geen tekstvakjes. */
@@ -5163,6 +5182,28 @@ function tekenLuchtband() {
   band.replaceChildren(beeld);
 }
 
+/* De kleur loopt mee met de lucht (sinds 22 november 2026). Bosgroen blijft
+   de kleur van de app, maar bij een zonnige ochtend worden de accenten warm
+   amber, bij mist leigrijs, bij regen staalblauw, bij vorst ijsblauw en 's
+   avonds roestrood. Je merkt het niet bewust; het maakt dat beeld en scherm
+   bij elkaar horen.
+
+   Alleen in de lichte stand: de donkere stand heeft zijn eigen, lichtere
+   kleuren en die zou dit overschrijven. Het startscherm 's avonds heeft ook
+   eigen kleuren (body.avond), en die gaan voor, behalve het accent zelf. */
+function zetLuchtkleur() {
+  const r = document.documentElement;
+  const donker = r.dataset.theme === 'dark' ||
+    (r.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+  const { dagdeel, weer } = luchtSoort();
+  let kleur = '';
+  if (dagdeel === 'avond') kleur = 'avond';
+  else if (weer === 'regen' || weer === 'vorst' || weer === 'mist') kleur = weer;
+  else if (dagdeel === 'ochtend' && weer === 'helder') kleur = 'zon';
+  if (donker && kleur !== 'avond') kleur = '';
+  if (document.body.dataset.kleur !== kleur) document.body.dataset.kleur = kleur;
+}
+
 /* De korte regel in de kopbalk zodra die van glas is: "22 nov · 4°". */
 function kopMini() {
   const w = briefing && briefing.datum === vandaag() &&
@@ -8494,6 +8535,7 @@ function tekenAlles() {
   document.documentElement.style.setProperty('--kopbalk', kop.offsetHeight + 'px');
   document.getElementById('kopmini').textContent = kopMini();
   tekenLuchtband();
+  zetLuchtkleur();
   luchtBijScrollen();
 }
 
