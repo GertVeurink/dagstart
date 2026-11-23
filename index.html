@@ -753,7 +753,24 @@
   .startcitaat .wie { margin-top: 6px; font-size: 13.5px; color: var(--ink-2); line-height: 1.35; }
   .startcitaat .naar { color: var(--accent); font-weight: 600; white-space: nowrap; }
 
-  /* De vraag voor het Beslisboek, op maandag (sinds 23 november 2026). Een
+  /* Het kunstwerk van vandaag uit Museumgids (sinds 22 november 2026), onder
+     het citaat en in dezelfde rust: een dunne lijn erboven, het werk heel op
+     een zachte wand (nooit bijgesneden, het is een schilderij), en het
+     bijschrift zoals op een museumbordje. */
+  .startkunst { display: block; color: inherit; text-decoration: none;
+                border-top: 1px solid var(--line); padding: 14px 4px 4px; }
+  .startkunst:active { opacity: .7; }
+  .startkunst .wand { background: var(--panel-2); border-radius: 12px; padding: 14px;
+                      display: flex; justify-content: center; }
+  .startkunst img { display: block; max-width: 100%; max-height: 260px; border-radius: 2px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,.18); opacity: 0; transition: opacity .4s; }
+  .startkunst img.geladen { opacity: 1; }
+  .startkunst .maker { margin-top: 9px; font-size: 13.5px; color: var(--ink-2); }
+  .startkunst .titel { font-family: var(--serif); font-style: italic; font-size: 17px; line-height: 1.3; }
+  .startkunst .waar { margin-top: 3px; font-size: 13.5px; color: var(--ink-2); line-height: 1.35; }
+  .startkunst .naar { color: var(--accent); font-weight: 600; white-space: nowrap; }
+
+  /* De vraag voor het Beslisboek, op maandag (sinds 22 november 2026). Een
      kaart zoals de ingangen, met een rustige grijze rand: het is een vraag, geen
      taak met een termijn. */
   .startkaart.beslis { cursor: default; border-left-color: var(--ink-3); }
@@ -2810,7 +2827,7 @@ function tekenLoop(binnenin) {
       const rij = el('div', { class: 'meting' });
       const kmv = el('input', { type: 'number', step: '0.1', inputmode: 'decimal',
                                 placeholder: 'km' });
-      /* Minuten en seconden in twee vakjes (23 november 2026). Eerst was het één
+      /* Minuten en seconden in twee vakjes (22 november 2026). Eerst was het één
          vak in minuten, en dan werd "31,50" voor 31 minuten en 50 seconden
          gelezen als 31,5 minuut: 31:30. Een dubbele punt kan niet, want die zit
          niet op het cijfertoetsenbord van de iPhone. Opgeslagen wordt nog
@@ -4787,6 +4804,9 @@ function tekenStart() {
   const citaat = startCitaat();
   if (citaat) scherm.append(citaat);
 
+  const kunst = startKunst();
+  if (kunst) scherm.append(kunst);
+
   const voet = document.createElement('div');
   voet.className = 'startvoet';
   const nieuweM = nieuweMeldingen();
@@ -4814,7 +4834,7 @@ function tekenStart() {
   doel.replaceChildren(scherm);
 }
 
-/* De vraag voor het Beslisboek (23 november 2026). Gert houdt een beslisboek
+/* De vraag voor het Beslisboek (22 november 2026). Gert houdt een beslisboek
    bij: per wezenlijk besluit vooraf wat hij verwacht en hoe zeker hij is. Op
    maandag vraagt Dagstart of er vorige week zo'n besluit was. Heeft hij de app
    maandag niet geopend, dan staat de vraag er dinsdag en woensdag nog; daarna
@@ -4878,6 +4898,31 @@ function startCitaat() {
       el('span', { class: 'naar', tekst: 'Denkwerk \u203a' }),
     ]),
   ]);
+}
+
+/* Het kunstwerk van vandaag uit Museumgids, Gerts eigen app met musea. Net als
+   bij Denkwerk rekent de Mac uit welk werk Museumgids vandaag bovenaan zet (zie
+   `museumwerk()` in ophalen.py), dus een tik opent Museumgids en daar staat
+   hetzelfde. Alleen uit een briefing van vandaag. Het beeld komt van
+   Wikimedia; lukt laden niet, dan verdwijnt het kaartje in plaats van een
+   leeg vlak te tonen. Niet in de opname en niet in de duiding: het is een
+   eigen veld naast de blokken. */
+function startKunst() {
+  const w = briefing && briefing.datum === vandaag() && briefing.museumwerk;
+  if (!w || !w.beeld || !/^https:\/\/(upload|thumb)\.wikimedia\.org\//.test(w.beeld)) return null;
+  const beeld = el('img', { src: w.beeld, alt: w.titel + ', ' + w.maker, loading: 'lazy', decoding: 'async' });
+  beeld.addEventListener('load', () => beeld.classList.add('geladen'));
+  beeld.addEventListener('error', () => kaart.remove());
+  const kaart = el('a', { class: 'startkunst', href: w.link, target: '_blank', rel: 'noopener' }, [
+    el('div', { class: 'wand' }, [beeld]),
+    el('div', { class: 'maker', tekst: w.maker }),
+    el('div', { class: 'titel', tekst: w.titel + (w.jaar ? ', ' + w.jaar : '') }),
+    el('div', { class: 'waar' }, [
+      document.createTextNode(w.museum + (w.plaats ? ', ' + w.plaats : '') + '  '),
+      el('span', { class: 'naar', tekst: 'Museumgids \u203a' }),
+    ]),
+  ]);
+  return kaart;
 }
 
 /* Een pictogram per tegel (22 november 2026), in dezelfde lijnstijl als de
@@ -6869,7 +6914,7 @@ function zetTraining(id) {
    `dagen[datum].training` -- het dagvinkje -- weet hier niets van en werkt
    zoals het werkte. */
 
-/* Hier stond tot 23 november 2026 een tweede getal(). Een latere functie met
+/* Hier stond tot 22 november 2026 een tweede getal(). Een latere functie met
    dezelfde naam wint in JavaScript, dus die gold overal, ook bij het lopen en
    het wegen. Hij gaf NaN in plaats van null voor een leeg vak, en daardoor
    kwam "Vul allebei in" nooit: een leeg vak werd als NaN bewaard. Nu is er
