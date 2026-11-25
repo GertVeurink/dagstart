@@ -1501,7 +1501,10 @@ const SLEUTEL = 'oprij.v1';
    Vegetarisch en zoogdier komen allebei uit dezelfde dagkeuze bij eten,
    zodat één tik per dag genoeg is. */
 const GEWOONTES = [
-  { id: 'sport',     naam: 'Hardlopen of sporten', kort: 'Hardlopen',   soort: 'min', tegel: true },
+  /* "Hardlopen of sporten" stond hier tot 25 november 2026, als tegel op
+     Vandaag. Lopen is sinds 22 november een van de drie trainingen, dus Gert
+     vroeg om op die plek "Training" te zetten. Wat er onder `dagen[datum].sport`
+     staat, blijft in de opslag en gaat mee in de reservekopie. */
   { id: 'wandeling', naam: 'Lange wandeling',      kort: 'Wandeling',   soort: 'min', tegel: true },
   { id: 'mindful',   naam: 'Mindfulness',          kort: 'Mindfulness', soort: 'min', tegel: true },
   { id: 'smoothie',  naam: 'Smoothie-ontbijt',     kort: 'Smoothie',    soort: 'min', tegel: true },
@@ -1527,7 +1530,7 @@ const GEWOONTES = [
   /* Training telt mee als gewone weekgewoonte, zodat de bolletjes van deze
      week en de terugblik hem vanzelf meenemen. Geen tegel: training heeft een
      eigen scherm, want je moet kunnen kiezen wélke van de drie. */
-  { id: 'training',  naam: 'Training',             soort: 'min', uitTraining: true },
+  { id: 'training',  naam: 'Training',             kort: 'Training',    soort: 'min', uitTraining: true, tegel: true },
 ];
 
 /* Het schema uit het trainingsplan: twee krachtdagen en een loopdag, om en om.
@@ -1668,44 +1671,9 @@ const LOOPOPBOUW = {
   maxMin: 70,             // zo'n 10 km in zijn eigen tempo; rond half maart 2027
 };
 
-/* Drie smoothies, zodat de ochtend niet elke keer dezelfde is zonder dat er
-   iets te bedenken valt. Alles gaat tegelijk in de blender; de volgorde van de
-   regels is de volgorde waarin je het erin gooit, meer hoeft het niet te zijn.
-
-   Diepvriesfruit is wat dit laagdrempelig houdt: niets wassen, niets dat
-   bederft, en de smoothie wordt koud en dik zonder ijs. */
-const SMOOTHIES = [
-  ['Banaan-spinazie', 'de vaste',
-   ['250 ml amandelmelk',
-    '1 banaan',
-    'handje spinazie',
-    '1 el chiazaad',
-    '1 volle schep eiwitpoeder'],
-   'De vertrouwde. Hier mag de banaan heel blijven, want er zit geen ander fruit in dat zoetigheid en dikte meebrengt. Staat hij je tegen, dan is dat meestal de bananensmaak van het poeder bovenop de banaan zelf — een van de drie hieronder breekt dat.'],
-  ['Bosbes-banaan', 'de frisse',
-   ['250 ml amandelmelk',
-    '100 g diepvries blauwe bessen — een flinke handvol',
-    '½ banaan',
-    'handje spinazie',
-    '1 el chiazaad',
-    '1 volle schep eiwitpoeder'],
-   'Een halve banaan en niet een hele: de bessen brengen zelf al zoetigheid en dikte mee, en samen wordt het lobbig. Spinazie proef je hier niet, dus twee handen mag ook.'],
-  ['Mango-haver', 'de vullende',
-   ['300 ml amandelmelk',
-    '100 g diepvries mango',
-    '3 el havermout — ongeveer 25 g',
-    'handje spinazie',
-    '1 volle schep eiwitpoeder'],
-   'Havermout zuigt vocht op, vandaar 300 ml in plaats van 250. Geen chiazaad erbij: samen met de haver wordt het pap. Dit is de variant die je tot de lunch brengt.'],
-  ['Rood fruit met kwark', 'de meeste eiwitten',
-   ['200 ml amandelmelk',
-    '150 g magere kwark',
-    '100 g diepvries rood fruit',
-    '½ banaan',
-    '1 el gemalen lijnzaad',
-    '½ schep eiwitpoeder'],
-   'De kwark levert zelf al zo’n 16 gram eiwit, dus hier is een halve schep genoeg — en minder melk, want de kwark maakt hem al romig. Let op dat het gemalen lijnzaad is: hele zaadjes gaan er onbeschadigd weer uit. Bewaar ze in de koelkast.'],
-];
+/* Hier stonden tot 25 november 2026 vier smoothie-recepten (SMOOTHIES) met
+   een eigen paneel op het scherm Vandaag. Gert haalde ze eruit. Het vinkje
+   "Smoothie-ontbijt" bij de gewoontes blijft gewoon staan. */
 
 /* De pictogrammen uit Gerts trainingsartifact, op naam. Ze staan apart van de
    oefeningen zelf zodat die lijst leesbaar blijft. Eén lijnstijl, currentColor,
@@ -1726,9 +1694,6 @@ const PICTO = {
 'Dead bug': '<line x1="6" y1="44" x2="54" y2="44" opacity=".3"/><circle cx="14" cy="39" r="4.5"/><path d="M18 40h20"/><path d="M20 39l-8-8"/><path d="M32 40l2-10"/><path d="M34 30l6-4"/><path d="M38 40l10 2"/>',
 /* Voor lopen stond er in het artifact geen pictogram; dit is er een in
    dezelfde stijl: een figuur in beweging. */
-/* Eén glas voor alle drie de smoothies — ze verschillen in wat erin gaat,
-   niet in hoe het eruitziet. */
-'Smoothie': '<path d="M20 14h20l-3 32h-14z"/><path d="M21.5 24h17" opacity=".35"/><path d="M34 14l7-7"/><path d="M41 7h4"/>',
 'Een regel': '<line x1="6" y1="50" x2="54" y2="50" opacity=".3"/><circle cx="34" cy="12" r="4.5"/><path d="M34 17l-4 12"/><path d="M30 29l-6 9"/><path d="M24 38l-6 10"/><path d="M30 29l8 6"/><path d="M38 35l2 13"/><path d="M33 20l10 4"/><path d="M33 22l-10 2"/>',
 };
 
@@ -1933,7 +1898,6 @@ const ui = {
   blokOpen: {},         // welke briefing-blokken uitgeklapt staan
   oefOpen: {},          // welke oefeningen hun uitleg tonen
   setPas: null,         // de set waarvan je gewicht of aantal aan het bijstellen bent
-  smoothieOpen: {},     // welke smoothie zijn ingrediënten toont
   kopOpen: {},          // welke tussenkopjes binnen een blok open staan
   meerOpen: {},         // bij welke blokken ook de berichten na de eerste zes staan
   draadOpen: {},        // welke draden onder Eerst dit opengeklapt staan
@@ -3416,11 +3380,18 @@ function tekenVandaag() {
 
   /* --- de vinkjes van vandaag --- */
   const tegels = el('div', { class: 'tegels' });
-  for (const g of GEWOONTES.filter(x => x.tegel)) {
+  /* Training vooraan, op de plek waar Hardlopen stond. */
+  const metTegel = GEWOONTES.filter(x => x.tegel)
+    .sort((a, b) => (b.uitTraining ? 1 : 0) - (a.uitTraining ? 1 : 0));
+  for (const g of metTegel) {
+    /* De tegel Training vinkt niets zelf aan: welke training het was (Kracht
+       A, Kracht B of Lopen) kies je op het scherm Training, dus daar brengt een
+       tik je heen. Hij staat aan zodra er vandaag een is afgevinkt. */
     tegels.appendChild(el('button', {
       class: 'tegel',
-      'aria-pressed': d[g.id] ? 'true' : 'false',
+      'aria-pressed': gedaanOp(nu, g) ? 'true' : 'false',
       onclick: () => {
+        if (g.uitTraining) { ui.tab = 'training'; tekenAlles(); window.scrollTo(0, 0); return; }
         const r = dag(nu, true);
         r[g.id] = !r[g.id];
         bewaar();
@@ -3484,7 +3455,6 @@ function tekenVandaag() {
       el('div', { class: 'telling ' + t.klasse, tekst: t.tekst }),
     ]));
   }
-  doel.appendChild(tekenSmoothies());
 
   doel.appendChild(paneel('Deze week', 'week ' + weekVan(nu).split('-W')[1], [lijst]));
 
@@ -3492,48 +3462,6 @@ function tekenVandaag() {
 
   /* --- de taken --- */
   doel.appendChild(tekenTaken());
-}
-
-/* ---------- smoothies ---------------------------------------------------
-   Dezelfde rijen als bij de oefeningen: een naam met een pijltje, en de
-   ingrediënten verschijnen pas als je erop tikt. Dichtgevouwen zijn het drie
-   regels, en dat is precies wat je 's ochtends nodig hebt — kiezen, niet lezen. */
-function tekenSmoothies() {
-  const lijst = el('div', { class: 'inhoud' });
-
-  SMOOTHIES.forEach(([naam, kort, spul, tip], n) => {
-    const sleutel = 'sm-' + n;
-    const open = !!ui.smoothieOpen[sleutel];
-    const o = el('div', { class: 'oef' + (open ? ' open' : '') });
-
-    const bovenkant = document.createElement('button');
-    bovenkant.className = 'oef-top';
-    bovenkant.innerHTML =
-      '<span class="picto"><svg viewBox="0 0 60 60" fill="none" stroke="currentColor" ' +
-        'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
-        PICTO['Smoothie'] + '</svg></span>' +
-      '<span class="oef-mid"><span class="oef-naam">' + naam + '</span>' +
-        '<span class="oef-kit">' + kort + '</span></span>' +
-      '<span class="pijl">&#9656;</span>';
-    bovenkant.dataset.sleutel = 'sm:' + sleutel;
-    bovenkant.addEventListener('click', () => {
-      ui.smoothieOpen[sleutel] = !open;
-      herteken(tekenVandaag, 'sm:' + sleutel);
-    });
-    o.append(bovenkant);
-
-    if (open) {
-      const body = el('div', { class: 'oef-body' });
-      body.innerHTML = '<p>' + spul.join('<br>') + '</p><p class="cue">' + tip + '</p>';
-      o.append(body);
-    }
-    lijst.append(o);
-  });
-
-  /* Hier stond uitleg over de volle schep eiwitpoeder. Die is eruit op Gerts
-     verzoek: het staat in elk recept zelf, en een tekst die je elke ochtend
-     opnieuw voorbij ziet komen terwijl je hem al kent, is ruis. */
-  return paneel('Smoothie', 'vier varianten', [lijst]);
 }
 
 /* ---------- afvalkalender ----------------------------------------------
@@ -5376,7 +5304,7 @@ function startHoofd(naar) {
   const af = takenAfVandaag().length;
   const rijen = [
     [week.gedaan, week.doel, week.gedaan === 1 && !week.doel ? 'training deze week' : 'trainingen deze week'],
-    [tegels.filter(g => d[g.id]).length, tegels.length, 'vinkjes vandaag'],
+    [tegels.filter(g => gedaanOp(vandaag(), g)).length, tegels.length, 'vinkjes vandaag'],
     [af, af + takenVoorVandaag().length, 'taken vandaag'],
   ];
 
