@@ -3866,6 +3866,64 @@ function tbLijn(begin, nu, eerste) {
   ]);
 }
 
+/* De grote lijn met je gewicht (sinds 25 november 2026, op Gerts verzoek in
+   de plaats van de weekdoelen). Een punt per week, elk punt het gemiddelde
+   van de zeven dagen ervoor: één ochtend op de weegschaal zegt weinig (zie
+   `weekvenster()`). Teruggeteld vanaf vandaag, zoals `tbLijn()`, en net zo ver
+   terug, maar niet verder dan de eerste keer wegen. Een week zonder wegen
+   laat een gat in de punten en de lijn loopt eroverheen.
+
+   De as schuift hier wel mee met de gegevens, anders dan bij de weekdoelen:
+   een kilo op een as van nul tot honderd is een rechte streep. Daarom staan
+   het hoogste en het laagste gewicht ernaast, zodat je ziet hoe groot het
+   verschil echt is. */
+function tbGewichtLijn(nu) {
+  const reeks = reeksVan('gewicht');
+  if (!reeks.length) return null;
+  const vroegst = reeks[0][0] > plusDagen(nu, -(TB_DAGEN - 1)) ? reeks[0][0] : plusDagen(nu, -(TB_DAGEN - 1));
+  const stappen = Math.floor(dagenTussen(vroegst, nu) / 7);
+  if (stappen < 1) return null;
+
+  const waarden = [];
+  for (let i = stappen; i >= 0; i--) {
+    const g = tbGewicht(plusDagen(nu, -7 * i));
+    if (g != null) waarden.push([(stappen - i) / stappen * 100, g]);
+  }
+  if (waarden.length < 2) return null;
+  let laag = Infinity, hoog = -Infinity;
+  for (const w of waarden) { laag = Math.min(laag, w[1]); hoog = Math.max(hoog, w[1]); }
+  const bereik = Math.max(hoog - laag, 1);
+  const y = v => 88 - (v - laag) / bereik * 72;
+  const punten = waarden.map(w => [w[0], y(w[1])]);
+  const pad = tbBocht(punten);
+  const eind = punten[punten.length - 1];
+  const kinderen = [
+    svgEl('path', { class: 'tb-vlak', d: pad + ' L' + eind[0].toFixed(2) + ' 100 L' + punten[0][0].toFixed(2) + ' 100 Z' }),
+    svgEl('line', { class: 'tb-raster', x1: 0, y1: y(hoog), x2: 100, y2: y(hoog) }),
+    svgEl('line', { class: 'tb-raster', x1: 0, y1: y(laag), x2: 100, y2: y(laag) }),
+    svgEl('line', { class: 'tb-raster', x1: 0, y1: 100, x2: 100, y2: 100 }),
+  ];
+  const grens = stappen > 5 ? (stappen - 4) / stappen * 100 : null;
+  if (grens != null) {
+    kinderen.push(svgEl('line', { class: 'tb-raster grens', x1: grens, y1: 0, x2: grens, y2: 100 }));
+  }
+  kinderen.push(svgEl('path', { class: 'tb-lijn', d: pad }));
+  punten.forEach((p, i) => {
+    const laatste = i === punten.length - 1;
+    kinderen.push(tbPunt(p[0], p[1], 'rand' + (laatste ? ' nu' : '')));
+    kinderen.push(tbPunt(p[0], p[1], laatste ? 'nu' : ''));
+  });
+  const maat = (v) => el('span', { class: 'maat', style: 'top:calc(' + y(v).toFixed(1) + '% - 6px)', tekst: nl(v) });
+  return el('div', null, [
+    el('div', { class: 'tb-grafiek' }, [tbVlak(kinderen), maat(hoog), hoog - laag >= 0.3 ? maat(laag) : null]),
+    el('div', { class: 'tb-as' }, [
+      el('span', { tekst: korteDatum(plusDagen(nu, -7 * stappen)) }),
+      grens != null ? el('span', { class: 'midden', style: 'left:' + grens.toFixed(1) + '%', tekst: 'vier weken' }) : null,
+      el('span', { tekst: 'vandaag' }),
+    ]),
+  ]);
+}
+
 /* Het gemiddelde gewicht over zeven dagen, of null als er in dat venster niet
    gewogen is. */
 function tbGewicht(tot) {
@@ -3947,13 +4005,17 @@ function tbOverzicht(begin, nu, eerste) {
       kToen != null ? String(kToen) : null, kToen != null && kNu > kToen, true));
   }
 
-  const lijn = tbLijn(begin, nu, eerste);
+  /* De lijn is je gewicht als er gewogen wordt, anders de weekdoelen. */
+  const gewichtLijn = tbGewichtLijn(nu);
+  const lijn = gewichtLijn || tbLijn(begin, nu, eerste);
   const korter = oud < 28;
   return paneel(korter ? 'Tot nu toe' : 'Laatste vier weken',
                 korter ? 'sinds ' + korteDatum(begin) : (erIsEenToen ? 'tegen de vier daarvoor' : ''), [
     el('div', { class: 'tb-cijfers' }, cijfers),
     lijn,
-    el('p', { class: 'tb-noot', tekst: lijn
+    el('p', { class: 'tb-noot', tekst: gewichtLijn
+      ? 'Een punt per week: je gewicht, zeven dagen gemiddeld. Ernaast het hoogste en het laagste.'
+      : lijn
       ? 'Een punt per week: het deel van je weekdoelen dat je haalde, alle gewoontes samen.'
       : 'Weekdoelen: het deel van je doelen dat je haalde, alle gewoontes samen. '
         + 'Na twee weken komt er een lijn bij.' }),
@@ -4122,7 +4184,9 @@ function tekenTerugblik() {
   if (begin && begin <= nu) {
     doel.appendChild(tbOverzicht(begin, nu, eerste));
     doel.appendChild(tbGewoontes(begin, nu, eerste));
-    const duo = [tbWeekdagen(begin, nu), tbGewichtPaneel(nu) || tbTakenPaneel(begin, nu)].filter(Boolean);
+    /* Staat het gewicht al in de grote lijn bovenaan, dan hier de taken. */
+    const klein = tbGewichtLijn(nu) ? tbTakenPaneel(begin, nu) : (tbGewichtPaneel(nu) || tbTakenPaneel(begin, nu));
+    const duo = [tbWeekdagen(begin, nu), klein].filter(Boolean);
     doel.appendChild(el('div', { class: duo.length > 1 ? 'tb-duo' : '' }, duo));
   }
 
