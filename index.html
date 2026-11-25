@@ -590,10 +590,16 @@
   .start .startkaart.briefing .startkoppen li { cursor: pointer; }
 
   /* De waarneming van de dag: de foto groot, de tekst er wit onderin. */
-  .startwaarneming { position: relative; display: block; height: 210px; border-radius: 16px; overflow: hidden;
+  /* De kaart neemt de verhouding van de foto aan zodra die geladen is
+     (startWaarneming() zet aspect-ratio). Tot 25 november 2026 was hij vast
+     210 hoog, en toen viel van de sperweruil van 2013 de kop eraf. Alleen een
+     heel hoge staande foto wordt nog afgekapt (max-height), en dan vanaf een
+     derde van boven gemeten: daar zit meestal de kop. */
+  .startwaarneming { position: relative; display: block; aspect-ratio: 16 / 10; min-height: 190px; max-height: 460px;
+    border-radius: 16px; overflow: hidden;
     color: #fff; text-decoration: none; background: var(--panel-2); box-shadow: var(--shadow); margin-top: 4px; }
   .startwaarneming img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    opacity: 0; transition: opacity .5s ease, transform 6s ease; }
+    object-position: 50% 30%; opacity: 0; transition: opacity .5s ease, transform 6s ease; }
   .startwaarneming img.geladen { opacity: 1; }
   .startwaarneming:active img { transform: scale(1.03); }
   .startwaarneming::after { content: ''; position: absolute; inset: 0;
@@ -1501,23 +1507,25 @@ const SLEUTEL = 'oprij.v1';
    Vegetarisch en zoogdier komen allebei uit dezelfde dagkeuze bij eten,
    zodat één tik per dag genoeg is. */
 const GEWOONTES = [
-  /* "Hardlopen of sporten" stond hier tot 25 november 2026, als tegel op
-     Vandaag. Lopen is sinds 22 november een van de drie trainingen, dus Gert
-     vroeg om op die plek "Training" te zetten. Wat er onder `dagen[datum].sport`
-     staat, blijft in de opslag en gaat mee in de reservekopie. */
+  /* Training bovenaan (25 november 2026, op Gerts verzoek): als eerste tegel op
+     Vandaag en als eerste regel bij Deze week. Hij telt mee als gewone
+     weekgewoonte, zodat de bolletjes en de terugblik hem vanzelf meenemen, maar
+     je vinkt hem niet op Vandaag aan: welke van de drie het was, kies je op het
+     scherm Training. De tegel brengt je daarheen.
+
+     "Hardlopen of sporten" stond hier tot die dag. Lopen is sinds 22 november
+     een van de drie trainingen, dus dat was dubbel. Wat er onder
+     `dagen[datum].sport` staat, blijft in de opslag en gaat mee in de
+     reservekopie. */
+  { id: 'training',  naam: 'Training',             kort: 'Training',    soort: 'min', uitTraining: true, tegel: true },
   { id: 'wandeling', naam: 'Lange wandeling',      kort: 'Wandeling',   soort: 'min', tegel: true },
   { id: 'mindful',   naam: 'Mindfulness',          kort: 'Mindfulness', soort: 'min', tegel: true },
   { id: 'smoothie',  naam: 'Smoothie-ontbijt',     kort: 'Smoothie',    soort: 'min', tegel: true },
   { id: 'veg',       naam: 'Vegetarisch',          soort: 'min', uitEten: 'veg' },
-  /* Geen chips, vijf dagen per week (2 november 2026, op Gerts verzoek). Twee
-     dagen ruimte is met opzet: een gewoonte die zeven van de zeven eist is op
-     woensdag al mislukt, en dan tik je de rest van de week niets meer aan.
-
-     Een `min`-gewoonte en geen `max`, net als Vegetarisch: je vinkt aan wat je
-     gedaan hebt. "Vandaag geen chips" is iets om te halen, "chips gehad" is
-     iets om te bekennen -- en dat laatste is precies waarom alcohol en zoogdier
-     er hierboven uit gingen. */
-  { id: 'chips',     naam: 'Geen chips',           kort: 'Geen chips',  soort: 'min', tegel: true },
+  /* Geen chips stond hier van 2 november tot 25 november 2026, vijf dagen per
+     week. Gert haalde hem eruit omdat hij geen chips meer eet: net als alcohol
+     en zoogdier is een vinkje voor iets dat voorbij is geen steun meer. Wat er
+     onder `dagen[datum].chips` staat, blijft in de opslag en de reservekopie. */
   /* Alcohol en "zoogdier gegeten" stonden hier tot 1 november 2026. Allebei
      waren het `max`-gewoontes: iets dat je zo min mogelijk wilde. Gert haalde
      ze er die dag uit, en niet omdat ze niet werkten -- hij drinkt niet meer en
@@ -1527,10 +1535,6 @@ const GEWOONTES = [
      Wat erin stond blijft staan: `dagen[datum].alcohol` en `eten: 'zoog'` zitten
      nog in de opslag en gaan mee in de reservekopie. Alleen toont de app ze niet
      meer. Wil hij ze ooit terug, dan is dat deze regel. */
-  /* Training telt mee als gewone weekgewoonte, zodat de bolletjes van deze
-     week en de terugblik hem vanzelf meenemen. Geen tegel: training heeft een
-     eigen scherm, want je moet kunnen kiezen wélke van de drie. */
-  { id: 'training',  naam: 'Training',             kort: 'Training',    soort: 'min', uitTraining: true, tegel: true },
 ];
 
 /* Het schema uit het trainingsplan: twee krachtdagen en een loopdag, om en om.
@@ -1700,7 +1704,7 @@ const PICTO = {
 
 
 const STANDAARD_DOELEN = { sport: 2, wandeling: 1, mindful: 3, smoothie: 3, veg: 2,
-                           training: 5, chips: 5 };
+                           training: 5 };
 
 const LABELS = [
   { id: 'bellen', naam: 'Bellen' },
@@ -3380,10 +3384,7 @@ function tekenVandaag() {
 
   /* --- de vinkjes van vandaag --- */
   const tegels = el('div', { class: 'tegels' });
-  /* Training vooraan, op de plek waar Hardlopen stond. */
-  const metTegel = GEWOONTES.filter(x => x.tegel)
-    .sort((a, b) => (b.uitTraining ? 1 : 0) - (a.uitTraining ? 1 : 0));
-  for (const g of metTegel) {
+  for (const g of GEWOONTES.filter(x => x.tegel)) {
     /* De tegel Training vinkt niets zelf aan: welke training het was (Kracht
        A, Kracht B of Lopen) kies je op het scherm Training, dus daar brengt een
        tik je heen. Hij staat aan zodra er vandaag een is afgevinkt. */
@@ -4882,7 +4883,11 @@ function startWaarneming() {
   const wanneer = (jaren === 1 ? 'Een jaar geleden' : jaren + ' jaar geleden') +
     ' \u00b7 ' + langeDatum(w.datum).replace(/^\S+ /, '') + ' ' + String(w.datum).slice(0, 4);
   const foto = el('img', { src: w.foto, alt: w.naam, loading: 'lazy', decoding: 'async' });
-  foto.addEventListener('load', () => foto.classList.add('geladen'));
+  foto.addEventListener('load', () => {
+    if (foto.naturalWidth && foto.naturalHeight)
+      kaart.style.aspectRatio = foto.naturalWidth + ' / ' + foto.naturalHeight;
+    foto.classList.add('geladen');
+  });
   foto.addEventListener('error', () => kaart.remove());
   const kaart = el('a', { class: 'startwaarneming', href: w.link || '#', target: '_blank', rel: 'noopener' }, [
     foto,
