@@ -316,6 +316,8 @@
   .jarig-invoer .breed { grid-column: 1 / -1; }
   .jarig-plak { width: 100%; padding: 10px; border: 1px solid var(--line-2); background: var(--panel-2);
                 color: var(--ink); border-radius: 10px; font: inherit; font-size: 15px; line-height: 1.45; resize: vertical; }
+  .jarig-erbij { display: block; width: 100%; text-align: left; border: 0; background: transparent;
+                 color: var(--ink-3); font-size: 14px; padding: 2px 4px 14px; cursor: pointer; }
   .startkaart .onder.jarig-tegel { color: var(--accent-ink); font-weight: 600; }
 
   /* --- terugblik --- */
@@ -3611,21 +3613,27 @@ function tekenVandaagBehoud(rest) {
   if (vak) { vak.value = rest; vak.focus(); }
 }
 
+/* Gewoonlijk is dit maar één knopje onder de taken: Gert wil niet de hele
+   lijst in beeld, alleen wie er vandaag jarig is (dat staat bovenaan) en een
+   manier om er iemand bij te zetten. Een tik opent het invulvak; daaronder
+   zitten het plakvak en, dichtgeklapt, de hele lijst om iemand weg te halen.
+   Dat open-of-dicht onthoudt de app niet: na een herstart is het weer dicht. */
 function tekenVerjaardagen() {
+  if (!ui.jarigOpen) {
+    return el('button', { class: 'jarig-erbij', tekst: '+ Verjaardag erbij',
+      onclick: () => { ui.jarigOpen = true; tekenVandaag(); } });
+  }
+  const sluit = () => { ui.jarigOpen = false; ui.jarigPlak = false; ui.alleJarig = false; tekenVandaag(); };
   const nu = vandaag();
   const rij = st.verjaardagen
     .map(v => ({ v, op: volgendeVerjaardag(v, nu) }))
     .sort((a, b) => a.op < b.op ? -1 : a.op > b.op ? 1 : a.v.naam.localeCompare(b.v.naam));
 
   const onderdelen = [];
-  if (!rij.length) {
-    onderdelen.push(el('div', { class: 'leeg', tekst: 'Nog geen verjaardagen. Zet ze erbij, dan zie je hier en op het startscherm wie er jarig is.' }));
-  } else {
-    /* De eerstvolgende zes; de rest achter een vouwknop, zodat een lange
-       familielijst het scherm niet overneemt. */
-    const toon = ui.alleJarig ? rij : rij.slice(0, 6);
+  const lijstDeel = [];
+  if (ui.alleJarig && rij.length) {
     const lijst = el('ul', { class: 'jarig' });
-    for (const { v, op } of toon) {
+    for (const { v, op } of rij) {
       const n = dagenTot(op);
       const wanneer = n === 0 ? 'vandaag' : n === 1 ? 'morgen' : n < 14 ? 'over ' + n + ' dagen' : korteDatum(op);
       const leeftijd = v.jaar ? (n === 0 ? ', ' : ', wordt ') + (Number(op.slice(0, 4)) - v.jaar) : '';
@@ -3643,22 +3651,10 @@ function tekenVerjaardagen() {
         })]),
       ]));
     }
-    onderdelen.push(lijst);
-    if (rij.length > 6) {
-      onderdelen.push(el('button', {
-        class: 'vouw',
-        tekst: ui.alleJarig ? '▾ Alleen de eerstvolgende' : '▸ Alle ' + rij.length + ' verjaardagen',
-        onclick: () => { ui.alleJarig = !ui.alleJarig; tekenVandaag(); },
-      }));
-    }
+    lijstDeel.push(lijst);
   }
 
-  /* Het invulvak klapt pas open als je erom vraagt: verjaardagen zet je er
-     een keer in, daarna wil je alleen de lijst zien. */
-  if (!ui.jarigInvoer) {
-    onderdelen.push(el('button', { class: 'vouw', tekst: '+ Verjaardag erbij',
-      onclick: () => { ui.jarigInvoer = true; tekenVandaag(); } }));
-  } else {
+  {
     const naam = el('input', { type: 'text', class: 'breed', placeholder: 'Naam', autocapitalize: 'words', enterkeyhint: 'done' });
     const dag = el('select', { 'aria-label': 'Dag' },
       [el('option', { value: '', tekst: 'Dag' })].concat(
@@ -3679,8 +3675,7 @@ function tekenVerjaardagen() {
       if (jaar.value.trim() && !geldigJaar) { zeg('Dat jaartal klopt niet'); jaar.focus(); return; }
       st.verjaardagen.push({ id: nieuwId(), naam: n, dag: d, maand: m, jaar: geldigJaar });
       bewaar();
-      ui.jarigInvoer = false;
-      tekenVandaag();
+      sluit();
       zeg(n + ' staat erbij');
     };
     for (const veld of [naam, jaar]) veld.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); voegToe(); } });
@@ -3688,10 +3683,10 @@ function tekenVerjaardagen() {
       naam, dag, maand, jaar,
       el('div', { class: 'knoprij breed' }, [
         el('button', { class: 'btn primair', tekst: 'Zet erbij', onclick: voegToe }),
-        el('button', { class: 'btn', tekst: 'Laat maar', onclick: () => { ui.jarigInvoer = false; tekenVandaag(); } }),
+        el('button', { class: 'btn', tekst: 'Laat maar', onclick: sluit }),
       ]),
     ]));
-    setTimeout(() => naam.focus(), 0);
+    if (!ui.jarigPlak && !ui.alleJarig) setTimeout(() => naam.focus(), 0);
   }
 
   if (!ui.jarigPlak) {
@@ -3714,8 +3709,7 @@ function tekenVerjaardagen() {
         tekenVandaagBehoud(vak.value);
         return;
       }
-      ui.jarigPlak = false;
-      tekenVandaag();
+      sluit();
       zeg(nieuw.length ? nieuw.length + (nieuw.length === 1 ? ' verjaardag' : ' verjaardagen') + ' erbij'
                        : 'Die stonden er al in');
     };
@@ -3728,7 +3722,16 @@ function tekenVerjaardagen() {
     ]));
   }
 
-  return paneel('Verjaardagen', rij.length ? String(rij.length) : '', onderdelen);
+  if (rij.length) {
+    onderdelen.push(el('button', {
+      class: 'vouw',
+      tekst: (ui.alleJarig ? '▾ ' : '▸ ') + 'Alle ' + rij.length + ' verjaardagen',
+      onclick: () => { ui.alleJarig = !ui.alleJarig; tekenVandaag(); },
+    }));
+    onderdelen.push(...lijstDeel);
+  }
+
+  return paneel('Verjaardag erbij', '', onderdelen);
 }
 
 /* ---------- afvalkalender ----------------------------------------------
@@ -5342,7 +5345,11 @@ function startKop() {
    de rest er staat. */
 const LUCHT_FILMS = ['herfst-ochtend-mist', 'herfst-ochtend-helder', 'herfst-ochtend-bewolkt', 'herfst-avond-helder',
   'herfst-avond-vorst', 'herfst-avond-mist', 'herfst-middag-mist', 'herfst-avond-bewolkt',
-  'winter-ochtend-helder', 'winter-ochtend-vorst', 'winter-avond-helder', 'winter-ochtend-bewolkt'];
+  'winter-ochtend-helder', 'winter-ochtend-vorst', 'winter-avond-helder', 'winter-ochtend-bewolkt',
+  /* 28 november 2026: de middag en avond met regen (Runway-beelden; de
+     winter leent ze zolang er geen eigen winterregen is) en de bewolkte
+     wintermiddag en -avond (eigen sneeuwfoto's). */
+  'herfst-middag-regen', 'herfst-avond-regen', 'winter-middag-bewolkt', 'winter-avond-bewolkt'];
 function luchtFilm(naam) {
   if (!LUCHT_FILMS.includes(naam)) return null;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
