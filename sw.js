@@ -24,7 +24,7 @@ const DATA_HOST = 'raw.githubusercontent.com';
    seconden: lang genoeg dat een gewone verbinding hem altijd wint, kort genoeg
    dat je er bij een trage niet naar zit te kijken. */
 const NETWERK_GEDULD = 2000;
-const VERSIE = 'oprij-de260aff';
+const VERSIE = 'oprij-2b9ed2cc';
 const BESTANDEN = [
   './',
   './index.html',
