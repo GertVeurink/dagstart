@@ -297,6 +297,27 @@
   .vouw { width: 100%; text-align: left; border: 0; background: transparent; color: var(--ink-3); font-size: 13.5px; padding: 11px 0 0; cursor: pointer; border-top: 1px solid var(--line); margin-top: 4px; }
   .leeg { color: var(--ink-3); font-size: 14.5px; padding: 14px 0 4px; }
 
+  /* Verjaardagen (28 november 2026). Wie vandaag jarig is staat bovenaan Op
+     Rij in warm geel: een feestje, geen taak. `position: relative`, omdat de
+     luchtband bovenin 18 pixels over het eerste vak valt en er anders
+     overheen schildert. */
+  .jarig-nu { position: relative; margin: 0 0 14px; padding: 12px 14px; border-radius: var(--radius);
+              background: var(--warm-zacht); border-left: 3px solid var(--warm);
+              font-size: 16px; font-weight: 600; line-height: 1.4; }
+  ul.jarig { list-style: none; margin: 0; padding: 0; }
+  ul.jarig li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+  ul.jarig li:first-child { border-top: 0; padding-top: 2px; }
+  ul.jarig li.nu .naam { color: var(--accent-ink); font-weight: 600; }
+  ul.jarig .naam { flex: 1; min-width: 0; font-size: 15px; word-break: break-word; }
+  ul.jarig .wanneer { font-size: 13px; color: var(--ink-3); text-align: right; }
+  .jarig-invoer { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .jarig-invoer input, .jarig-invoer select { width: 100%; min-width: 0; padding: 10px; border: 1px solid var(--line-2);
+              background: var(--panel-2); color: var(--ink); border-radius: 10px; font-size: 15px; }
+  .jarig-invoer .breed { grid-column: 1 / -1; }
+  .jarig-plak { width: 100%; padding: 10px; border: 1px solid var(--line-2); background: var(--panel-2);
+                color: var(--ink); border-radius: 10px; font: inherit; font-size: 15px; line-height: 1.45; resize: vertical; }
+  .startkaart .onder.jarig-tegel { color: var(--accent-ink); font-weight: 600; }
+
   /* --- terugblik --- */
   .vgl { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
   .vgl:last-child { border-bottom: 0; }
@@ -1729,7 +1750,7 @@ let opslagWerkt = true;
 function leeg() {
   return { versie: 1, taken: [], dagen: {}, doelen: Object.assign({}, STANDAARD_DOELEN),
            bewaard: [], gevierd: [], dossiers: [], metingen: {}, laatsteKopie: null,
-           meldingGezien: null, beslisboek: {} };
+           meldingGezien: null, beslisboek: {}, verjaardagen: [] };
 }
 
 /* Elk veld hier moet ook in leeg() staan, en andersom.
@@ -1757,6 +1778,7 @@ function vormGoed() {
   if (!st.metingen || typeof st.metingen !== 'object') st.metingen = {};
   if (typeof st.meldingGezien !== 'string') st.meldingGezien = null;
   if (!st.beslisboek || typeof st.beslisboek !== 'object' || Array.isArray(st.beslisboek)) st.beslisboek = {};
+  if (!Array.isArray(st.verjaardagen)) st.verjaardagen = [];
 }
 
 function laad() {
@@ -3414,6 +3436,9 @@ function tekenVandaag() {
       slim.map(t => el('p', { tekst: t }))));
   }
 
+  const jarig = jarigVandaagTekst();
+  if (jarig) doel.appendChild(el('div', { class: 'jarig-nu', tekst: '🎂 ' + jarig }));
+
   /* --- de vinkjes van vandaag --- */
   const tegels = el('div', { class: 'tegels' });
   for (const g of GEWOONTES.filter(x => x.tegel)) {
@@ -3495,6 +3520,215 @@ function tekenVandaag() {
 
   /* --- de taken --- */
   doel.appendChild(tekenTaken());
+
+  doel.appendChild(tekenVerjaardagen());
+}
+
+/* ---------- verjaardagen ----------------------------------------------
+   Sinds 28 november 2026, Gerts wens: "vandaag jarig" bij Op Rij.
+
+   Namen en datums staan alleen in `oprij.v1` op dit toestel, en gaan mee in
+   de reservekopie. Bewust niet in de code of in de briefing: die staan
+   openbaar bij GitHub, en wie er in de familie wanneer jarig is hoort daar
+   niet. Daardoor kan de Mac er ook geen pushbericht over sturen; hij weet
+   het niet.
+
+   Een verjaardag is { id, naam, dag, maand, jaar }. Het jaar mag leeg: dan
+   staat er geen leeftijd bij. Wie op 29 februari jarig is, krijgt het in een
+   gewoon jaar op 28 februari te zien, zodat hij niet drie jaar overgeslagen
+   wordt. */
+function verjaardagIn(v, jaar) {
+  let dag = v.dag;
+  const schrikkel = (jaar % 4 === 0 && jaar % 100 !== 0) || jaar % 400 === 0;
+  if (v.maand === 2 && dag === 29 && !schrikkel) dag = 28;
+  return jaar + '-' + String(v.maand).padStart(2, '0') + '-' + String(dag).padStart(2, '0');
+}
+
+function volgendeVerjaardag(v, vanaf) {
+  const jaar = Number(vanaf.slice(0, 4));
+  const dit = verjaardagIn(v, jaar);
+  return dit >= vanaf ? dit : verjaardagIn(v, jaar + 1);
+}
+
+function jarigOp(datum) {
+  return st.verjaardagen.filter(v => verjaardagIn(v, Number(datum.slice(0, 4))) === datum);
+}
+
+/* "Conny (52)": de leeftijd die iemand op die dag wordt. */
+function jarigNaam(v, datum) {
+  return v.naam + (v.jaar ? ' (' + (Number(datum.slice(0, 4)) - v.jaar) + ')' : '');
+}
+
+function opsomming(namen) {
+  return namen.length < 2 ? namen.join('') : namen.slice(0, -1).join(', ') + ' en ' + namen[namen.length - 1];
+}
+
+/* Een plaklijst lezen: één verjaardag per regel, naam en dan datum.
+   "Conny 12-3-1974", "Opa Jan: 29/11", "Femke 3 januari 2000" werken allemaal.
+   Zo kan Gert de lijst in een gesprek met Claude laten opmaken (of uit zijn
+   agenda overtikken) en in één keer in de app plakken, in plaats van tien
+   keer het invulvak. Geeft de regels terug die het niet snapte. */
+function leesVerjaardagen(tekst) {
+  const goed = [], fout = [];
+  const maandVan = (w) => {
+    const k = w.toLowerCase().replace('.', '');
+    if (k === 'mrt') return 3;
+    const i = MAANDEN.findIndex(m => m === k || m.slice(0, 3) === k.slice(0, 3) && k.length >= 3);
+    return i < 0 ? 0 : i + 1;
+  };
+  for (const ruw of tekst.split(/\n/)) {
+    const regel = ruw.trim().replace(/^[-*•]\s*/, '');
+    if (!regel) continue;
+    let r = /^(.+?)[\s,:;]+(\d{1,2})[-\/. ](\d{1,2})(?:[-\/. ](\d{4}))?\.?$/.exec(regel);
+    let naam, dag, maand, jaar;
+    if (r) { naam = r[1]; dag = +r[2]; maand = +r[3]; jaar = r[4] ? +r[4] : null; }
+    else {
+      r = /^(.+?)[\s,:;]+(\d{1,2})\s+([a-zA-Z.]+)(?:\s+(\d{4}))?\.?$/.exec(regel);
+      if (r) { naam = r[1]; dag = +r[2]; maand = maandVan(r[3]); jaar = r[4] ? +r[4] : null; }
+    }
+    naam = (naam || '').replace(/[\s,:;–-]+$/, '').trim();
+    const maxDag = maand ? [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][maand - 1] : 0;
+    if (!naam || !maand || !dag || dag > maxDag || (jaar && (jaar < 1900 || jaar > new Date().getFullYear()))) {
+      fout.push(ruw.trim());
+      continue;
+    }
+    goed.push({ naam, dag, maand, jaar });
+  }
+  return { goed, fout };
+}
+
+function jarigVandaagTekst() {
+  const nu = vandaag();
+  const wie = jarigOp(nu);
+  return wie.length ? 'Vandaag jarig: ' + opsomming(wie.map(v => jarigNaam(v, nu))) : '';
+}
+
+/* Na een plakpoging met foute regels: scherm opnieuw tekenen, de lijst is
+   bijgewerkt, en alleen de regels die niet lukten blijven in het vak staan. */
+function tekenVandaagBehoud(rest) {
+  tekenVandaag();
+  const vak = document.querySelector('#tab-vandaag .jarig-plak');
+  if (vak) { vak.value = rest; vak.focus(); }
+}
+
+function tekenVerjaardagen() {
+  const nu = vandaag();
+  const rij = st.verjaardagen
+    .map(v => ({ v, op: volgendeVerjaardag(v, nu) }))
+    .sort((a, b) => a.op < b.op ? -1 : a.op > b.op ? 1 : a.v.naam.localeCompare(b.v.naam));
+
+  const onderdelen = [];
+  if (!rij.length) {
+    onderdelen.push(el('div', { class: 'leeg', tekst: 'Nog geen verjaardagen. Zet ze erbij, dan zie je hier en op het startscherm wie er jarig is.' }));
+  } else {
+    /* De eerstvolgende zes; de rest achter een vouwknop, zodat een lange
+       familielijst het scherm niet overneemt. */
+    const toon = ui.alleJarig ? rij : rij.slice(0, 6);
+    const lijst = el('ul', { class: 'jarig' });
+    for (const { v, op } of toon) {
+      const n = dagenTot(op);
+      const wanneer = n === 0 ? 'vandaag' : n === 1 ? 'morgen' : n < 14 ? 'over ' + n + ' dagen' : korteDatum(op);
+      const leeftijd = v.jaar ? (n === 0 ? ', ' : ', wordt ') + (Number(op.slice(0, 4)) - v.jaar) : '';
+      lijst.appendChild(el('li', { class: n === 0 ? 'nu' : '' }, [
+        el('div', { class: 'naam', tekst: (n === 0 ? '🎂 ' : '') + v.naam }),
+        el('div', { class: 'wanneer', tekst: wanneer + leeftijd }),
+        el('div', { class: 'acties' }, [el('button', {
+          title: 'Weghalen', 'aria-label': v.naam + ' weghalen', tekst: '×',
+          onclick: () => {
+            if (!confirm(v.naam + ' uit de verjaardagen halen?')) return;
+            st.verjaardagen = st.verjaardagen.filter(x => x.id !== v.id);
+            bewaar();
+            tekenVandaag();
+          },
+        })]),
+      ]));
+    }
+    onderdelen.push(lijst);
+    if (rij.length > 6) {
+      onderdelen.push(el('button', {
+        class: 'vouw',
+        tekst: ui.alleJarig ? '▾ Alleen de eerstvolgende' : '▸ Alle ' + rij.length + ' verjaardagen',
+        onclick: () => { ui.alleJarig = !ui.alleJarig; tekenVandaag(); },
+      }));
+    }
+  }
+
+  /* Het invulvak klapt pas open als je erom vraagt: verjaardagen zet je er
+     een keer in, daarna wil je alleen de lijst zien. */
+  if (!ui.jarigInvoer) {
+    onderdelen.push(el('button', { class: 'vouw', tekst: '+ Verjaardag erbij',
+      onclick: () => { ui.jarigInvoer = true; tekenVandaag(); } }));
+  } else {
+    const naam = el('input', { type: 'text', class: 'breed', placeholder: 'Naam', autocapitalize: 'words', enterkeyhint: 'done' });
+    const dag = el('select', { 'aria-label': 'Dag' },
+      [el('option', { value: '', tekst: 'Dag' })].concat(
+        Array.from({ length: 31 }, (_, i) => el('option', { value: String(i + 1), tekst: String(i + 1) }))));
+    const maand = el('select', { 'aria-label': 'Maand' },
+      [el('option', { value: '', tekst: 'Maand' })].concat(
+        MAANDEN.map((m, i) => el('option', { value: String(i + 1), tekst: m }))));
+    const jaar = el('input', { type: 'text', class: 'breed', inputmode: 'numeric', placeholder: 'Geboortejaar (mag leeg)', enterkeyhint: 'done' });
+    const voegToe = () => {
+      const n = naam.value.trim(), d = Number(dag.value), m = Number(maand.value);
+      const j = Number(jaar.value.trim());
+      if (!n) { zeg('Vul een naam in'); naam.focus(); return; }
+      if (!d || !m) { zeg('Kies dag en maand'); return; }
+      /* 31 november bestaat niet; 29 februari wel. */
+      if (d > [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1]) { zeg(MAANDEN[m - 1] + ' heeft geen ' + d + ' dagen'); return; }
+      const ditJaar = new Date().getFullYear();
+      const geldigJaar = Number.isInteger(j) && j > 1900 && j <= ditJaar ? j : null;
+      if (jaar.value.trim() && !geldigJaar) { zeg('Dat jaartal klopt niet'); jaar.focus(); return; }
+      st.verjaardagen.push({ id: nieuwId(), naam: n, dag: d, maand: m, jaar: geldigJaar });
+      bewaar();
+      ui.jarigInvoer = false;
+      tekenVandaag();
+      zeg(n + ' staat erbij');
+    };
+    for (const veld of [naam, jaar]) veld.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); voegToe(); } });
+    onderdelen.push(el('div', { class: 'jarig-invoer' }, [
+      naam, dag, maand, jaar,
+      el('div', { class: 'knoprij breed' }, [
+        el('button', { class: 'btn primair', tekst: 'Zet erbij', onclick: voegToe }),
+        el('button', { class: 'btn', tekst: 'Laat maar', onclick: () => { ui.jarigInvoer = false; tekenVandaag(); } }),
+      ]),
+    ]));
+    setTimeout(() => naam.focus(), 0);
+  }
+
+  if (!ui.jarigPlak) {
+    onderdelen.push(el('button', { class: 'vouw', tekst: '+ Een hele lijst plakken',
+      onclick: () => { ui.jarigPlak = true; tekenVandaag(); } }));
+  } else {
+    const vak = el('textarea', { class: 'jarig-plak', rows: '6',
+      placeholder: 'Eén per regel, naam en datum:\nConny 12-3-1974\nOpa Jan 29-11' });
+    const plak = () => {
+      const { goed, fout } = leesVerjaardagen(vak.value);
+      /* Wie er al met dezelfde naam en dag in staat, komt er niet dubbel in:
+         zo kun je dezelfde lijst gerust twee keer plakken. */
+      const nieuw = goed.filter(g => !st.verjaardagen.some(v =>
+        v.naam.toLowerCase() === g.naam.toLowerCase() && v.dag === g.dag && v.maand === g.maand));
+      for (const g of nieuw) st.verjaardagen.push(Object.assign({ id: nieuwId() }, g));
+      if (nieuw.length) bewaar();
+      if (fout.length) {
+        vak.value = fout.join('\n');
+        zeg((nieuw.length ? nieuw.length + ' erbij. ' : '') + 'Deze regels snapte ik niet');
+        tekenVandaagBehoud(vak.value);
+        return;
+      }
+      ui.jarigPlak = false;
+      tekenVandaag();
+      zeg(nieuw.length ? nieuw.length + (nieuw.length === 1 ? ' verjaardag' : ' verjaardagen') + ' erbij'
+                       : 'Die stonden er al in');
+    };
+    onderdelen.push(el('div', { class: 'jarig-invoer' }, [
+      el('div', { class: 'breed' }, [vak]),
+      el('div', { class: 'knoprij breed' }, [
+        el('button', { class: 'btn primair', tekst: 'Zet erbij', onclick: plak }),
+        el('button', { class: 'btn', tekst: 'Laat maar', onclick: () => { ui.jarigPlak = false; tekenVandaag(); } }),
+      ]),
+    ]));
+  }
+
+  return paneel('Verjaardagen', rij.length ? String(rij.length) : '', onderdelen);
 }
 
 /* ---------- afvalkalender ----------------------------------------------
@@ -5665,8 +5899,16 @@ function startTraining() {
 /* Op Rij: hoeveel er vandaag nog open staat. */
 function startOpRij() {
   const n = takenVoorVandaag().length;
-  return startKaart('oprij', 'Op Rij',
-    n === 0 ? 'Geen taken open' : n + (n === 1 ? ' taak open' : ' taken open'));
+  const taken = n === 0 ? 'Geen taken open' : n + (n === 1 ? ' taak open' : ' taken open');
+  /* Is er iemand jarig, dan staat dat er die dag in plaats van de taken, in
+     de kleur van de tegel. Kort, "Jarig: Conny", zonder "vandaag" en zonder
+     leeftijd: de tegel is een halve schermbreedte en heeft twee regels, en
+     met de taken erachter werd de naam afgekapt. De hele zin, met leeftijd,
+     staat bovenaan Op Rij en de taken staan daar ook. */
+  const wie = jarigOp(vandaag());
+  if (!wie.length) return startKaart('oprij', 'Op Rij', taken);
+  return startKaart('oprij', 'Op Rij', null, [el('div', { class: 'onder jarig-tegel',
+    tekst: '🎂 Jarig: ' + opsomming(wie.map(v => v.naam)) })]);
 }
 
 /* De ingang naar Terugblik, met één getal dat zegt waar het heen gaat.
