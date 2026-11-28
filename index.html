@@ -1652,8 +1652,13 @@ const AMBITIE = {
  * rond 1 oktober 2027: hetzelfde tempo, twee keer zo lang. Onder de 30 op de
  * 5 km was zes jaar geleden zijn plafond, en verder onder die 30 komen is bij
  * 51 jaar en 100 kilo het zwaarste stuk. Langer lopen is beter voor conditie
- * en gewicht, en minder riskant als het geleidelijk gaat. */
-const LOOPDOEL = { afstand: 5, tijd: 30, rondje: 5, op: '2027-03-01' };
+ * en gewicht, en minder riskant als het geleidelijk gaat.
+ *
+ * Op 28 november 2026 naar voren gehaald naar 1 januari 2027, op Gerts eigen
+ * wens. Die dag liep hij al onder de 31:00, de mijlpaal die voor 1 januari
+ * stond. Van 31:00 naar 30:00 in vijf weken is twaalf seconden per km, zo'n
+ * 2,5 per week: nog altijd ruim onder LOOPMAX_PER_WEEK. */
+const LOOPDOEL = { afstand: 5, tijd: 30, rondje: 5, op: '2027-01-01' };
 const LOOPAMBITIE = { afstand: 10, tijd: 60, op: '2027-10-01' };
 
 /* De opbouw van de lange dag, in minuten.
@@ -2888,13 +2893,20 @@ function tekenLoop(binnenin) {
   /* Het doel en de ambitie. Het doel is het rondje zelf, dus de tijd op je
      rondje is de tijd die telt; de ambitie is hetzelfde tempo over twee keer
      die afstand. */
-  const mijlpaal = LOOPMIJLPALEN.find(([d]) => d >= vandaag());
+  /* De eerstvolgende is de eerste die nog niet gehaald is (en nog niet
+     voorbij). De laatst gehaalde staat erboven, met de dag en de tijd. */
+  const gehaald = LOOPMIJLPALEN.map(m => [m, mijlpaalGehaald(m)]).filter(x => x[1]);
+  const mijlpaal = LOOPMIJLPALEN.find(m => m[0] >= vandaag() && !mijlpaalGehaald(m));
+  const laatst = gehaald.length ? gehaald[gehaald.length - 1] : null;
   const doelblok = el('div', { class: 'ambitie' }, [
     el('div', { tekst: 'Doel: ' + LOOPDOEL.afstand + ' km onder de ' + LOOPDOEL.tijd
            + ' minuten, rond ' + korteDatum(LOOPDOEL.op) + '. Dat is '
            + tempoTekst(LOOPDOEL.tijd / LOOPDOEL.afstand) + ' per km.' }),
     el('div', { tekst: 'Ambitie: ' + LOOPAMBITIE.afstand + ' km onder het uur, rond '
            + korteDatum(LOOPAMBITIE.op) + ' 2027. Hetzelfde tempo, twee keer zo lang.' }),
+    laatst ? el('div', { tekst: 'Gehaald: ' + laatst[0][1] + ', op '
+             + korteDatum(laatst[1][0]) + ' in ' + looptijdTekst(laatst[1][1].min)
+             + ' over ' + nl(laatst[1][1].km) + ' km. \ud83c\udf89' }) : null,
     mijlpaal ? el('div', { tekst: 'Eerstvolgende mijlpaal: ' + mijlpaal[1] + ', rond '
              + korteDatum(mijlpaal[0]) + '.' }) : null,
   ]);
@@ -2963,16 +2975,36 @@ const LOOPMAX_PER_WEEK = 0.12;  // 7 sec per km per week; sneller houdt niemand 
  * geen echte lange loop is ingevuld. */
 const LANGER_IS_TRAGER = 0.25;
 
-/* Gezet op 22 november 2026, na 5 km in 31:50. De eerste drie zijn
- * anderhalve seconde per km per week: ruim onder wat LOOPMAX_PER_WEEK nog
- * houdbaar vindt. */
+/* Gezet op 22 november 2026, na 5 km in 31:50, en bijgesteld op 28 november
+ * toen Gert de eerste al haalde en het doel naar 1 januari wilde. De 31:00
+ * stond eerst op 1 januari, de 30:30 op 1 februari en de 30:00 op 1 maart. De
+ * volgorde telt: de eerstvolgende is de eerste in deze lijst die nog niet
+ * gehaald is. */
 const LOOPMIJLPALEN = [
-  ['2027-01-01', '5 km onder 31:00'],
-  ['2027-02-01', '5 km onder 30:30'],
-  ['2027-03-01', '5 km onder de 30 minuten'],
-  ['2027-03-15', 'een lange dag van 70 minuten, zo\u2019n 10 km'],
-  ['2027-10-01', '10 km onder het uur'],
+  ['2026-11-28', '5 km onder 31:00', l => opAfstand(l, 5, 31)],
+  ['2026-12-15', '5 km onder 30:30', l => opAfstand(l, 5, 30.5)],
+  ['2027-01-01', '5 km onder de 30 minuten', l => opAfstand(l, 5, 30)],
+  ['2027-03-15', 'een lange dag van 70 minuten, zo\u2019n 10 km', l => l.min >= 70 || l.km >= 9.5],
+  ['2027-10-01', '10 km onder het uur', l => opAfstand(l, 10, 60)],
 ];
+
+/* Haalt dit loopje de tijd op die afstand? Sinds 28 november 2026, toen Gert
+   de eerste mijlpaal ruim een maand te vroeg haalde en de app hem nog steeds
+   als "eerstvolgende" liet staan: die keek alleen naar de datum.
+   Omgerekend op zijn tempo, want gps meet nooit precies 5,00 km. Minstens
+   99% van de afstand (4,95 km telt, 4,8 niet) en hooguit 10% verder, anders
+   is het een ander soort loop. */
+function opAfstand(l, km, minuten) {
+  if (!l || !(l.km > 0) || l.km < km * 0.99 || l.km > km * 1.1) return false;
+  return l.min / l.km * km < minuten;
+}
+
+/* Wanneer een mijlpaal voor het eerst gehaald is: [datum, loopje], of null. */
+function mijlpaalGehaald(m) {
+  const dagen = loopDagen().slice().reverse();
+  for (const d of dagen) if (m[2](st.dagen[d].loop)) return [d, st.dagen[d].loop];
+  return null;
+}
 
 function loopDagen(hoeveel) {
   return Object.keys(st.dagen || {})
